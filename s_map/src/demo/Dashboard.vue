@@ -195,7 +195,7 @@
 </template>
 
 <script setup>
-import logoSymbol from './assets/vite.svg'
+import logoSymbol from '../assets/logo_svg.svg'
 
 const baseIcon = `
   <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -300,8 +300,8 @@ const utilization = [
   min-height: 100vh;
   display: grid;
   grid-template-columns: 230px minmax(0, 1fr);
-  background: #f0f2f5;
-  color: #1a2642;
+  background: #F8FAFC;
+  color: #0D1F3C;
   font-family:
     "Pretendard Variable", Pretendard, "Noto Sans KR", Inter, -apple-system, BlinkMacSystemFont,
     sans-serif;
@@ -318,7 +318,7 @@ const utilization = [
   flex-direction: column;
   background: #0D1F3C;
   color: #ffffff;
-  box-shadow: 8px 0 22px rgba(0,0,0,0.3);
+  box-shadow: 12px 0 32px rgba(13,31,60,0.4);
 }
 
 .brand {
@@ -411,7 +411,7 @@ const utilization = [
 
 .topbar h1 {
   margin: 0 0 8px;
-  color: #1a2642;
+  color: #0D1F3C;
   font-size: 26px;
   line-height: 1.2;
   font-weight: 700;
@@ -438,7 +438,7 @@ const utilization = [
   border: 1px solid #CBD5E0;
   border-radius: 8px;
   background: #ffffff;
-  color: #1a2642;
+  color: #0D1F3C;
   font-weight: 600;
   box-shadow: 0 6px 18px rgba(18, 34, 64, 0.04);
 }
@@ -499,7 +499,7 @@ const utilization = [
   display: flex;
   align-items: center;
   gap: 13px;
-  color: #1a2642;
+  color: #0D1F3C;
   font-size: 17px;
   font-weight: 600;
 }
@@ -511,7 +511,7 @@ const utilization = [
   place-items: center;
   border-radius: 50%;
   background: #EFF6FF;
-  color: #1a2642;
+  color: #0D1F3C;
 }
 
 .avatar svg {
@@ -543,7 +543,7 @@ const utilization = [
 
 .metric-card h2 {
   margin: 0 0 12px;
-  color: #1a2642;
+  color: #0D1F3C;
   font-size: 17px;
   font-weight: 650;
   letter-spacing: -0.1px;
@@ -555,7 +555,7 @@ const utilization = [
   gap: 13px;
   padding-bottom: 12px;
   border-bottom: 1px solid #E2E8F0;
-  color: #1a2642;
+  color: #0D1F3C;
   font-size: 50px;
   line-height: 0.95;
   font-weight: 800;
@@ -615,7 +615,7 @@ const utilization = [
 
 .panel-header h2 {
   margin: 0;
-  color: #1a2642;
+  color: #0D1F3C;
   font-size: 20px;
   font-weight: 700;
   letter-spacing: -0.2px;
@@ -625,7 +625,7 @@ const utilization = [
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  color: #1a2642;
+  color: #0D1F3C;
   font-size: 14px;
   font-weight: 600;
   text-decoration: none;
@@ -857,7 +857,7 @@ const utilization = [
   padding: 13px 16px;
   border-top: 1px solid #E2E8F0;
   border-radius: 7px;
-  background: #FAFBFD;
+  background: #F8FAFC;
 }
 
 .order-average div:first-child {
