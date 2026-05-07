@@ -18,7 +18,6 @@
           <span>{{ item.label }}</span>
         </a>
       </nav>
-
     </aside>
 
     <main class="main-content">
@@ -29,7 +28,11 @@
         </div>
 
         <div class="top-actions">
-          <button class="icon-button notification-button" type="button" aria-label="알림">
+          <button
+            class="icon-button notification-button"
+            type="button"
+            aria-label="알림"
+          >
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M18 8a6 6 0 1 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9" />
               <path d="M10 21h4" />
@@ -50,7 +53,11 @@
       </header>
 
       <section class="metric-grid" aria-label="주요 지표">
-        <article v-for="metric in metrics" :key="metric.title" class="metric-card">
+        <article
+          v-for="metric in metrics"
+          :key="metric.title"
+          class="metric-card"
+        >
           <h2>{{ metric.title }}</h2>
           <div class="metric-value">
             {{ metric.value }}
@@ -96,7 +103,10 @@
                   :key="`${line.name}-${index}`"
                   class="bar-segment"
                   :class="segment.type"
-                  :style="{ left: `${segment.left}%`, width: `${segment.width}%` }"
+                  :style="{
+                    left: `${segment.left}%`,
+                    width: `${segment.width}%`,
+                  }"
                 ></span>
               </div>
             </div>
@@ -128,12 +138,15 @@
               <span>{{ order.due }}</span>
               <div class="progress-cell">
                 <span class="progress-track">
-                  <i :class="order.delayed ? 'danger' : 'success'" :style="{ width: `${order.progress}%` }"></i>
+                  <i
+                    :class="order.delayed ? 'danger' : 'success'"
+                    :style="{ width: `${order.progress}%` }"
+                  ></i>
                 </span>
                 <b>{{ order.progress }}%</b>
               </div>
               <span class="status" :class="{ delayed: order.delayed }">
-                {{ order.delayed ? '지연' : '진행 중' }}
+                {{ order.delayed ? "지연" : "진행 중" }}
               </span>
             </div>
           </div>
@@ -157,7 +170,11 @@
         </div>
 
         <div class="gauge-grid">
-          <article v-for="line in utilization" :key="line.name" class="gauge-card">
+          <article
+            v-for="line in utilization"
+            :key="line.name"
+            class="gauge-card"
+          >
             <h3>
               <span :class="line.low ? 'orange-dot' : 'green-dot'"></span>
               {{ line.name }}
@@ -175,7 +192,7 @@
               <div class="gauge-center">
                 <strong>{{ line.value }}%</strong>
                 <span>{{ line.value }} / 100%</span>
-                <b>{{ line.low ? '가동 저조' : '가동 중' }}</b>
+                <b>{{ line.low ? "가동 저조" : "가동 중" }}</b>
               </div>
             </div>
           </article>
@@ -195,13 +212,13 @@
 </template>
 
 <script setup>
-import logoSymbol from '../assets/logo_svg.svg'
+import logoSymbol from "../assets/s-map-logo-symbol.svg";
 
 const baseIcon = `
   <svg viewBox="0 0 24 24" aria-hidden="true">
     <path d="M4 11.5 12 5l8 6.5V20a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1v-8.5Z" />
   </svg>
-`
+`;
 
 const icons = {
   dashboard: baseIcon,
@@ -211,88 +228,117 @@ const icons = {
   line: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h6v6H4ZM14 5h6v6h-6ZM4 15h6v4H4ZM14 15h6v4h-6Z" /></svg>`,
   risk: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 4 10 17H2L12 4Z" /><path d="M12 10v5M12 18h.01" /></svg>`,
   report: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14v16H5Z" /><path d="M8 9h8M8 13h5M16 14l2 2 3-4" /></svg>`,
-}
+};
 
 const navigation = [
-  { label: '대시보드', icon: icons.dashboard, active: true },
-  { label: '주문 관리', icon: icons.calendar },
-  { label: '생산계획', icon: icons.plan },
-  { label: '자재 현황', icon: icons.box },
-  { label: '라인 현황', icon: icons.line },
-  { label: '리스크 분석', icon: icons.risk },
-  { label: '보고서', icon: icons.report },
-]
+  { label: "대시보드", icon: icons.dashboard, active: true },
+  { label: "주문 관리", icon: icons.calendar },
+  { label: "생산계획", icon: icons.plan },
+  { label: "자재 현황", icon: icons.box },
+  { label: "라인 현황", icon: icons.line },
+  { label: "리스크 분석", icon: icons.risk },
+  { label: "보고서", icon: icons.report },
+];
 
 const metrics = [
-  { title: '지연 위험 주문', value: '18', unit: '건', caption: '전체 주문 대비', change: '8%', tone: 'danger' },
-  { title: '자재 부족 품목', value: '2', unit: '건', caption: '전체 품목 대비', change: '3%', tone: 'warning' },
-  { title: '주문별 달성률', value: '98', unit: '%', caption: '목표 대비', change: '98%', tone: 'success' },
-  { title: '생산계획 절약비용', value: '37', unit: '일' },
-]
+  {
+    title: "지연 위험 주문",
+    value: "18",
+    unit: "건",
+    caption: "전체 주문 대비",
+    change: "8%",
+    tone: "danger",
+  },
+  {
+    title: "자재 부족 품목",
+    value: "2",
+    unit: "건",
+    caption: "전체 품목 대비",
+    change: "3%",
+    tone: "warning",
+  },
+  {
+    title: "주문별 달성률",
+    value: "98",
+    unit: "%",
+    caption: "목표 대비",
+    change: "98%",
+    tone: "success",
+  },
+  { title: "생산계획 절약비용", value: "37", unit: "일" },
+];
 
-const weekTimeline = ['월 05.20', '화 05.21', '수 05.22', '목 05.23', '금 05.24', '토 05.25', '일 05.26']
+const weekTimeline = [
+  "월 05.20",
+  "화 05.21",
+  "수 05.22",
+  "목 05.23",
+  "금 05.24",
+  "토 05.25",
+  "일 05.26",
+];
 
 const ganttRows = [
   {
-    name: 'Line A',
+    name: "Line A",
     segments: [
-      { type: 'planned', left: 0, width: 17 },
-      { type: 'running', left: 17, width: 22 },
-      { type: 'change', left: 39, width: 7 },
-      { type: 'running', left: 46, width: 42 },
+      { type: "planned", left: 0, width: 17 },
+      { type: "running", left: 17, width: 22 },
+      { type: "change", left: 39, width: 7 },
+      { type: "running", left: 46, width: 42 },
     ],
   },
   {
-    name: 'Line B',
+    name: "Line B",
     segments: [
-      { type: 'planned', left: 0, width: 12 },
-      { type: 'running', left: 12, width: 27 },
-      { type: 'change', left: 39, width: 13 },
-      { type: 'running', left: 52, width: 18 },
+      { type: "planned", left: 0, width: 12 },
+      { type: "running", left: 12, width: 27 },
+      { type: "change", left: 39, width: 13 },
+      { type: "running", left: 52, width: 18 },
     ],
   },
   {
-    name: 'Line C',
+    name: "Line C",
     segments: [
-      { type: 'planned', left: 0, width: 7 },
-      { type: 'running', left: 7, width: 32 },
-      { type: 'change', left: 39, width: 9 },
-      { type: 'running', left: 48, width: 30 },
+      { type: "planned", left: 0, width: 7 },
+      { type: "running", left: 7, width: 32 },
+      { type: "change", left: 39, width: 9 },
+      { type: "running", left: 48, width: 30 },
     ],
   },
   {
-    name: 'Line D',
+    name: "Line D",
     segments: [
-      { type: 'change', left: 0, width: 13 },
-      { type: 'delay', left: 13, width: 13 },
-      { type: 'running', left: 26, width: 22 },
-      { type: 'empty', left: 48, width: 12 },
+      { type: "change", left: 0, width: 13 },
+      { type: "delay", left: 13, width: 13 },
+      { type: "running", left: 26, width: 22 },
+      { type: "empty", left: 48, width: 12 },
     ],
   },
-]
+];
 
 const legend = [
-  { label: '계획', type: 'planned' },
-  { label: '진행', type: 'running' },
-  { label: '전환', type: 'change' },
-  { label: '지연', type: 'delay' },
-  { label: '비가동', type: 'empty' },
-]
+  { label: "계획", type: "planned" },
+  { label: "진행", type: "running" },
+  { label: "전환", type: "change" },
+  { label: "지연", type: "delay" },
+  { label: "비가동", type: "empty" },
+];
 
 const orders = [
-  { id: 'PO-240520-001', due: '05.22 (수)', progress: 72 },
-  { id: 'PO-240520-002', due: '05.23 (목)', progress: 30, delayed: true },
-  { id: 'PO-240520-003', due: '05.24 (금)', progress: 50 },
-  { id: 'PO-240520-004', due: '05.25 (토)', progress: 90 },
-  { id: 'PO-240520-005', due: '05.26 (일)', progress: 20, delayed: true },
-]
+  { id: "PO-240520-001", due: "05.22 (수)", progress: 72 },
+  { id: "PO-240520-002", due: "05.23 (목)", progress: 30, delayed: true },
+  { id: "PO-240520-003", due: "05.24 (금)", progress: 50 },
+  { id: "PO-240520-004", due: "05.25 (토)", progress: 90 },
+  { id: "PO-240520-005", due: "05.26 (일)", progress: 20, delayed: true },
+];
 
 const utilization = [
-  { name: 'Line A', value: 80 },
-  { name: 'Line B', value: 55 },
-  { name: 'Line C', value: 60 },
-  { name: 'Line D', value: 36, low: true },
-]
+  { name: "Line A", value: 80 },
+  { name: "Line B", value: 55 },
+  { name: "Line C", value: 60 },
+  { name: "Line D", value: 36, low: true },
+];
 </script>
 
 <style scoped>
@@ -300,10 +346,15 @@ const utilization = [
   min-height: 100vh;
   display: grid;
   grid-template-columns: 230px minmax(0, 1fr);
-  background: #F8FAFC;
-  color: #0D1F3C;
+  background: #f0f2f5;
+  color: #1a2642;
   font-family:
-    "Pretendard Variable", Pretendard, "Noto Sans KR", Inter, -apple-system, BlinkMacSystemFont,
+    "Pretendard Variable",
+    Pretendard,
+    "Noto Sans KR",
+    Inter,
+    -apple-system,
+    BlinkMacSystemFont,
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -316,9 +367,9 @@ const utilization = [
   height: 100vh;
   display: flex;
   flex-direction: column;
-  background: #0D1F3C;
+  background: #0d1f3c;
   color: #ffffff;
-  box-shadow: 12px 0 32px rgba(13,31,60,0.4);
+  box-shadow: 8px 0 22px rgba(0, 0, 0, 0.3);
 }
 
 .brand {
@@ -363,7 +414,7 @@ const utilization = [
 }
 
 .nav-item.active {
-  background: #1565C0;
+  background: #1565c0;
   color: #ffffff;
 }
 
@@ -374,7 +425,7 @@ const utilization = [
   top: 0;
   bottom: 0;
   width: 9px;
-  background: #4A9EFF;
+  background: #4a9eff;
 }
 
 .nav-icon {
@@ -411,7 +462,7 @@ const utilization = [
 
 .topbar h1 {
   margin: 0 0 8px;
-  color: #0D1F3C;
+  color: #1a2642;
   font-size: 26px;
   line-height: 1.2;
   font-weight: 700;
@@ -420,7 +471,7 @@ const utilization = [
 
 .topbar p {
   margin: 0;
-  color: #4A5568;
+  color: #4a5568;
   font-size: 17px;
   font-weight: 500;
 }
@@ -435,10 +486,10 @@ const utilization = [
 .panel-actions button,
 .icon-button {
   height: 54px;
-  border: 1px solid #CBD5E0;
+  border: 1px solid #cbd5e0;
   border-radius: 8px;
   background: #ffffff;
-  color: #0D1F3C;
+  color: #1a2642;
   font-weight: 600;
   box-shadow: 0 6px 18px rgba(18, 34, 64, 0.04);
 }
@@ -489,7 +540,7 @@ const utilization = [
   display: grid;
   place-items: center;
   border-radius: 999px;
-  background: #E53935;
+  background: #e53935;
   color: #ffffff;
   font-size: 12px;
   font-weight: 800;
@@ -499,7 +550,7 @@ const utilization = [
   display: flex;
   align-items: center;
   gap: 13px;
-  color: #0D1F3C;
+  color: #1a2642;
   font-size: 17px;
   font-weight: 600;
 }
@@ -510,8 +561,8 @@ const utilization = [
   display: grid;
   place-items: center;
   border-radius: 50%;
-  background: #EFF6FF;
-  color: #0D1F3C;
+  background: #eff6ff;
+  color: #1a2642;
 }
 
 .avatar svg {
@@ -530,9 +581,9 @@ const utilization = [
 .metric-card,
 .panel,
 .gauge-card {
-  border: 1px solid #E2E8F0;
+  border: 1px solid #e2e8f0;
   background: #ffffff;
-  box-shadow: 0 7px 18px rgba(0,0,0,0.05);
+  box-shadow: 0 7px 18px rgba(0, 0, 0, 0.05);
 }
 
 .metric-card {
@@ -543,7 +594,7 @@ const utilization = [
 
 .metric-card h2 {
   margin: 0 0 12px;
-  color: #0D1F3C;
+  color: #1a2642;
   font-size: 17px;
   font-weight: 650;
   letter-spacing: -0.1px;
@@ -554,8 +605,8 @@ const utilization = [
   align-items: flex-end;
   gap: 13px;
   padding-bottom: 12px;
-  border-bottom: 1px solid #E2E8F0;
-  color: #0D1F3C;
+  border-bottom: 1px solid #e2e8f0;
+  color: #1a2642;
   font-size: 50px;
   line-height: 0.95;
   font-weight: 800;
@@ -578,15 +629,15 @@ const utilization = [
 }
 
 .metric-caption .danger {
-  color: #E53935;
+  color: #e53935;
 }
 
 .metric-caption .warning {
-  color: #F57C00;
+  color: #f57c00;
 }
 
 .metric-caption .success {
-  color: #00897B;
+  color: #00897b;
 }
 
 .middle-grid {
@@ -610,12 +661,12 @@ const utilization = [
 
 .panel-header.compact {
   padding-bottom: 24px;
-  border-bottom: 1px solid #E2E8F0;
+  border-bottom: 1px solid #e2e8f0;
 }
 
 .panel-header h2 {
   margin: 0;
-  color: #0D1F3C;
+  color: #1a2642;
   font-size: 20px;
   font-weight: 700;
   letter-spacing: -0.2px;
@@ -625,7 +676,7 @@ const utilization = [
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  color: #0D1F3C;
+  color: #1a2642;
   font-size: 14px;
   font-weight: 600;
   text-decoration: none;
@@ -673,7 +724,7 @@ const utilization = [
   grid-template-columns: repeat(7, 1fr);
   margin-left: 112px;
   padding-right: 26px;
-  color: #4A5568;
+  color: #4a5568;
   font-size: 14px;
   font-weight: 650;
 }
@@ -691,14 +742,13 @@ const utilization = [
   right: 0;
   top: 0;
   bottom: 0;
-  background:
-    repeating-linear-gradient(
-      to right,
-      transparent 0,
-      transparent calc(14.285% - 1px),
-      #EDF2F7 calc(14.285% - 1px),
-      #EDF2F7 14.285%
-    );
+  background: repeating-linear-gradient(
+    to right,
+    transparent 0,
+    transparent calc(14.285% - 1px),
+    #edf2f7 calc(14.285% - 1px),
+    #edf2f7 14.285%
+  );
   pointer-events: none;
 }
 
@@ -709,7 +759,7 @@ const utilization = [
   align-items: center;
   gap: 22px;
   min-height: 62px;
-  border-bottom: 1px solid #E2E8F0;
+  border-bottom: 1px solid #e2e8f0;
 }
 
 .gantt-row strong {
@@ -730,30 +780,29 @@ const utilization = [
 }
 
 .planned {
-  background: #1565C0;
+  background: #1565c0;
 }
 
 .running {
-  background: #00897B;
+  background: #00897b;
 }
 
 .change {
-  background: #C0C4CC;
+  background: #c0c4cc;
 }
 
 .delay {
-  background: #E53935;
+  background: #e53935;
 }
 
 .empty {
-  background:
-    repeating-linear-gradient(
-      -45deg,
-      #EDF2F7 0,
-      #EDF2F7 2px,
-      #FAFBFD 2px,
-      #FAFBFD 4px
-    );
+  background: repeating-linear-gradient(
+    -45deg,
+    #edf2f7 0,
+    #edf2f7 2px,
+    #fafbfd 2px,
+    #fafbfd 4px
+  );
 }
 
 .legend {
@@ -794,18 +843,18 @@ const utilization = [
 
 .table-head {
   height: 52px;
-  color: #0D1F3C;
+  color: #0d1f3c;
 }
 
 .table-row {
   min-height: 57px;
-  border-top: 1px solid #EDF2F7;
+  border-top: 1px solid #edf2f7;
 }
 
 .table-row strong,
 .table-row span,
 .progress-cell b {
-  color: #0D1F3C;
+  color: #0d1f3c;
 }
 
 .progress-cell {
@@ -818,7 +867,7 @@ const utilization = [
   width: 126px;
   height: 10px;
   border-radius: 999px;
-  background: #E8EAF0;
+  background: #e8eaf0;
   overflow: hidden;
 }
 
@@ -829,11 +878,11 @@ const utilization = [
 }
 
 .progress-track .success {
-  background: #00897B;
+  background: #00897b;
 }
 
 .progress-track .danger {
-  background: #E53935;
+  background: #e53935;
 }
 
 .status {
@@ -842,22 +891,22 @@ const utilization = [
   display: inline-grid;
   place-items: center;
   border-radius: 6px;
-  background: #E6F4EA;
-  color: #00897B;
+  background: #e6f4ea;
+  color: #00897b;
   font-size: 15px;
 }
 
 .status.delayed {
-  background: #FDECEA;
-  color: #C62828;
+  background: #fdecea;
+  color: #c62828;
 }
 
 .order-average {
   margin: 14px 31px 22px;
   padding: 13px 16px;
-  border-top: 1px solid #E2E8F0;
+  border-top: 1px solid #e2e8f0;
   border-radius: 7px;
-  background: #F8FAFC;
+  background: #fafbfd;
 }
 
 .order-average div:first-child {
@@ -865,13 +914,13 @@ const utilization = [
   align-items: center;
   justify-content: space-between;
   margin-bottom: 9px;
-  color: #4A5568;
+  color: #4a5568;
   font-size: 14px;
   font-weight: 600;
 }
 
 .order-average strong {
-  color: #0D1F3C;
+  color: #0d1f3c;
   font-size: 18px;
   font-weight: 750;
 }
@@ -880,7 +929,7 @@ const utilization = [
   height: 8px;
   overflow: hidden;
   border-radius: 999px;
-  background: #E8EAF0;
+  background: #e8eaf0;
 }
 
 .average-track i {
@@ -888,7 +937,7 @@ const utilization = [
   width: 58%;
   height: 100%;
   border-radius: inherit;
-  background: #1565C0;
+  background: #1565c0;
 }
 
 .utilization-panel {
@@ -926,11 +975,11 @@ const utilization = [
 }
 
 .green-dot {
-  background: #00897B;
+  background: #00897b;
 }
 
 .orange-dot {
-  background: #F57C00;
+  background: #f57c00;
 }
 
 .gauge {
@@ -956,15 +1005,15 @@ const utilization = [
 }
 
 .gauge-track {
-  stroke: #E8EAF0;
+  stroke: #e8eaf0;
 }
 
 .gauge-progress {
-  stroke: #00897B;
+  stroke: #00897b;
 }
 
 .gauge.low .gauge-progress {
-  stroke: #F57C00;
+  stroke: #f57c00;
 }
 
 .gauge-center {
@@ -979,7 +1028,7 @@ const utilization = [
 
 .gauge-center strong {
   display: block;
-  color: #0D1F3C;
+  color: #0d1f3c;
   font-size: 26px;
   line-height: 1.05;
   font-weight: 800;
@@ -988,7 +1037,7 @@ const utilization = [
 .gauge-center span {
   display: block;
   margin-top: 8px;
-  color: #0D1F3C;
+  color: #0d1f3c;
   font-size: 15px;
   font-weight: 600;
 }
@@ -996,13 +1045,13 @@ const utilization = [
 .gauge-center b {
   display: block;
   margin-top: 8px;
-  color: #00897B;
+  color: #00897b;
   font-size: 16px;
   font-weight: 700;
 }
 
 .gauge.low .gauge-center b {
-  color: #F57C00;
+  color: #f57c00;
 }
 
 .chatbot-button {
@@ -1018,7 +1067,7 @@ const utilization = [
   gap: 8px;
   border: 0;
   border-radius: 50%;
-  background: #0D1F3C;
+  background: #0d1f3c;
   color: #ffffff;
   font-size: 17px;
   font-weight: 700;
@@ -1040,7 +1089,7 @@ const utilization = [
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: #0D1F3C;
+  background: #0d1f3c;
 }
 
 button,
