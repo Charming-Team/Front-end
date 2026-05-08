@@ -1,34 +1,34 @@
 <template>
   <div class="app-layout">
-    <aside class="sidebar">
-      <div class="brand">
+    <aside class="sidebar d-flex flex-column text-white">
+      <div class="brand d-flex align-items-center">
         <img class="brand-logo" :src="logoSymbol" alt="" />
         <span>S-MAP</span>
       </div>
 
-      <nav class="nav-list" aria-label="Main navigation">
+      <nav class="nav-list d-flex flex-column" aria-label="Main navigation">
         <a
           v-for="item in navigation"
           :key="item.key"
-          class="nav-item"
+          class="nav-item position-relative d-flex align-items-center text-decoration-none"
           :class="{ active: item.key === activeMenu }"
           href="#"
         >
-          <span class="nav-icon" v-html="item.icon"></span>
+          <span class="nav-icon d-grid" v-html="item.icon"></span>
           <span>{{ item.label }}</span>
         </a>
       </nav>
     </aside>
 
     <main class="main-content">
-      <header class="topbar">
+      <header class="topbar d-flex justify-content-between align-items-start">
         <div>
-          <h1>{{ pageTitle }}</h1>
-          <p>{{ pageDescription }}</p>
+          <h1 class="mb-2">{{ pageTitle }}</h1>
+          <p class="m-0">{{ pageDescription }}</p>
         </div>
 
-        <div class="top-actions">
-          <div class="user-menu">
+        <div class="top-actions d-flex align-items-center">
+          <div class="user-menu d-flex align-items-center">
             {{ userName }}
             <span class="chevron"></span>
           </div>
@@ -102,17 +102,12 @@ const navigation = [
   position: sticky;
   top: 0;
   height: 100vh;
-  display: flex;
-  flex-direction: column;
   background: var(--color-sidebar);
-  color: #ffffff;
   box-shadow: 8px 0 22px rgba(0, 0, 0, 0.3);
 }
 
 .brand {
   height: 122px;
-  display: flex;
-  align-items: center;
   gap: 14px;
   padding: 0 30px;
   font-size: 30px;
@@ -123,7 +118,6 @@ const navigation = [
 .brand-logo {
   width: 46px;
   height: 46px;
-  display: block;
   flex: 0 0 auto;
   object-fit: contain;
   padding: 5px;
@@ -131,22 +125,13 @@ const navigation = [
   background: var(--color-logo-bg);
 }
 
-.nav-list {
-  display: flex;
-  flex-direction: column;
-}
-
 .nav-item {
-  position: relative;
-  display: flex;
-  align-items: center;
   gap: 18px;
   height: 74px;
   padding: 0 34px;
   color: rgba(255, 255, 255, 0.88);
   font-size: 20px;
   font-weight: 600;
-  text-decoration: none;
   letter-spacing: -0.1px;
 }
 
@@ -168,7 +153,6 @@ const navigation = [
 .nav-icon {
   width: 28px;
   height: 28px;
-  display: grid;
   place-items: center;
 }
 
@@ -188,15 +172,11 @@ const navigation = [
 }
 
 .topbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
   gap: 24px;
   margin-bottom: 28px;
 }
 
 .topbar h1 {
-  margin: 0 0 8px;
   color: var(--color-text-main);
   font-size: 29px;
   line-height: 1.2;
@@ -205,21 +185,16 @@ const navigation = [
 }
 
 .topbar p {
-  margin: 0;
   color: var(--color-text-subtle);
   font-size: 18px;
   font-weight: 500;
 }
 
 .top-actions {
-  display: flex;
-  align-items: center;
   gap: 22px;
 }
 
 .user-menu {
-  display: flex;
-  align-items: center;
   gap: 13px;
   color: var(--color-text-main);
   font-size: 17px;
