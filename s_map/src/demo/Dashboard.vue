@@ -1,245 +1,142 @@
 <template>
-  <div class="dashboard-page">
-    <aside class="sidebar">
-      <div class="brand">
-        <img class="brand-logo" :src="logoSymbol" alt="" />
-        <span>S-MAP</span>
+  <section class="metric-grid" aria-label="주요 지표">
+    <article v-for="metric in metrics" :key="metric.title" class="metric-card">
+      <h2>{{ metric.title }}</h2>
+      <div class="metric-value">
+        {{ metric.value }}
+        <span>{{ metric.unit }}</span>
+      </div>
+      <div v-if="metric.caption" class="metric-caption">
+        <span>{{ metric.caption }}</span>
+        <strong :class="metric.tone">{{ metric.change }}</strong>
+      </div>
+    </article>
+  </section>
+
+  <section class="middle-grid">
+    <article class="panel schedule-panel">
+      <div class="panel-header">
+        <h2>생산 스케줄</h2>
+        <div class="panel-actions">
+          <button type="button">오늘</button>
+          <button class="square-button" type="button" aria-label="이전">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="m15 18-6-6 6-6" />
+            </svg>
+          </button>
+          <button class="square-button" type="button" aria-label="다음">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="m9 18 6-6-6-6" />
+            </svg>
+          </button>
+        </div>
       </div>
 
-      <nav class="nav-list" aria-label="Main navigation">
-        <a
-          v-for="item in navigation"
-          :key="item.label"
-          class="nav-item"
-          :class="{ active: item.active }"
-          href="#"
-        >
-          <span class="nav-icon" v-html="item.icon"></span>
-          <span>{{ item.label }}</span>
-        </a>
-      </nav>
-    </aside>
+      <div class="schedule-date">2024년 5월 3주차</div>
+      <div class="timeline-labels">
+        <span v-for="day in weekTimeline" :key="day">{{ day }}</span>
+      </div>
 
-    <main class="main-content">
-      <header class="topbar">
+      <div class="gantt">
+        <div v-for="line in ganttRows" :key="line.name" class="gantt-row">
+          <strong>{{ line.name }}</strong>
+          <div class="bar-track">
+            <span
+              v-for="(segment, index) in line.segments"
+              :key="`${line.name}-${index}`"
+              class="bar-segment"
+              :class="segment.type"
+              :style="{ left: `${segment.left}%`, width: `${segment.width}%` }"
+            ></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="legend">
+        <span v-for="item in legend" :key="item.label">
+          <i :class="item.type"></i>
+          {{ item.label }}
+        </span>
+      </div>
+    </article>
+
+    <article class="panel orders-panel">
+      <div class="panel-header compact">
+        <h2>주문 및 납기 현황</h2>
+        <a href="#">더보기 <span class="arrow"></span></a>
+      </div>
+
+      <div class="order-table">
+        <div class="table-head">
+          <span>주문번호</span>
+          <span>납기일</span>
+          <span>진행률</span>
+          <span>상태</span>
+        </div>
+        <div v-for="order in orders" :key="order.id" class="table-row">
+          <strong>{{ order.id }}</strong>
+          <span>{{ order.due }}</span>
+          <div class="progress-cell">
+            <span class="progress-track">
+              <i
+                :class="order.delayed ? 'danger' : 'success'"
+                :style="{ width: `${order.progress}%` }"
+              ></i>
+            </span>
+            <b>{{ order.progress }}%</b>
+          </div>
+          <span class="status" :class="{ delayed: order.delayed }">
+            {{ order.delayed ? "지연" : "진행 중" }}
+          </span>
+        </div>
+      </div>
+
+      <div class="order-average">
         <div>
-          <h1>대시보드</h1>
-          <p>실시간 운영 현황을 한눈에 확인하세요.</p>
+          <span>전체 평균 가동률</span>
+          <strong>58%</strong>
         </div>
+        <div class="average-track">
+          <i></i>
+        </div>
+      </div>
+    </article>
+  </section>
 
-        <div class="top-actions">
-          <button
-            class="icon-button notification-button"
-            type="button"
-            aria-label="알림"
-          >
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M18 8a6 6 0 1 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9" />
-              <path d="M10 21h4" />
-            </svg>
-            <span>15</span>
-          </button>
-          <div class="user-menu">
-            <span class="avatar">
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M20 21a8 8 0 0 0-16 0" />
-                <circle cx="12" cy="7" r="4" />
-              </svg>
-            </span>
-            관리자
-            <span class="chevron"></span>
+  <section class="panel utilization-panel">
+    <div class="panel-header compact">
+      <h2>라인별 가동 현황</h2>
+      <a href="#">더보기 <span class="arrow"></span></a>
+    </div>
+
+    <div class="gauge-grid">
+      <article v-for="line in utilization" :key="line.name" class="gauge-card">
+        <h3>
+          <span :class="line.low ? 'orange-dot' : 'green-dot'"></span>
+          {{ line.name }}
+        </h3>
+        <div class="gauge" :class="{ low: line.low }">
+          <svg class="gauge-svg" viewBox="0 0 180 110" aria-hidden="true">
+            <path class="gauge-track" d="M25 92 A65 65 0 0 1 155 92" />
+            <path
+              class="gauge-progress"
+              d="M25 92 A65 65 0 0 1 155 92"
+              :pathLength="100"
+              :style="{ strokeDasharray: `${line.value} 100` }"
+            />
+          </svg>
+          <div class="gauge-center">
+            <strong>{{ line.value }}%</strong>
+            <span>{{ line.value }} / 100%</span>
+            <b>{{ line.low ? "가동 저조" : "가동 중" }}</b>
           </div>
         </div>
-      </header>
-
-      <section class="metric-grid" aria-label="주요 지표">
-        <article
-          v-for="metric in metrics"
-          :key="metric.title"
-          class="metric-card"
-        >
-          <h2>{{ metric.title }}</h2>
-          <div class="metric-value">
-            {{ metric.value }}
-            <span>{{ metric.unit }}</span>
-          </div>
-          <div v-if="metric.caption" class="metric-caption">
-            <span>{{ metric.caption }}</span>
-            <strong :class="metric.tone">{{ metric.change }}</strong>
-          </div>
-        </article>
-      </section>
-
-      <section class="middle-grid">
-        <article class="panel schedule-panel">
-          <div class="panel-header">
-            <h2>생산 스케줄</h2>
-            <div class="panel-actions">
-              <button type="button">오늘</button>
-              <button class="square-button" type="button" aria-label="이전">
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="m15 18-6-6 6-6" />
-                </svg>
-              </button>
-              <button class="square-button" type="button" aria-label="다음">
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="m9 18 6-6-6-6" />
-                </svg>
-              </button>
-            </div>
-          </div>
-
-          <div class="schedule-date">2024년 5월 3주차</div>
-          <div class="timeline-labels">
-            <span v-for="day in weekTimeline" :key="day">{{ day }}</span>
-          </div>
-
-          <div class="gantt">
-            <div v-for="line in ganttRows" :key="line.name" class="gantt-row">
-              <strong>{{ line.name }}</strong>
-              <div class="bar-track">
-                <span
-                  v-for="(segment, index) in line.segments"
-                  :key="`${line.name}-${index}`"
-                  class="bar-segment"
-                  :class="segment.type"
-                  :style="{
-                    left: `${segment.left}%`,
-                    width: `${segment.width}%`,
-                  }"
-                ></span>
-              </div>
-            </div>
-          </div>
-
-          <div class="legend">
-            <span v-for="item in legend" :key="item.label">
-              <i :class="item.type"></i>
-              {{ item.label }}
-            </span>
-          </div>
-        </article>
-
-        <article class="panel orders-panel">
-          <div class="panel-header compact">
-            <h2>주문 및 납기 현황</h2>
-            <a href="#">더보기 <span class="arrow"></span></a>
-          </div>
-
-          <div class="order-table">
-            <div class="table-head">
-              <span>주문번호</span>
-              <span>납기일</span>
-              <span>진행률</span>
-              <span>상태</span>
-            </div>
-            <div v-for="order in orders" :key="order.id" class="table-row">
-              <strong>{{ order.id }}</strong>
-              <span>{{ order.due }}</span>
-              <div class="progress-cell">
-                <span class="progress-track">
-                  <i
-                    :class="order.delayed ? 'danger' : 'success'"
-                    :style="{ width: `${order.progress}%` }"
-                  ></i>
-                </span>
-                <b>{{ order.progress }}%</b>
-              </div>
-              <span class="status" :class="{ delayed: order.delayed }">
-                {{ order.delayed ? "지연" : "진행 중" }}
-              </span>
-            </div>
-          </div>
-
-          <div class="order-average">
-            <div>
-              <span>전체 평균 가동률</span>
-              <strong>58%</strong>
-            </div>
-            <div class="average-track">
-              <i></i>
-            </div>
-          </div>
-        </article>
-      </section>
-
-      <section class="panel utilization-panel">
-        <div class="panel-header compact">
-          <h2>라인별 가동 현황</h2>
-          <a href="#">더보기 <span class="arrow"></span></a>
-        </div>
-
-        <div class="gauge-grid">
-          <article
-            v-for="line in utilization"
-            :key="line.name"
-            class="gauge-card"
-          >
-            <h3>
-              <span :class="line.low ? 'orange-dot' : 'green-dot'"></span>
-              {{ line.name }}
-            </h3>
-            <div class="gauge" :class="{ low: line.low }">
-              <svg class="gauge-svg" viewBox="0 0 180 110" aria-hidden="true">
-                <path class="gauge-track" d="M25 92 A65 65 0 0 1 155 92" />
-                <path
-                  class="gauge-progress"
-                  d="M25 92 A65 65 0 0 1 155 92"
-                  :pathLength="100"
-                  :style="{ strokeDasharray: `${line.value} 100` }"
-                />
-              </svg>
-              <div class="gauge-center">
-                <strong>{{ line.value }}%</strong>
-                <span>{{ line.value }} / 100%</span>
-                <b>{{ line.low ? "가동 저조" : "가동 중" }}</b>
-              </div>
-            </div>
-          </article>
-        </div>
-      </section>
-    </main>
-
-    <button class="chatbot-button" type="button" aria-label="챗봇">
-      <span class="chat-bubble">
-        <i></i>
-        <i></i>
-        <i></i>
-      </span>
-      챗봇
-    </button>
-  </div>
+      </article>
+    </div>
+  </section>
 </template>
 
 <script setup>
-import logoSymbol from "../assets/s-map-logo-symbol.svg";
-
-const baseIcon = `
-  <svg viewBox="0 0 24 24" aria-hidden="true">
-    <path d="M4 11.5 12 5l8 6.5V20a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1v-8.5Z" />
-  </svg>
-`;
-
-const icons = {
-  dashboard: baseIcon,
-  calendar: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3v4M17 3v4M4 9h16M6 5h12a2 2 0 0 1 2 2v12H4V7a2 2 0 0 1 2-2Z" /></svg>`,
-  plan: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9 9 9 0 0 0-9-9Z" /><path d="m9 12 2 2 4-5" /></svg>`,
-  box: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h16v12H4Z" /><path d="m8 8 4-4 4 4" /></svg>`,
-  line: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h6v6H4ZM14 5h6v6h-6ZM4 15h6v4H4ZM14 15h6v4h-6Z" /></svg>`,
-  risk: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 4 10 17H2L12 4Z" /><path d="M12 10v5M12 18h.01" /></svg>`,
-  report: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14v16H5Z" /><path d="M8 9h8M8 13h5M16 14l2 2 3-4" /></svg>`,
-};
-
-const navigation = [
-  { label: "대시보드", icon: icons.dashboard, active: true },
-  { label: "주문 관리", icon: icons.calendar },
-  { label: "생산계획", icon: icons.plan },
-  { label: "자재 현황", icon: icons.box },
-  { label: "라인 현황", icon: icons.line },
-  { label: "리스크 분석", icon: icons.risk },
-  { label: "보고서", icon: icons.report },
-];
-
 const metrics = [
   {
     title: "지연 위험 주문",
@@ -342,235 +239,6 @@ const utilization = [
 </script>
 
 <style scoped>
-.dashboard-page {
-  min-height: 100vh;
-  display: grid;
-  grid-template-columns: 230px minmax(0, 1fr);
-  background: #f0f2f5;
-  color: #1a2642;
-  font-family:
-    "Pretendard Variable",
-    Pretendard,
-    "Noto Sans KR",
-    Inter,
-    -apple-system,
-    BlinkMacSystemFont,
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  word-break: keep-all;
-}
-
-.sidebar {
-  position: sticky;
-  top: 0;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  background: #0d1f3c;
-  color: #ffffff;
-  box-shadow: 8px 0 22px rgba(0, 0, 0, 0.3);
-}
-
-.brand {
-  height: 122px;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 0 30px;
-  font-size: 30px;
-  font-weight: 800;
-  letter-spacing: 0;
-}
-
-.brand-logo {
-  width: 46px;
-  height: 46px;
-  display: block;
-  flex: 0 0 auto;
-  object-fit: contain;
-  padding: 5px;
-  border-radius: 8px;
-  background: #fff;
-}
-
-.nav-list {
-  display: flex;
-  flex-direction: column;
-}
-
-.nav-item {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 18px;
-  height: 74px;
-  padding: 0 34px;
-  color: rgba(255, 255, 255, 0.88);
-  font-size: 16px;
-  font-weight: 500;
-  text-decoration: none;
-  letter-spacing: -0.1px;
-}
-
-.nav-item.active {
-  background: #1565c0;
-  color: #ffffff;
-}
-
-.nav-item.active::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 9px;
-  background: #4a9eff;
-}
-
-.nav-icon {
-  width: 28px;
-  height: 28px;
-  display: grid;
-  place-items: center;
-}
-
-.nav-icon :deep(svg),
-.top-actions svg,
-.square-button svg {
-  width: 100%;
-  height: 100%;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 2.4;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.main-content {
-  min-width: 0;
-  padding: 28px 54px 34px 24px;
-}
-
-.topbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 24px;
-  margin-bottom: 28px;
-}
-
-.topbar h1 {
-  margin: 0 0 8px;
-  color: #1a2642;
-  font-size: 26px;
-  line-height: 1.2;
-  font-weight: 700;
-  letter-spacing: -0.3px;
-}
-
-.topbar p {
-  margin: 0;
-  color: #4a5568;
-  font-size: 17px;
-  font-weight: 500;
-}
-
-.top-actions {
-  display: flex;
-  align-items: center;
-  gap: 22px;
-}
-
-.date-button,
-.panel-actions button,
-.icon-button {
-  height: 54px;
-  border: 1px solid #cbd5e0;
-  border-radius: 8px;
-  background: #ffffff;
-  color: #1a2642;
-  font-weight: 600;
-  box-shadow: 0 6px 18px rgba(18, 34, 64, 0.04);
-}
-
-.date-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 16px;
-  padding: 0 18px;
-  font-size: 17px;
-}
-
-.date-button svg,
-.icon-button svg,
-.avatar svg {
-  width: 27px;
-  height: 27px;
-}
-
-.chevron {
-  width: 8px;
-  height: 8px;
-  display: inline-block;
-  border-right: 2px solid currentColor;
-  border-bottom: 2px solid currentColor;
-  transform: rotate(45deg) translateY(-2px);
-}
-
-.icon-button {
-  position: relative;
-  width: 42px;
-  height: 42px;
-  padding: 0;
-  display: grid;
-  place-items: center;
-  border: 0;
-  background: transparent;
-  box-shadow: none;
-}
-
-.notification-button span {
-  position: absolute;
-  top: -8px;
-  right: -7px;
-  min-width: 22px;
-  height: 22px;
-  padding: 0 5px;
-  display: grid;
-  place-items: center;
-  border-radius: 999px;
-  background: #e53935;
-  color: #ffffff;
-  font-size: 12px;
-  font-weight: 800;
-}
-
-.user-menu {
-  display: flex;
-  align-items: center;
-  gap: 13px;
-  color: #1a2642;
-  font-size: 17px;
-  font-weight: 600;
-}
-
-.avatar {
-  width: 48px;
-  height: 48px;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  background: #eff6ff;
-  color: #1a2642;
-}
-
-.avatar svg {
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 2.2;
-}
-
 .metric-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -581,8 +249,8 @@ const utilization = [
 .metric-card,
 .panel,
 .gauge-card {
-  border: 1px solid #e2e8f0;
-  background: #ffffff;
+  border: 1px solid var(--color-border);
+  background: var(--color-panel);
   box-shadow: 0 7px 18px rgba(0, 0, 0, 0.05);
 }
 
@@ -594,7 +262,7 @@ const utilization = [
 
 .metric-card h2 {
   margin: 0 0 12px;
-  color: #1a2642;
+  color: var(--color-text-main);
   font-size: 17px;
   font-weight: 650;
   letter-spacing: -0.1px;
@@ -605,8 +273,8 @@ const utilization = [
   align-items: flex-end;
   gap: 13px;
   padding-bottom: 12px;
-  border-bottom: 1px solid #e2e8f0;
-  color: #1a2642;
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text-main);
   font-size: 50px;
   line-height: 0.95;
   font-weight: 800;
@@ -629,15 +297,15 @@ const utilization = [
 }
 
 .metric-caption .danger {
-  color: #e53935;
+  color: var(--color-danger);
 }
 
 .metric-caption .warning {
-  color: #f57c00;
+  color: var(--color-warning);
 }
 
 .metric-caption .success {
-  color: #00897b;
+  color: var(--color-success);
 }
 
 .middle-grid {
@@ -661,12 +329,12 @@ const utilization = [
 
 .panel-header.compact {
   padding-bottom: 24px;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .panel-header h2 {
   margin: 0;
-  color: #1a2642;
+  color: var(--color-text-main);
   font-size: 20px;
   font-weight: 700;
   letter-spacing: -0.2px;
@@ -676,7 +344,7 @@ const utilization = [
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  color: #1a2642;
+  color: var(--color-text-main);
   font-size: 14px;
   font-weight: 600;
   text-decoration: none;
@@ -703,13 +371,29 @@ const utilization = [
   display: inline-flex;
   align-items: center;
   gap: 10px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 8px;
+  background: var(--color-panel);
+  color: var(--color-text-main);
   font-size: 15px;
+  font-weight: 600;
+  box-shadow: 0 6px 18px rgba(18, 34, 64, 0.04);
 }
 
 .panel-actions .square-button {
   width: 45px;
   padding: 0;
   justify-content: center;
+}
+
+.square-button svg {
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .schedule-date {
@@ -724,7 +408,7 @@ const utilization = [
   grid-template-columns: repeat(7, 1fr);
   margin-left: 112px;
   padding-right: 26px;
-  color: #4a5568;
+  color: var(--color-text-subtle);
   font-size: 14px;
   font-weight: 650;
 }
@@ -746,8 +430,8 @@ const utilization = [
     to right,
     transparent 0,
     transparent calc(14.285% - 1px),
-    #edf2f7 calc(14.285% - 1px),
-    #edf2f7 14.285%
+    var(--color-track-light) calc(14.285% - 1px),
+    var(--color-track-light) 14.285%
   );
   pointer-events: none;
 }
@@ -759,7 +443,7 @@ const utilization = [
   align-items: center;
   gap: 22px;
   min-height: 62px;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .gantt-row strong {
@@ -780,28 +464,28 @@ const utilization = [
 }
 
 .planned {
-  background: #1565c0;
+  background: var(--color-primary);
 }
 
 .running {
-  background: #00897b;
+  background: var(--color-success);
 }
 
 .change {
-  background: #c0c4cc;
+  background: var(--color-track-strong);
 }
 
 .delay {
-  background: #e53935;
+  background: var(--color-danger);
 }
 
 .empty {
   background: repeating-linear-gradient(
     -45deg,
-    #edf2f7 0,
-    #edf2f7 2px,
-    #fafbfd 2px,
-    #fafbfd 4px
+    var(--color-track-light) 0,
+    var(--color-track-light) 2px,
+    var(--color-bg-soft) 2px,
+    var(--color-bg-soft) 4px
   );
 }
 
@@ -843,18 +527,18 @@ const utilization = [
 
 .table-head {
   height: 52px;
-  color: #0d1f3c;
+  color: var(--color-navy);
 }
 
 .table-row {
   min-height: 57px;
-  border-top: 1px solid #edf2f7;
+  border-top: 1px solid var(--color-track-light);
 }
 
 .table-row strong,
 .table-row span,
 .progress-cell b {
-  color: #0d1f3c;
+  color: var(--color-navy);
 }
 
 .progress-cell {
@@ -867,7 +551,7 @@ const utilization = [
   width: 126px;
   height: 10px;
   border-radius: 999px;
-  background: #e8eaf0;
+  background: var(--color-track);
   overflow: hidden;
 }
 
@@ -878,11 +562,11 @@ const utilization = [
 }
 
 .progress-track .success {
-  background: #00897b;
+  background: var(--color-success);
 }
 
 .progress-track .danger {
-  background: #e53935;
+  background: var(--color-danger);
 }
 
 .status {
@@ -891,22 +575,22 @@ const utilization = [
   display: inline-grid;
   place-items: center;
   border-radius: 6px;
-  background: #e6f4ea;
-  color: #00897b;
+  background: var(--color-success-bg);
+  color: var(--color-success);
   font-size: 15px;
 }
 
 .status.delayed {
-  background: #fdecea;
-  color: #c62828;
+  background: var(--color-danger-bg);
+  color: var(--color-danger-dark);
 }
 
 .order-average {
   margin: 14px 31px 22px;
   padding: 13px 16px;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid var(--color-border);
   border-radius: 7px;
-  background: #fafbfd;
+  background: var(--color-bg-soft);
 }
 
 .order-average div:first-child {
@@ -914,13 +598,13 @@ const utilization = [
   align-items: center;
   justify-content: space-between;
   margin-bottom: 9px;
-  color: #4a5568;
+  color: var(--color-text-subtle);
   font-size: 14px;
   font-weight: 600;
 }
 
 .order-average strong {
-  color: #0d1f3c;
+  color: var(--color-navy);
   font-size: 18px;
   font-weight: 750;
 }
@@ -929,7 +613,7 @@ const utilization = [
   height: 8px;
   overflow: hidden;
   border-radius: 999px;
-  background: #e8eaf0;
+  background: var(--color-track);
 }
 
 .average-track i {
@@ -937,7 +621,7 @@ const utilization = [
   width: 58%;
   height: 100%;
   border-radius: inherit;
-  background: #1565c0;
+  background: var(--color-primary);
 }
 
 .utilization-panel {
@@ -975,11 +659,11 @@ const utilization = [
 }
 
 .green-dot {
-  background: #00897b;
+  background: var(--color-success);
 }
 
 .orange-dot {
-  background: #f57c00;
+  background: var(--color-warning);
 }
 
 .gauge {
@@ -1005,15 +689,15 @@ const utilization = [
 }
 
 .gauge-track {
-  stroke: #e8eaf0;
+  stroke: var(--color-track);
 }
 
 .gauge-progress {
-  stroke: #00897b;
+  stroke: var(--color-success);
 }
 
 .gauge.low .gauge-progress {
-  stroke: #f57c00;
+  stroke: var(--color-warning);
 }
 
 .gauge-center {
@@ -1028,7 +712,7 @@ const utilization = [
 
 .gauge-center strong {
   display: block;
-  color: #0d1f3c;
+  color: var(--color-navy);
   font-size: 26px;
   line-height: 1.05;
   font-weight: 800;
@@ -1037,7 +721,7 @@ const utilization = [
 .gauge-center span {
   display: block;
   margin-top: 8px;
-  color: #0d1f3c;
+  color: var(--color-navy);
   font-size: 15px;
   font-weight: 600;
 }
@@ -1045,78 +729,16 @@ const utilization = [
 .gauge-center b {
   display: block;
   margin-top: 8px;
-  color: #00897b;
+  color: var(--color-success);
   font-size: 16px;
   font-weight: 700;
 }
 
 .gauge.low .gauge-center b {
-  color: #f57c00;
-}
-
-.chatbot-button {
-  position: fixed;
-  right: 46px;
-  bottom: 30px;
-  width: 122px;
-  height: 122px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  border: 0;
-  border-radius: 50%;
-  background: #0d1f3c;
-  color: #ffffff;
-  font-size: 17px;
-  font-weight: 700;
-  box-shadow: 0 14px 30px rgba(4, 24, 62, 0.35);
-}
-
-.chat-bubble {
-  width: 53px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-  border-radius: 22px;
-  background: #ffffff;
-}
-
-.chat-bubble i {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #0d1f3c;
-}
-
-button,
-a {
-  cursor: pointer;
+  color: var(--color-warning);
 }
 
 @media (max-width: 1280px) {
-  .dashboard-page {
-    grid-template-columns: 96px minmax(0, 1fr);
-  }
-
-  .brand > span,
-  .nav-item span:last-child {
-    display: none;
-  }
-
-  .brand {
-    justify-content: center;
-    padding: 0;
-  }
-
-  .nav-item {
-    justify-content: center;
-    padding: 0;
-  }
-
   .middle-grid,
   .metric-grid,
   .gauge-grid {
@@ -1125,45 +747,6 @@ a {
 }
 
 @media (max-width: 900px) {
-  .dashboard-page {
-    grid-template-columns: 1fr;
-  }
-
-  .sidebar {
-    position: static;
-    height: auto;
-  }
-
-  .brand {
-    height: 74px;
-  }
-
-  .brand > span,
-  .nav-item span:last-child {
-    display: inline;
-  }
-
-  .nav-list {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .nav-item {
-    height: 58px;
-    justify-content: flex-start;
-    padding: 0 24px;
-  }
-
-  .main-content {
-    padding: 24px 18px 34px;
-  }
-
-  .topbar,
-  .top-actions {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
   .metric-grid,
   .middle-grid,
   .gauge-grid {
@@ -1180,14 +763,6 @@ a {
 
   .schedule-panel > * {
     min-width: 720px;
-  }
-
-  .chatbot-button {
-    width: 88px;
-    height: 88px;
-    right: 18px;
-    bottom: 18px;
-    font-size: 14px;
   }
 }
 </style>
