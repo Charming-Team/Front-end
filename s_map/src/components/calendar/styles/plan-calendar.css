@@ -1,0 +1,244 @@
+.plan-cal-root {
+  width: 100%;
+}
+
+.plan-cal-range {
+  min-width: 140px;
+  text-align: center;
+  font-size: 15px;
+  color: var(--navy);
+}
+
+.plan-cal-nav-btn {
+  min-width: 34px;
+  font-size: 16px;
+  line-height: 1;
+}
+
+.plan-cal-today-btn {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* Grid container */
+.plan-cal-grid {
+  border: 1px solid var(--silver);
+  border-radius: 10px;
+  overflow: hidden;
+  background: #fff;
+}
+
+/* Day-of-week header */
+.plan-cal-dow-row {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  background: #f0f4fa;
+  border-bottom: 1px solid var(--silver);
+}
+
+.plan-cal-dow-cell {
+  padding: 6px 0;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--navy);
+}
+
+.plan-cal-dow-cell.dow-weekend {
+  color: #8e99b0;
+}
+
+/* Each week section */
+.plan-cal-week {
+  border-bottom: 1px solid var(--silver);
+}
+
+.plan-cal-week:last-child {
+  border-bottom: none;
+}
+
+/* Date number row */
+.plan-cal-date-row {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.plan-cal-date-cell {
+  padding: 5px 7px 3px;
+  border-right: 1px solid rgba(0, 0, 0, 0.05);
+  background: #fff;
+  min-height: 30px;
+}
+
+.plan-cal-date-cell:last-child {
+  border-right: none;
+}
+
+.plan-cal-date-cell.pc-weekend {
+  background: #fafafa;
+}
+
+.plan-cal-date-cell.pc-other-month {
+  background: #f7f8fb;
+}
+
+.plan-cal-date-cell.pc-today {
+  background: #edf4ff;
+}
+
+.date-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--navy);
+  border-radius: 50%;
+}
+
+.pc-today .date-num {
+  background: #1565c0;
+  color: #fff;
+}
+
+.pc-other-month .date-num {
+  color: #bbbdc8;
+  font-weight: 500;
+}
+
+/* Events bar area */
+.plan-cal-events-row {
+  position: relative;
+  background: #fff;
+  min-height: 6px;
+}
+
+.plan-cal-event-bar {
+  position: absolute;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-sizing: border-box;
+  overflow: hidden;
+  min-width: 6px;
+  transition: opacity 0.12s;
+  border: none;
+  background: transparent;
+  border-radius: 0;
+  padding: 0;
+}
+
+/* The horizontal line spanning the full bar width */
+.plan-cal-event-bar::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 2px;
+  background: var(--bar-color);
+  transform: translateY(-50%);
+  border-radius: 1px;
+}
+
+.plan-cal-event-bar:hover {
+  opacity: 1 !important;
+}
+
+.plan-cal-event-bar:focus-visible {
+  outline: 2px solid var(--bar-color);
+  outline-offset: 2px;
+}
+
+/* Arrowheads at both ends */
+.event-bar-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  z-index: 2;
+  flex-shrink: 0;
+}
+
+.event-bar-arrow-l {
+  left: 0;
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  border-right: 6px solid var(--bar-color);
+}
+
+.event-bar-arrow-r {
+  right: 0;
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  border-left: 6px solid var(--bar-color);
+}
+
+/* Text centered on the line, white background cuts through it */
+.event-bar-label {
+  position: relative;
+  z-index: 1;
+  background: #fff;
+  padding: 0 5px;
+  color: var(--bar-color);
+  font-size: 10px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+  letter-spacing: 0.01em;
+  max-width: 90%;
+  line-height: 1.4;
+}
+
+/* Legend */
+.plan-cal-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--navy);
+  padding: 3px 10px 3px 6px;
+  border-radius: 999px;
+  background: rgba(9, 48, 109, 0.05);
+  border: 1px solid rgba(9, 48, 109, 0.08);
+}
+
+.plan-cal-legend-item::before {
+  content: '';
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  background: var(--lc);
+  flex-shrink: 0;
+}
+
+.plan-cal-legend-item--scheduled {
+  --lc: #1565c0;
+}
+
+.plan-cal-legend-item--in-progress {
+  --lc: #00897b;
+}
+
+.plan-cal-legend-item--completed {
+  --lc: #546e7a;
+}
+
+.plan-cal-legend-item--delayed {
+  --lc: #c62828;
+}
+
+.plan-cal-legend-item--cancelled {
+  --lc: #757575;
+}
