@@ -1,0 +1,41 @@
+.state-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  min-height: 260px;
+  color: #718096;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.state-box svg {
+  width: 40px;
+  height: 40px;
+  opacity: 0.5;
+}
+
+.error-box {
+  color: #c62828;
+}
+
+.error-box svg {
+  opacity: 1;
+  stroke: #c62828;
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #e2e8f0;
+  border-top-color: #1565c0;
+  border-radius: 50%;
+  animation: spin 0.75s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

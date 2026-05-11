@@ -31,24 +31,22 @@ function onSearchKeydown(event) {
 </script>
 
 <template>
-  <div class="mb-4 flex flex-wrap items-center gap-3">
-    <select
-      :value="statusValue"
-      class="min-w-[130px] rounded-lg border border-slate-300 bg-white px-[14px] py-2.5 text-sm font-semibold text-[var(--color-navy)] outline-none transition focus:border-[#1565c0] focus:ring-4 focus:ring-[#1565c0]/12"
-      @change="onStatusChange"
-    >
+  <div class="filter-bar">
+    <select :value="statusValue" class="filter-select" @change="onStatusChange">
       <option v-for="item in statusOptions" :key="item.value" :value="item.value">{{ item.label }}</option>
     </select>
-    <div class="flex min-w-[260px] max-w-[480px] flex-1 items-center overflow-hidden rounded-lg border border-slate-300 bg-white">
+    <div class="search-wrap">
       <input
         :value="searchValue"
-        class="h-[42px] flex-1 bg-transparent px-[14px] text-sm text-[var(--color-navy)] outline-none placeholder:text-slate-400"
+        class="search-input"
         type="text"
         placeholder="계획ID, 주문ID, 제품명, 라인, 담당자 검색"
         @input="searchValue = $event.target.value"
         @keydown="onSearchKeydown"
       />
-      <AppButton variant="subtle" class="min-h-[42px] rounded-none border-0 border-l border-l-slate-300 shadow-none" @click="emit('search')">검색</AppButton>
+      <AppButton variant="subtle" class="search-button" @click="emit('search')">검색</AppButton>
     </div>
   </div>
 </template>
+
+<style scoped src="./styles/plan-filter-bar.css"></style>
