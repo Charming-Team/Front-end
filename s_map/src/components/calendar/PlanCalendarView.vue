@@ -13,11 +13,11 @@ const emit = defineEmits(['prev-month', 'next-month', 'go-today', 'select-plan']
 
 <template>
   <div class="plan-cal-root">
-    <div class="d-flex align-items-center gap-2 mb-3">
+    <div class="mb-3 flex items-center gap-2">
       <AppButton class="plan-cal-nav-btn" variant="secondary" size="sm" @click="emit('prev-month')">‹</AppButton>
-      <span class="plan-cal-range fw-semibold">{{ monthLabel }}</span>
+      <span class="plan-cal-range font-semibold">{{ monthLabel }}</span>
       <AppButton class="plan-cal-nav-btn" variant="secondary" size="sm" @click="emit('next-month')">›</AppButton>
-      <AppButton class="plan-cal-today-btn ms-1" variant="primary" size="sm" @click="emit('go-today')">오늘</AppButton>
+      <AppButton class="plan-cal-today-btn ml-1" variant="primary" size="sm" @click="emit('go-today')">오늘</AppButton>
     </div>
 
     <div class="plan-cal-grid">
@@ -64,7 +64,7 @@ const emit = defineEmits(['prev-month', 'next-month', 'go-today', 'select-plan']
       </div>
     </div>
 
-    <div class="d-flex flex-wrap gap-2 mt-3">
+    <div class="mt-3 flex flex-wrap gap-2">
       <span
         v-for="item in legendItems"
         :key="item.label"

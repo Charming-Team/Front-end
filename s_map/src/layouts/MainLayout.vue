@@ -66,39 +66,39 @@ function logout() {
 
 <template>
   <div class="app-layout">
-    <aside class="sidebar d-flex flex-column text-white">
-      <div class="brand d-flex align-items-center">
+    <aside class="sidebar flex flex-col text-white">
+      <div class="brand flex items-center">
         <img class="brand-logo" :src="logoSymbol" alt="" />
         <span>S-MAP</span>
       </div>
 
-      <nav class="nav-list d-flex flex-column" aria-label="Main navigation">
+      <nav class="nav-list flex flex-col" aria-label="Main navigation">
         <RouterLink
           v-for="item in navigation"
           :key="item.key"
-          class="nav-item position-relative d-flex align-items-center text-decoration-none"
+          class="nav-item relative flex items-center no-underline"
           :class="{ active: item.key === activeMenu }"
           :to="item.to"
         >
-          <span class="nav-icon d-grid" v-html="item.icon"></span>
+          <span class="nav-icon grid" v-html="item.icon"></span>
           <span>{{ item.label }}</span>
         </RouterLink>
       </nav>
 
-      <button class="nav-item position-relative d-flex align-items-center text-decoration-none logout-button" type="button" @click="logout">
-        <span class="nav-icon d-grid" v-html="icons.logout"></span>
+      <button class="nav-item logout-button relative flex items-center no-underline" type="button" @click="logout">
+        <span class="nav-icon grid" v-html="icons.logout"></span>
         <span>로그아웃</span>
       </button>
     </aside>
 
     <main class="main-content">
-      <header class="topbar d-flex justify-content-between align-items-start">
+      <header class="topbar flex items-start justify-between">
         <div>
           <h1 class="mb-2">{{ pageTitle }}</h1>
           <p class="m-0">{{ pageDescription }}</p>
         </div>
 
-        <div class="top-actions d-flex align-items-center">
+        <div class="top-actions flex items-center">
           <AlarmButton :count="notificationCount" />
           <UserChip :label="userName" />
         </div>
