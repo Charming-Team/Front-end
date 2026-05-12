@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue'
-import AppButton from '../common/AppButton.vue'
+import AppSearchField from '../common/AppSearchField.vue'
+import AppSelect from '../common/AppSelect.vue'
 
 const props = defineProps({
   statusOptions: { type: Array, required: true },
@@ -20,33 +21,29 @@ const searchValue = computed({
   set: value => emit('update:search', value),
 })
 
-function onStatusChange(event) {
-  statusValue.value = event.target.value
+function onStatusChange(value) {
+  statusValue.value = value
   emit('status-change')
 }
 
-function onSearchKeydown(event) {
-  if (event.key === 'Enter') emit('search')
-}
 </script>
 
 <template>
-  <div class="filter-bar">
-    <select :value="statusValue" class="filter-select" @change="onStatusChange">
-      <option v-for="item in statusOptions" :key="item.value" :value="item.value">{{ item.label }}</option>
-    </select>
-    <div class="search-wrap">
-      <input
-        :value="searchValue"
-        class="search-input"
-        type="text"
-        placeholder="계획ID, 주문ID, 제품명, 라인, 담당자 검색"
-        @input="searchValue = $event.target.value"
-        @keydown="onSearchKeydown"
-      />
-      <AppButton variant="subtle" class="search-button" @click="emit('search')">검색</AppButton>
-    </div>
+  <div class="flex items-center gap-2">
+    <AppSelect
+      :model-value="statusValue"
+      :options="statusOptions"
+      class="w-[160px] shrink-0"
+      @update:model-value="statusValue = $event"
+      @change="onStatusChange"
+    />
+
+    <AppSearchField
+      class="flex-1 min-w-0"
+      :model-value="searchValue"
+      placeholder="계획ID, 주문ID, 제품명, 라인, 담당자 검색"
+      @update:model-value="searchValue = $event"
+      @search="emit('search')"
+    />
   </div>
 </template>
-
-<style scoped src="./styles/plan-filter-bar.css"></style>

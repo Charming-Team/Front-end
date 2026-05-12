@@ -20,7 +20,7 @@ const router = createRouter({
       meta: {
         requiresAuth: true,
         pageTitle: '생산계획 관리',
-        pageDescription: '적용된 생산계획 목록과 상세 정보를 확인합니다.',
+        pageDescription: '',
         activeMenu: 'production',
       },
     },

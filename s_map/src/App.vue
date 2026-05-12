@@ -30,7 +30,3 @@ const notificationCount = computed(() => route.meta.notificationCount ?? 15)
     </MainLayout>
   </RouterView>
 </template>
-
-<script setup>
-import MainLayout from "./layouts/MainLayout.vue";
-</script>
