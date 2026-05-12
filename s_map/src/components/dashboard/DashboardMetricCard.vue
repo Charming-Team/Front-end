@@ -1,13 +1,20 @@
 <template>
-  <article class="metric-card">
-    <h2>{{ metric.title }}</h2>
-    <div class="metric-value">
-      {{ metric.value }}
-      <span>{{ metric.unit }}</span>
-    </div>
-    <div v-if="metric.caption" class="metric-caption">
-      <span>{{ metric.caption }}</span>
-      <strong :class="metric.tone">{{ metric.change }}</strong>
+  <article>
+    <div class="metric-card card h-100 border-0">
+      <div class="card-body">
+        <h2 class="card-title mb-2">{{ metric.title }}</h2>
+        <div class="metric-value d-flex align-items-end gap-2 border-bottom pb-2">
+          {{ metric.value }}
+          <span class="mb-1">{{ metric.unit }}</span>
+        </div>
+        <div
+          v-if="metric.caption"
+          class="d-flex align-items-center gap-3 mt-2 metric-caption"
+        >
+          <span>{{ metric.caption }}</span>
+          <strong :class="metric.tone">{{ metric.change }}</strong>
+        </div>
+      </div>
     </div>
   </article>
 </template>
@@ -23,47 +30,39 @@ defineProps({
 
 <style scoped>
 .metric-card {
-  min-height: 164px;
-  padding: 23px 34px 22px;
+  min-height: 92px;
   border: 1px solid var(--color-border);
   border-radius: 8px;
   background: var(--color-panel);
   box-shadow: 0 7px 18px rgba(0, 0, 0, 0.05);
 }
 
-.metric-card h2 {
-  margin: 0 0 12px;
+.card-body {
+  padding: 11px 20px;
+}
+
+.card-title {
   color: var(--color-text-main);
-  font-size: 17px;
+  font-size: 13px;
   font-weight: 650;
   letter-spacing: -0.1px;
 }
 
 .metric-value {
-  display: flex;
-  align-items: flex-end;
-  gap: 13px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid var(--color-border);
   color: var(--color-text-main);
-  font-size: 50px;
+  font-size: 25px;
   line-height: 0.95;
   font-weight: 800;
 }
 
 .metric-value span {
-  margin-bottom: 8px;
-  font-size: 18px;
+  font-size: 12px;
   line-height: 1;
   font-weight: 700;
 }
 
 .metric-caption {
-  display: flex;
-  align-items: center;
-  gap: 24px;
-  margin-top: 14px;
-  font-size: 16px;
+  font-size: 12px;
   font-weight: 600;
 }
 

@@ -1,8 +1,10 @@
 <template>
-  <section class="panel utilization-panel">
-    <div class="panel-header compact">
-      <h2>{{ title }}</h2>
-      <a href="#">더보기 <span class="arrow"></span></a>
+  <section class="card utilization-panel dashboard-panel">
+    <div class="panel-header d-flex justify-content-between align-items-center gap-3">
+      <h2 class="panel-title mb-0">{{ title }}</h2>
+      <button class="more-link btn btn-link d-inline-flex align-items-center gap-1 p-0 border-0" type="button">
+        더보기 <span class="arrow"></span>
+      </button>
     </div>
 
     <div class="gauge-grid">
@@ -31,7 +33,7 @@ defineProps({
 </script>
 
 <style scoped>
-.panel {
+.dashboard-panel {
   border: 1px solid var(--color-border);
   border-radius: 8px;
   background: var(--color-panel);
@@ -39,37 +41,36 @@ defineProps({
 }
 
 .utilization-panel {
-  padding-bottom: 24px;
+  padding-bottom: 14px;
 }
 
 .panel-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 20px;
-  padding: 25px 28px 0;
+  min-height: 46px;
+  padding: 12px 26px 8px;
 }
 
-.panel-header.compact {
-  padding-bottom: 24px;
-  border-bottom: 1px solid var(--color-border);
-}
-
-.panel-header h2 {
-  margin: 0;
+.panel-title {
   color: var(--color-text-main);
-  font-size: 20px;
+  font-size: 16px;
   font-weight: 700;
   letter-spacing: -0.2px;
 }
 
-.panel-header a {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
+.more-link {
   color: var(--color-text-main);
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 600;
+  background: transparent;
+  box-shadow: none;
+  line-height: 1;
+  text-decoration: none;
+}
+
+.more-link:hover,
+.more-link:focus {
+  color: var(--color-text-main);
+  background: transparent;
+  box-shadow: none;
   text-decoration: none;
 }
 
@@ -84,25 +85,25 @@ defineProps({
 
 .gauge-grid {
   display: grid;
-  grid-template-columns: repeat(6, minmax(160px, 1fr));
-  gap: 18px;
-  padding: 0 24px;
+  grid-template-columns: repeat(6, minmax(120px, 1fr));
+  gap: 12px;
+  padding: 0 26px;
 }
 
-@media (max-width: 1600px) {
+@media (max-width: 1180px) {
   .gauge-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 24px;
+    gap: 16px;
   }
 }
 
-@media (max-width: 1280px) {
+@media (max-width: 900px) {
   .gauge-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
-@media (max-width: 900px) {
+@media (max-width: 560px) {
   .gauge-grid {
     grid-template-columns: 1fr;
   }

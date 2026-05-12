@@ -1,23 +1,25 @@
 <template>
-  <article class="gauge-card">
-    <h3>
-      <span :class="line.low ? 'orange-dot' : 'green-dot'"></span>
-      {{ line.name }}
-    </h3>
-    <div class="gauge" :class="{ low: line.low }">
-      <svg class="gauge-svg" viewBox="0 0 180 110" aria-hidden="true">
-        <path class="gauge-track" d="M25 92 A65 65 0 0 1 155 92" />
-        <path
-          class="gauge-progress"
-          d="M25 92 A65 65 0 0 1 155 92"
-          :pathLength="100"
-          :style="{ strokeDasharray: `${line.value} 100` }"
-        />
-      </svg>
-      <div class="gauge-center">
-        <strong>{{ line.value }}%</strong>
+  <article class="card gauge-card">
+    <div class="card-body p-3">
+      <h3 class="d-flex align-items-center gap-2 mb-1">
+        <span :class="line.low ? 'orange-dot' : 'green-dot'"></span>
+        {{ line.name }}
+      </h3>
+      <div class="gauge" :class="{ low: line.low }">
+        <svg class="gauge-svg" viewBox="0 0 180 110" aria-hidden="true">
+          <path class="gauge-track" d="M25 92 A65 65 0 0 1 155 92" />
+          <path
+            class="gauge-progress"
+            d="M25 92 A65 65 0 0 1 155 92"
+            :pathLength="100"
+            :style="{ strokeDasharray: `${line.value} 100` }"
+          />
+        </svg>
+        <div class="gauge-center">
+          <strong>{{ line.value }}%</strong>
+        </div>
+        <b class="gauge-status">{{ line.low ? "가동 저조" : "가동 중" }}</b>
       </div>
-      <b class="gauge-status">{{ line.low ? "가동 저조" : "가동 중" }}</b>
     </div>
   </article>
 </template>
@@ -33,8 +35,7 @@ defineProps({
 
 <style scoped>
 .gauge-card {
-  min-height: 168px;
-  padding: 18px 14px 14px;
+  min-height: 128px;
   border: 1px solid var(--color-border);
   border-radius: 8px;
   background: var(--color-panel);
@@ -42,18 +43,14 @@ defineProps({
 }
 
 .gauge-card h3 {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin: 0 0 4px;
-  font-size: 16px;
+  font-size: 13px;
   font-weight: 700;
 }
 
 .green-dot,
 .orange-dot {
-  width: 14px;
-  height: 14px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
   display: inline-block;
 }
@@ -68,9 +65,9 @@ defineProps({
 
 .gauge {
   position: relative;
-  width: 160px;
-  height: 108px;
-  margin: 10px auto 0;
+  width: 124px;
+  height: 84px;
+  margin: 6px auto 0;
 }
 
 .gauge-svg {
@@ -85,7 +82,7 @@ defineProps({
 .gauge-progress {
   fill: none;
   stroke-linecap: round;
-  stroke-width: 9;
+  stroke-width: 8;
 }
 
 .gauge-track {
@@ -103,8 +100,8 @@ defineProps({
 .gauge-center {
   position: absolute;
   left: 50%;
-  top: 50px;
-  width: 116px;
+  top: 38px;
+  width: 96px;
   transform: translateX(-50%);
   text-align: center;
   z-index: 1;
@@ -113,7 +110,7 @@ defineProps({
 .gauge-center strong {
   display: block;
   color: var(--color-navy);
-  font-size: 24px;
+  font-size: 20px;
   line-height: 1.05;
   font-weight: 800;
 }
@@ -126,9 +123,9 @@ defineProps({
   position: absolute;
   left: 0;
   right: 0;
-  top: 77px;
+  top: 61px;
   color: var(--color-success);
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 700;
   text-align: center;
 }

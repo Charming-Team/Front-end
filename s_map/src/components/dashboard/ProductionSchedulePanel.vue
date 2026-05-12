@@ -1,64 +1,64 @@
 <template>
-  <article class="panel schedule-panel">
-    <div class="panel-header">
-      <h2>{{ title }}</h2>
-      <div class="panel-actions">
-        <button type="button">오늘</button>
-        <button class="square-button" type="button" aria-label="이전">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="m15 18-6-6 6-6" />
-          </svg>
-        </button>
-        <button class="square-button" type="button" aria-label="다음">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="m9 18 6-6-6-6" />
-          </svg>
-        </button>
-      </div>
-    </div>
-
-    <div class="schedule-date">{{ scheduleDate }}</div>
-    <div class="timeline-labels">
-      <span v-for="day in weekTimeline" :key="day">{{ day }}</span>
-    </div>
-
-    <div class="gantt">
-      <div v-for="line in ganttRows" :key="line.name" class="gantt-row">
-        <strong>{{ line.name }}</strong>
-        <div class="bar-track">
-          <span
-            v-for="(segment, index) in line.segments"
-            :key="`${line.name}-${index}`"
-            class="bar-segment"
-            :class="segment.type"
-            :style="{ left: `${segment.left}%`, width: `${segment.width}%` }"
-          ></span>
+  <article class="card schedule-panel dashboard-panel">
+    <div class="card-body p-0">
+      <div class="panel-header d-flex justify-content-between align-items-center gap-3">
+        <h2 class="panel-title mb-0">{{ title }}</h2>
+        <div class="btn-group panel-actions" role="group" aria-label="생산 스케줄 주차 이동">
+          <button class="btn btn-light" type="button" @click="goToday">오늘</button>
+          <button class="btn btn-light square-button" type="button" aria-label="이전 주" @click="moveWeek(-1)">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="m15 18-6-6 6-6" />
+            </svg>
+          </button>
+          <button class="btn btn-light square-button" type="button" aria-label="다음 주" @click="moveWeek(1)">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="m9 18 6-6-6-6" />
+            </svg>
+          </button>
         </div>
       </div>
-    </div>
 
-    <div class="legend">
-      <span v-for="item in legend" :key="item.label">
-        <i :class="item.type"></i>
-        {{ item.label }}
-      </span>
+      <div class="schedule-date text-center fw-bold">{{ currentScheduleDate }}</div>
+      <div class="timeline-labels">
+        <span v-for="day in currentWeekTimeline" :key="day">{{ day }}</span>
+      </div>
+
+      <div class="gantt">
+        <div v-for="line in ganttRows" :key="line.name" class="gantt-row">
+          <strong>{{ line.name }}</strong>
+          <div class="bar-track">
+            <span
+              v-for="(segment, index) in line.segments"
+              :key="`${line.name}-${index}`"
+              class="bar-segment"
+              :class="segment.type"
+              :style="{ left: `${segment.left}%`, width: `${segment.width}%` }"
+            ></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="legend d-flex justify-content-center flex-wrap gap-4 px-4 pb-4">
+        <span v-for="item in legend" :key="item.label" class="d-inline-flex align-items-center gap-2">
+          <i :class="item.type"></i>
+          {{ item.label }}
+        </span>
+      </div>
     </div>
   </article>
 </template>
 
 <script setup>
-defineProps({
+import { computed, ref } from "vue";
+
+const props = defineProps({
   title: {
     type: String,
     default: "생산 스케줄",
   },
-  scheduleDate: {
+  baseWeekStart: {
     type: String,
-    default: "",
-  },
-  weekTimeline: {
-    type: Array,
-    default: () => [],
+    default: "2024-05-20",
   },
   ganttRows: {
     type: Array,
@@ -69,10 +69,61 @@ defineProps({
     default: () => [],
   },
 });
+
+const weekOffset = ref(0);
+const dayLabels = ["일", "월", "화", "수", "목", "금", "토"];
+
+const formatMonthDay = (date) => {
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${month}.${day}`;
+};
+
+const addDays = (date, days) => {
+  const nextDate = new Date(date);
+  nextDate.setDate(nextDate.getDate() + days);
+  return nextDate;
+};
+
+const getMonday = (date) => {
+  const monday = new Date(date);
+  const day = monday.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  monday.setDate(monday.getDate() + diff);
+  monday.setHours(0, 0, 0, 0);
+  return monday;
+};
+
+const baseMonday = computed(() => getMonday(new Date(props.baseWeekStart)));
+
+const currentMonday = computed(() => addDays(baseMonday.value, weekOffset.value * 7));
+
+const currentWeekTimeline = computed(() =>
+  Array.from({ length: 7 }, (_, index) => {
+    const date = addDays(currentMonday.value, index);
+    return `${dayLabels[date.getDay()]} ${formatMonthDay(date)}`;
+  }),
+);
+
+const currentScheduleDate = computed(() => {
+  const start = currentMonday.value;
+  const end = addDays(start, 6);
+  return `${start.getFullYear()}년 ${formatMonthDay(start)} - ${formatMonthDay(end)}`;
+});
+
+const moveWeek = (amount) => {
+  weekOffset.value += amount;
+};
+
+const goToday = () => {
+  const todayMonday = getMonday(new Date());
+  const diffDays = Math.round((todayMonday - baseMonday.value) / 86400000);
+  weekOffset.value = Math.round(diffDays / 7);
+};
 </script>
 
 <style scoped>
-.panel {
+.dashboard-panel {
   border: 1px solid var(--color-border);
   border-radius: 8px;
   background: var(--color-panel);
@@ -80,46 +131,29 @@ defineProps({
 }
 
 .panel-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 20px;
-  padding: 25px 28px 0;
+  min-height: 46px;
+  padding: 12px 26px 8px;
 }
 
-.panel-header h2 {
-  margin: 0;
+.panel-title {
   color: var(--color-text-main);
-  font-size: 20px;
+  font-size: 16px;
   font-weight: 700;
   letter-spacing: -0.2px;
 }
 
-.panel-actions {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
 .panel-actions button {
-  height: 45px;
-  padding: 0 17px;
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
+  height: 30px;
   border: 1px solid var(--color-border-strong);
-  border-radius: 8px;
   background: var(--color-panel);
   color: var(--color-text-main);
-  font-size: 15px;
+  font-size: 12px;
   font-weight: 600;
   box-shadow: 0 6px 18px rgba(18, 34, 64, 0.04);
 }
 
-.panel-actions .square-button {
-  width: 45px;
-  padding: 0;
-  justify-content: center;
+.square-button {
+  width: 30px;
 }
 
 .square-button svg {
@@ -133,10 +167,8 @@ defineProps({
 }
 
 .schedule-date {
-  margin: 17px 0 14px;
-  text-align: center;
-  font-size: 18px;
-  font-weight: 700;
+  margin: 5px 0;
+  font-size: 13px;
 }
 
 .timeline-labels {
@@ -145,13 +177,13 @@ defineProps({
   margin-left: 112px;
   padding-right: 26px;
   color: var(--color-text-subtle);
-  font-size: 14px;
+  font-size: 11px;
   font-weight: 650;
 }
 
 .gantt {
   position: relative;
-  margin: 16px 26px 0;
+  margin: 5px 26px 0;
   overflow: hidden;
 }
 
@@ -178,18 +210,18 @@ defineProps({
   grid-template-columns: 90px minmax(0, 1fr);
   align-items: center;
   gap: 22px;
-  min-height: 62px;
+  min-height: 32px;
   border-bottom: 1px solid var(--color-border);
 }
 
 .gantt-row strong {
-  font-size: 16px;
+  font-size: 12px;
   font-weight: 700;
 }
 
 .bar-track {
   position: relative;
-  height: 31px;
+  height: 17px;
 }
 
 .bar-segment {
@@ -199,37 +231,37 @@ defineProps({
 }
 
 .planned {
-  background: var(--color-primary);
+  background: #a9cdee;
 }
 
 .running {
-  background: var(--color-success);
+  background: #00897b;
 }
 
 .change {
-  background: var(--color-track-strong);
+  background: #b8c0cc;
 }
 
 .delay {
-  background: var(--color-danger);
+  background: #e53935;
 }
 
 .empty {
   background: repeating-linear-gradient(
     -45deg,
-    var(--color-track-light) 0,
-    var(--color-track-light) 2px,
-    var(--color-bg-soft) 2px,
-    var(--color-bg-soft) 4px
+    #b8c0cc 0,
+    #b8c0cc 3px,
+    #eef2f6 3px,
+    #eef2f6 8px
   );
 }
 
 .legend {
   display: flex;
   justify-content: center;
-  gap: 38px;
-  padding: 15px 24px 24px;
-  font-size: 15px;
+  gap: 24px;
+  padding: 7px 26px 10px;
+  font-size: 12px;
   font-weight: 600;
 }
 
@@ -240,10 +272,14 @@ defineProps({
 }
 
 .legend i {
-  width: 20px;
-  height: 20px;
+  width: 13px;
+  height: 13px;
   border-radius: 4px;
   display: inline-block;
+}
+
+.legend i.planned {
+  background: #a9cdee;
 }
 
 @media (max-width: 900px) {
