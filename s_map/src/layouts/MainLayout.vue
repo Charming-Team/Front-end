@@ -4,7 +4,7 @@ import AlarmButton from '../components/common/AlarmButton.vue'
 import UserChip from '../components/common/UserChip.vue'
 import ChatbotButton from '../features/chatbot/components/ChatbotButton.vue'
 import { clearToken } from '../utils/storage.js'
-import logoSymbol from '../assets/s-map-logo-symbol.svg'
+import logoSymbol from '../assets/logo_main.svg'
 
 defineProps({
   pageTitle: {

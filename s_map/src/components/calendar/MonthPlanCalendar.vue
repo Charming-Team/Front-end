@@ -1,9 +1,9 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
 import FullCalendar from '@fullcalendar/vue3'
-import dayGridPlugin from '@fullcalendar/daygrid'
-import interactionPlugin from '@fullcalendar/interaction'
-import koLocale from '@fullcalendar/core/locales/ko'
+import dayGridPlugin from '@fullcalendar/daygrid/index.js'
+import interactionPlugin from '@fullcalendar/interaction/index.js'
+import koLocale from '@fullcalendar/core/locales/ko.js'
 
 const props = defineProps({
   anchorDate: { type: Date, required: true },
