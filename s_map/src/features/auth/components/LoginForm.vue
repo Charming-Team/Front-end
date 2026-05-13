@@ -29,7 +29,7 @@ const emit = defineEmits(['update:email', 'update:password', 'submit'])
           :value="email"
           type="email"
           class="field-input"
-          placeholder="admin@s-map.com"
+          placeholder="admin@sk.com"
           required
           autocomplete="email"
           @input="emit('update:email', $event.target.value)"
