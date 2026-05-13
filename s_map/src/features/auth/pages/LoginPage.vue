@@ -6,7 +6,7 @@ import AuthCard from '../components/AuthCard.vue'
 import LoginForm from '../components/LoginForm.vue'
 import logoMain from '../../../assets/logo_main.svg'
 
-const MOCK_EMAIL = 'admin@s-map.com'
+const MOCK_EMAIL = 'admin@sk.com'
 const MOCK_PASSWORD = 'smap1234!'
 
 const router = useRouter()
