@@ -14,10 +14,12 @@ const emit = defineEmits(['update:email', 'update:password', 'submit'])
 
 <template>
   <div>
-    <img :src="logoSrc" alt="S-MAP" class="login-logo" />
+    <div class="mb-7 flex items-center justify-center gap-2.5">
+      <img :src="logoSrc" alt="" class="block h-11 w-11" aria-hidden="true" />
+      <span class="text-[30px] font-black leading-none tracking-tight text-[#0d1f3c]">S-MAP</span>
+    </div>
 
     <h1 class="login-title">로그인</h1>
-    <p class="login-sub">S-MAP 스마트 생산관리 시스템</p>
 
     <form class="login-form" @submit.prevent="emit('submit')">
       <div class="field-group">
