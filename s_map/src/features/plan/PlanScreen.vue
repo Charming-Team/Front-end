@@ -2,29 +2,24 @@
 import { computed, onMounted, watch } from 'vue'
 import AppButton from '../../components/common/AppButton.vue'
 import PlanStatusBadge from '../../components/plan/PlanStatusBadge.vue'
-import PlanFilterBar from '../../components/plan/PlanFilterBar.vue'
-import PlanCalendarPanel from '../../components/plan/PlanCalendarPanel.vue'
+import PlanCalendar from './PlanCalendar.vue'
 import { usePlanStore } from './store.js'
+import { usePlanFilters } from './usePlanFilters.js'
 
 const store = usePlanStore()
 
-const PLAN_STATUSES = [
-  { value: '', label: '전체 상태' },
-  { value: 'SCHEDULED', label: '예정' },
-  { value: 'IN_PROGRESS', label: '진행중' },
-  { value: 'COMPLETED', label: '완료' },
-  { value: 'DELAYED', label: '지연' },
-  { value: 'CANCELLED', label: '취소' },
-]
-
 const NON_EDITABLE = ['COMPLETED', 'CANCELLED']
+const {
+  statusOptions,
+  status,
+  search,
+  hasFilters,
+  submitSearch,
+  applyStatusFilter,
+} = usePlanFilters(store)
 
 const canEdit = computed(() =>
   !!store.selectedPlan.value && !NON_EDITABLE.includes(store.selectedPlan.value.planStatus)
-)
-
-const hasFilters = computed(() =>
-  Boolean(store.filters.search || store.filters.status)
 )
 
 watch(() => store.selectedPlan.value?.planId, id => {
@@ -50,14 +45,6 @@ function formatDuration(minutes) {
   return m > 0 ? `${h}시간 ${m}분` : `${h}시간`
 }
 
-function onSearch() {
-  store.applyFilters()
-}
-
-function onStatusChange() {
-  store.applyFilters()
-}
-
 function onSubmitUpdate() {
   store.submitUpdate()
 }
@@ -70,22 +57,19 @@ onMounted(() => {
 
 <template>
   <div class="plan-screen">
-    <PlanFilterBar
-      v-model:status="store.filters.status"
-      v-model:search="store.filters.search"
-      :status-options="PLAN_STATUSES"
-      @search="onSearch"
-      @status-change="onStatusChange"
-    />
-
-    <PlanCalendarPanel
+    <PlanCalendar
       :plans="store.calendarPlans.value"
       :lines="store.lines.value"
+      :status-options="statusOptions"
+      v-model:status="status"
+      v-model:search="search"
       :loading="store.calendarLoading.value"
       :error="store.calendarError.value ?? ''"
       :has-filters="hasFilters"
       :selected-plan-id="store.selectedPlan.value?.planId ?? null"
       @retry="store.loadCalendarPlans()"
+      @search="submitSearch"
+      @status-change="applyStatusFilter"
       @select-plan="plan => store.loadPlanDetail(plan.planId)"
     />
 
