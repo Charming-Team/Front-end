@@ -1,4 +1,5 @@
 <script setup>
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import AlarmButton from '../components/common/AlarmButton.vue'
 import UserChip from '../components/common/UserChip.vue'
@@ -58,7 +59,24 @@ const navigation = [
   { key: 'reports', label: '보고서', icon: icons.report, to: '/' },
 ]
 
+const userMenuOpen = ref(false)
+const userMenuRef = ref(null)
+
+function toggleUserMenu() {
+  userMenuOpen.value = !userMenuOpen.value
+}
+
+function onDocumentClick(e) {
+  if (userMenuRef.value && !userMenuRef.value.contains(e.target)) {
+    userMenuOpen.value = false
+  }
+}
+
+onMounted(() => document.addEventListener('click', onDocumentClick))
+onUnmounted(() => document.removeEventListener('click', onDocumentClick))
+
 function logout() {
+  userMenuOpen.value = false
   clearToken()
   router.push('/login')
 }
@@ -85,10 +103,6 @@ function logout() {
         </RouterLink>
       </nav>
 
-      <button class="nav-item position-relative d-flex align-items-center text-decoration-none logout-button" type="button" @click="logout">
-        <span class="nav-icon d-grid" v-html="icons.logout"></span>
-        <span>로그아웃</span>
-      </button>
     </aside>
 
     <main class="main-content">
@@ -100,7 +114,28 @@ function logout() {
 
         <div class="top-actions d-flex align-items-center">
           <AlarmButton :count="notificationCount" />
-          <UserChip :label="userName" />
+          <div ref="userMenuRef" class="position-relative">
+            <div style="cursor: pointer;" @click.stop="toggleUserMenu">
+              <UserChip :label="userName" />
+            </div>
+            <div
+              v-if="userMenuOpen"
+              class="position-absolute end-0 overflow-hidden rounded-xl border border-slate-200 bg-white"
+              style="top: calc(100% + 6px); min-width: 150px; z-index: 200; box-shadow: 0 8px 24px rgba(15,23,42,0.12);"
+            >
+              <button
+                type="button"
+                class="d-flex align-items-center gap-2 w-100 border-0 bg-transparent text-start"
+                style="padding: 10px 16px; font-size: 14px; font-weight: 600; color: var(--color-text-main); cursor: pointer;"
+                @click="logout"
+              >
+                <svg viewBox="0 0 24 24" style="width:16px;height:16px;flex-shrink:0;" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>
+                </svg>
+                로그아웃
+              </button>
+            </div>
+          </div>
         </div>
       </header>
 
