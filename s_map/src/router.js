@@ -32,6 +32,16 @@ const router = createRouter({
       path: "/login",
       component: () => import("./features/auth/pages/LoginPage.vue"),
     },
+    {
+      path: "/ai/analysis",
+      component: () => import("./pages/ai/AiAnalysisPage.vue"),
+      meta: {
+        requiresAuth: true,
+        pageTitle: "AI 분석",
+        pageDescription: "AI가 생산계획 데이터를 분석합니다.",
+        activeMenu: "production",
+      },
+    },
   ],
 });
 

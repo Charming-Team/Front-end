@@ -1,5 +1,6 @@
 <script setup>
 import { computed, ref } from 'vue'
+import { RouterLink } from 'vue-router'
 import AppButton from '../../components/common/AppButton.vue'
 import AppCard from '../../components/common/AppCard.vue'
 import PlanFilterBar from '../../components/plan/PlanFilterBar.vue'
@@ -149,33 +150,56 @@ function setViewMode(mode) {
           />
         </div>
 
-        <div class="inline-flex shrink-0 overflow-hidden rounded-full border border-slate-200 bg-slate-100/80 p-1 shadow-sm">
-          <button
-            type="button"
-            class="inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-[14px] font-semibold transition"
-            :class="viewMode === 'month'
-              ? 'bg-white text-slate-900 shadow-sm'
-              : 'text-slate-500 hover:text-slate-700'"
-            @click="setViewMode('month')"
+        <div class="flex shrink-0 items-center gap-2">
+          <div class="inline-flex shrink-0 overflow-hidden rounded-full border border-slate-200 bg-slate-100/80 p-1 shadow-sm">
+            <button
+              type="button"
+              class="inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-[14px] font-semibold transition"
+              :class="viewMode === 'month'
+                ? 'bg-white text-slate-900 shadow-sm'
+                : 'text-slate-500 hover:text-slate-700'"
+              @click="setViewMode('month')"
+            >
+              <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/>
+              </svg>
+              월별
+            </button>
+            <button
+              type="button"
+              class="inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-[14px] font-semibold transition"
+              :class="viewMode === 'week'
+                ? 'bg-white text-slate-900 shadow-sm'
+                : 'text-slate-500 hover:text-slate-700'"
+              @click="setViewMode('week')"
+            >
+              <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
+              </svg>
+              주차별
+            </button>
+          </div>
+
+          <RouterLink
+            to="/ai/analysis"
+            class="inline-flex items-center gap-0.5 rounded-[10px] bg-[var(--color-primary)] px-4 py-2 text-[14px] font-semibold text-white transition hover:brightness-110"
+            style="text-decoration: none;"
           >
-            <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/>
+            <svg
+              class="h-3.5 w-3.5"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M12 2l1.5 4.5L18 8l-4.5 1.5L12 14l-1.5-4.5L6 8l4.5-1.5z"/>
+              <path d="M19 14l.75 2.25L22 17l-2.25.75L19 20l-.75-2.25L16 17l2.25-.75z"/>
             </svg>
-            월별
-          </button>
-          <button
-            type="button"
-            class="inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-[14px] font-semibold transition"
-            :class="viewMode === 'week'
-              ? 'bg-white text-slate-900 shadow-sm'
-              : 'text-slate-500 hover:text-slate-700'"
-            @click="setViewMode('week')"
-          >
-            <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
-            </svg>
-            주차별
-          </button>
+            AI 분석 시작
+          </RouterLink>
         </div>
       </div>
 
