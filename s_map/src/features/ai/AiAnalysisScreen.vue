@@ -74,6 +74,7 @@ onMounted(() => {
       if (completedSteps.value >= 5) {
         clearInterval(stepTimer)
         clearInterval(timeTimer)
+        setTimeout(() => router.push('/ai/result'), 1500)
       }
     }
   }, 5000)

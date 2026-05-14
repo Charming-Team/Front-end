@@ -42,6 +42,26 @@ const router = createRouter({
         activeMenu: "production",
       },
     },
+    {
+      path: "/ai/result",
+      component: () => import("./pages/ai/AiResultPage.vue"),
+      meta: {
+        requiresAuth: true,
+        pageTitle: "생산 계획 생성 완료",
+        pageDescription: "AI가 분석한 결과를 기반으로 최적의 생산 계획과 대응안을 생성했습니다.",
+        activeMenu: "production",
+      },
+    },
+    {
+      path: "/ai/detail",
+      component: () => import("./pages/ai/AiDetailPage.vue"),
+      meta: {
+        requiresAuth: true,
+        pageTitle: "대응안 상세 비교",
+        pageDescription: "선택한 대응안의 적용 조건과 시뮬레이션 결과를 비교 분석합니다.",
+        activeMenu: "production",
+      },
+    },
   ],
 });
 
