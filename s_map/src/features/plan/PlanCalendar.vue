@@ -1,8 +1,6 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { RouterLink } from 'vue-router'
-import AppButton from '../../components/common/AppButton.vue'
-import AppCard from '../../components/common/AppCard.vue'
 import PlanFilterBar from '../../components/plan/PlanFilterBar.vue'
 import MonthPlanCalendar from '../../components/calendar/MonthPlanCalendar.vue'
 import WeekPlanCalendar from '../../components/calendar/WeekPlanCalendar.vue'

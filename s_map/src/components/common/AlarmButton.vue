@@ -1,5 +1,4 @@
 <script setup>
-import AppButton from './AppButton.vue'
 
 defineProps({
   count: { type: [Number, String], default: '' },

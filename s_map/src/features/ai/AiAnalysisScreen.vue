@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import AppCard from '../../components/common/AppCard.vue'
+import { useRouter } from 'vue-router'
 
 const STEPS = [
   { number: 1, label: '데이터 수집' },
@@ -25,6 +25,8 @@ const toneClassMap = {
   amber:  { iconWrap: 'bg-amber-100/80 text-amber-600'     },
   rose:   { iconWrap: 'bg-rose-100/80 text-rose-600'       },
 }
+
+const router = useRouter()
 
 const completedSteps = ref(0)
 const elapsedSeconds = ref(0)
@@ -81,6 +83,12 @@ onUnmounted(() => {
   clearInterval(stepTimer)
   clearInterval(timeTimer)
 })
+
+function cancelAnalysis() {
+  clearInterval(stepTimer)
+  clearInterval(timeTimer)
+  router.push('/plan')
+}
 
 function iconPath(icon) {
   switch (icon) {
@@ -286,7 +294,19 @@ function iconPath(icon) {
           민감한 데이터는 안전하게 처리되며, AI 분석 결과는 저장되지 않습니다.
         </div>
 
+        <!-- Cancel button -->
+        <div v-if="!isComplete" class="mt-6 flex justify-center">
+          <AppButton variant="primary" @click="cancelAnalysis">
+            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="10"/><path d="m15 9-6 6M9 9l6 6"/>
+            </svg>
+            분석 취소
+          </AppButton>
+        </div>
+
       </div>
     </div>
   </AppCard>
 </template>
+
+<style scoped src="../../styles/style.css"></style>
