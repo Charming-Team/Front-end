@@ -1,3 +1,8 @@
+<!--
+  [Screen] AI 생산계획 분석 로딩 화면
+  역할: AI 분석 진행 상태를 5단계로 시각화하고, 완료 시 /ai/result로 자동 이동합니다.
+  API 연동 시: 실제 분석 진행률 및 단계 완료 여부를 polling 또는 WebSocket으로 수신할 예정입니다.
+-->
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'

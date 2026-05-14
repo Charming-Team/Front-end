@@ -1,3 +1,9 @@
+<!--
+  [Screen] AI 분석 결과 — 대응안 상세 비교 화면
+  역할: route.query.id(1~4)로 선택된 대응안의 적용 조건·시뮬레이션 결과·현재 상태 비교·
+        리스크 해석·변경 일정을 순차적으로 표시합니다.
+  API 연동 시: SIM_ROWS·CMP_ROWS·SCHEDULE_ROWS 등 정적 데이터를 API 응답으로 교체할 예정입니다.
+-->
 <script setup>
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -316,24 +322,11 @@ const changeBadgeClass = {
           </div>
         </div>
         <div class="ml-6 flex shrink-0 items-center gap-2">
-          <AppButton variant="secondary" size="sm" @click="router.push('/ai/result')">다른 대응안 비교하기</AppButton>
-          <AppButton variant="primary" size="sm" @click="router.push('/plan')">이 대응안 적용하기</AppButton>
+          <AppButton variant="secondary" size="md" @click="router.push('/ai/result')">다른 대응안 비교하기</AppButton>
+          <AppButton variant="primary" size="md" @click="router.push('/plan')">이 대응안 적용하기</AppButton>
         </div>
       </div>
     </AppCard>
-
-    <!-- Bottom action -->
-    <div class="flex flex-col items-center gap-2">
-      <AppButton variant="primary" size="lg" @click="router.push('/plan')">
-        변경 적용하기
-      </AppButton>
-      <p class="flex items-center gap-1.5 text-[12px] font-medium text-slate-400">
-        <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/>
-        </svg>
-        변경 적용 시 기존 생산 계획과 스케줄이 업데이트됩니다.
-      </p>
-    </div>
 
   </div>
 </template>
