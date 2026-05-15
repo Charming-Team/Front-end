@@ -12,10 +12,10 @@ const route = useRoute()
 const router = useRouter()
 
 const PLANS = {
-  1: { icon: 'gear', title: '공정 라인 추가 방안', desc: '가용 가능한 추가 생산라인을 투입하여 지연 주문의 생산량을 분산하고 납기 지연 위험을 줄이는 방안입니다.', recommended: true },
-  2: { icon: 'clock', title: '공정 시간 증가 방안', desc: '공급 부족 공정을 중심으로 가동 시간을 늘려 생산량을 확보하는 방안입니다.', recommended: false },
-  3: { icon: 'box', title: '자재 사용 증가 방안', desc: '추가 자재 확보 및 재고 최적화로 생산 차질을 예방하는 방안입니다.', recommended: false },
-  4: { icon: 'shield', title: '현재 상태 유지', desc: '현재 계획을 유지하며 변동 리스크를 최소화합니다.', recommended: false },
+  1: { icon: 'gear', title: '공정 라인 추가 방안', desc: '가용 가능한 추가 생산라인을 투입하여 지연 주문의 생산량을 분산하고 납기 지연 위험을 줄이는 방안입니다.' },
+  2: { icon: 'clock', title: '공정 시간 증가 방안', desc: '공급 부족 공정을 중심으로 가동 시간을 늘려 생산량을 확보하는 방안입니다.' },
+  3: { icon: 'box', title: '자재 사용 증가 방안', desc: '추가 자재 확보 및 재고 최적화로 생산 차질을 예방하는 방안입니다.' },
+  4: { icon: 'shield', title: '현재 상태 유지', desc: '현재 계획을 유지하며 변동 리스크를 최소화합니다.' },
 }
 
 const planId = computed(() => Number(route.query.id) || 1)
@@ -91,12 +91,6 @@ const changeBadgeClass = {
               <p class="mt-1 text-[13px] font-medium text-slate-500">{{ plan.desc }}</p>
             </div>
           </div>
-          <span v-if="plan.recommended" class="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-emerald-100 px-3 py-1 text-[13px] font-bold text-emerald-700">
-            <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 2l2.09 6.26L20 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l5.91-1.01z"/>
-            </svg>
-            권장 대응안
-          </span>
         </div>
 
         <!-- 4 Metric chips -->
@@ -276,7 +270,12 @@ const changeBadgeClass = {
               전반적인 생산 안정성이 크게 향상될 것으로 예상됩니다.
             </p>
             <div class="mt-3 border-t border-blue-200 pt-3">
-              <p class="mb-1 text-[13px] font-bold text-blue-800">AI 종합 평가</p>
+              <div class="mb-1.5 flex items-center gap-2">
+                <svg class="h-4 w-4 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/>
+                </svg>
+                <span class="text-[13px] font-bold text-blue-800">AI 종합 평가</span>
+              </div>
               <p class="text-[12px] font-medium leading-5 text-blue-700">
                 추가 라인 투입 시 납기 지연이 해소되고, 납기 충족률이 28%p 개선됩니다.<br>
                 추가 비용 증가폭이 크지 않아 전반적으로 효과적인 대응안으로 평가됩니다.
