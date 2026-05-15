@@ -1,11 +1,11 @@
 <template>
   <article class="card orders-panel dashboard-panel">
     <div class="card-body p-0">
-      <div class="panel-header d-flex justify-content-between align-items-center gap-3">
+      <div
+        class="panel-header d-flex justify-content-between align-items-center gap-3"
+      >
         <h2 class="panel-title mb-0">{{ title }}</h2>
-        <button class="more-link btn btn-link d-inline-flex align-items-center gap-1 p-0 border-0" type="button">
-          더보기 <span class="arrow"></span>
-        </button>
+        <PanelMoreButton />
       </div>
 
       <div class="table-responsive order-table-wrap">
@@ -20,7 +20,13 @@
             <strong>{{ order.id }}</strong>
             <span>{{ order.due }}</span>
             <div class="d-flex align-items-center gap-3">
-              <div class="progress flex-grow-1 progress-track" role="progressbar" :aria-valuenow="order.progress" aria-valuemin="0" aria-valuemax="100">
+              <div
+                class="progress flex-grow-1 progress-track"
+                role="progressbar"
+                :aria-valuenow="order.progress"
+                aria-valuemin="0"
+                aria-valuemax="100"
+              >
                 <div
                   class="progress-bar"
                   :class="order.delayed ? 'bg-danger' : 'bg-success'"
@@ -29,7 +35,10 @@
               </div>
               <b>{{ order.progress }}%</b>
             </div>
-            <span class="badge status-badge" :class="order.delayed ? 'delayed' : 'normal'">
+            <span
+              class="badge status-badge"
+              :class="order.delayed ? 'delayed' : 'normal'"
+            >
               {{ order.delayed ? "지연" : "진행 중" }}
             </span>
           </div>
@@ -41,7 +50,13 @@
           <span>전체 평균 가동률</span>
           <strong>{{ averageRate }}%</strong>
         </div>
-        <div class="progress average-track" role="progressbar" :aria-valuenow="averageRate" aria-valuemin="0" aria-valuemax="100">
+        <div
+          class="progress average-track"
+          role="progressbar"
+          :aria-valuenow="averageRate"
+          aria-valuemin="0"
+          aria-valuemax="100"
+        >
           <div class="progress-bar" :style="{ width: `${averageRate}%` }"></div>
         </div>
       </div>
@@ -50,6 +65,8 @@
 </template>
 
 <script setup>
+import PanelMoreButton from "../common/PanelMoreButton.vue";
+
 defineProps({
   title: {
     type: String,
@@ -86,33 +103,6 @@ defineProps({
   letter-spacing: -0.2px;
 }
 
-.more-link {
-  color: var(--color-text-main);
-  font-size: 12px;
-  font-weight: 600;
-  background: transparent;
-  box-shadow: none;
-  line-height: 1;
-  text-decoration: none;
-}
-
-.more-link:hover,
-.more-link:focus {
-  color: var(--color-text-main);
-  background: transparent;
-  box-shadow: none;
-  text-decoration: none;
-}
-
-.arrow {
-  width: 7px;
-  height: 7px;
-  display: inline-block;
-  border-top: 2px solid currentColor;
-  border-right: 2px solid currentColor;
-  transform: rotate(45deg);
-}
-
 .order-table {
   min-width: 0;
   font-size: 12px;
@@ -122,7 +112,10 @@ defineProps({
 .table-head,
 .table-row {
   display: grid;
-  grid-template-columns: minmax(130px, 1.2fr) minmax(82px, 0.75fr) minmax(130px, 1fr) 62px;
+  grid-template-columns: minmax(130px, 1.2fr) minmax(82px, 0.75fr) minmax(
+      130px,
+      1fr
+    ) 62px;
   align-items: center;
   gap: 8px;
   padding: 0 26px;
