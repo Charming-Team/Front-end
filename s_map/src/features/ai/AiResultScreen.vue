@@ -46,8 +46,8 @@ const PLANS = [
 
 const COLOR_MAP = {
   blue:   { badge: '#1565C0', iconBg: '#DBEAFE', iconColor: '#1565C0', stepBg: '#EEF4FF', stepText: '#1565C0' },
-  green:  { badge: '#00897B', iconBg: '#CCFBF1', iconColor: '#00897B', stepBg: '#E6F5F3', stepText: '#00897B' },
-  purple: { badge: '#7B3FBE', iconBg: '#EDE9FE', iconColor: '#7B3FBE', stepBg: '#F4EEFF', stepText: '#7B3FBE' },
+  green:  { badge: '#1565C0', iconBg: '#DBEAFE', iconColor: '#1565C0', stepBg: '#EEF4FF', stepText: '#1565C0' },
+  purple: { badge: '#1565C0', iconBg: '#DBEAFE', iconColor: '#1565C0', stepBg: '#EEF4FF', stepText: '#1565C0' },
   amber:  { badge: '#F57C00', iconBg: '#FEF3C7', iconColor: '#F57C00', stepBg: '#FFF8EC', stepText: '#F57C00' },
 }
 

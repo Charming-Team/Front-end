@@ -81,8 +81,8 @@ const changeBadgeClass = {
       <div class="px-5 py-5 sm:px-6">
         <div class="flex items-start justify-between gap-4">
           <div class="flex items-center gap-4">
-            <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-emerald-100">
-              <svg class="h-6 w-6 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#DBEAFE]">
+              <svg class="h-6 w-6 text-[#1565C0]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                 <path :d="iconPath(plan.icon)" />
               </svg>
             </div>
@@ -275,6 +275,13 @@ const changeBadgeClass = {
               해당 대응안을 적용하면 납기 지연과 공급 부족 문제가 모두 해소되며,<br>
               전반적인 생산 안정성이 크게 향상될 것으로 예상됩니다.
             </p>
+            <div class="mt-3 border-t border-blue-200 pt-3">
+              <p class="mb-1 text-[13px] font-bold text-blue-800">AI 종합 평가</p>
+              <p class="text-[12px] font-medium leading-5 text-blue-700">
+                추가 라인 투입 시 납기 지연이 해소되고, 납기 충족률이 28%p 개선됩니다.<br>
+                추가 비용 증가폭이 크지 않아 전반적으로 효과적인 대응안으로 평가됩니다.
+              </p>
+            </div>
           </div>
         </div>
       </AppCard>
@@ -304,29 +311,11 @@ const changeBadgeClass = {
       </AppCard>
     </div>
 
-    <!-- AI 종합 평가 (최하단) -->
-    <AppCard>
-      <div class="flex items-center justify-between px-5 py-4">
-        <div class="flex items-start gap-3">
-          <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-100">
-            <svg class="h-5 w-5 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/>
-            </svg>
-          </div>
-          <div>
-            <p class="text-[13px] font-bold text-slate-900">AI 종합 평가</p>
-            <p class="mt-0.5 text-[12px] font-medium text-slate-500">
-              추가 라인 투입 시 납기 지연이 해소되고, 납기 충족률이 28%p 개선됩니다.<br>
-              추가 비용 증가폭이 크지 않아 전반적으로 효과적인 대응안으로 평가됩니다.
-            </p>
-          </div>
-        </div>
-        <div class="ml-6 flex shrink-0 items-center gap-2">
-          <AppButton variant="secondary" size="md" @click="router.push('/ai/result')">다른 대응안 비교하기</AppButton>
-          <AppButton variant="primary" size="md" @click="router.push('/plan')">이 대응안 적용하기</AppButton>
-        </div>
-      </div>
-    </AppCard>
+    <!-- 하단 버튼 -->
+    <div class="flex justify-center gap-4">
+      <AppButton variant="secondary" size="lg" @click="router.push('/ai/result')">다른 대응안 비교하기</AppButton>
+      <AppButton variant="primary" size="lg" @click="router.push('/plan')">이 대응안 적용하기</AppButton>
+    </div>
 
   </div>
 </template>
