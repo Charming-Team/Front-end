@@ -3,7 +3,7 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import AlarmButton from '../components/common/AlarmButton.vue'
 import UserChip from '../components/common/UserChip.vue'
-import ChatbotButton from '../features/chatbot/components/ChatbotButton.vue'
+import ChatbotButton from '../components/common/ChatbotButton.vue'
 import { clearToken } from '../utils/storage.js'
 import logoSymbol from '../assets/logo_main.svg'
 
