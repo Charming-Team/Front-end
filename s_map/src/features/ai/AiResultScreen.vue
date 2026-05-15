@@ -91,9 +91,9 @@ function iconPath(icon) {
 
         <!-- Section heading -->
         <div class="mb-1 border-l-4 border-[#1565C0] pl-3">
-          <h2 class="text-[15px] font-extrabold tracking-[-0.02em] text-slate-900">대응안 목록 및 상세 내용</h2>
+          <h2 class="text-[15px] font-extrabold tracking-[-0.02em] text-[var(--color-navy)]">대응안 목록 및 상세 내용</h2>
         </div>
-        <p class="mb-4 pl-3 text-[12px] font-medium text-slate-500">생산 계획 실행을 위한 4가지 대응안과 세부 실행 단계를 확인하세요.</p>
+        <p class="mb-4 pl-3 text-[12px] font-medium text-[var(--color-text-subtle)]">생산 계획 실행을 위한 4가지 대응안과 세부 실행 단계를 확인하세요.</p>
 
         <!-- 2×2 plan cards -->
         <div class="grid grid-cols-2 gap-4">
@@ -137,7 +137,7 @@ function iconPath(icon) {
               >{{ plan.title }}</h3>
 
               <!-- Description -->
-              <p class="mb-3 text-center text-[11px] font-medium leading-[1.5] text-slate-500">{{ plan.desc }}</p>
+              <p class="mb-3 text-center text-[11px] font-medium leading-[1.5] text-[var(--color-text-subtle)]">{{ plan.desc }}</p>
 
               <!-- Step list -->
               <div class="w-full">
@@ -147,7 +147,7 @@ function iconPath(icon) {
                       class="inline-flex w-[46px] shrink-0 items-center justify-center rounded-[4px] py-0.5 text-[10px] font-bold"
                       :style="{ backgroundColor: COLOR_MAP[plan.color].stepBg, color: COLOR_MAP[plan.color].stepText }"
                     >STEP {{ i + 1 }}</span>
-                    <span class="text-[11px] font-medium text-slate-700">{{ step }}</span>
+                    <span class="text-[11px] font-medium text-[var(--color-text-main)]">{{ step }}</span>
                   </div>
                   <div
                     v-if="i < plan.steps.length - 1"

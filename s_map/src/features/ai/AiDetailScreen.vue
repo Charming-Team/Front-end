@@ -87,60 +87,60 @@ const changeBadgeClass = {
               </svg>
             </div>
             <div>
-              <h2 class="text-[18px] font-extrabold tracking-[-0.02em] text-slate-900">{{ plan.title }}</h2>
-              <p class="mt-1 text-[13px] font-medium text-slate-500">{{ plan.desc }}</p>
+              <h2 class="text-[18px] font-extrabold tracking-[-0.02em] text-[var(--color-navy)]">{{ plan.title }}</h2>
+              <p class="mt-1 text-[13px] font-medium text-[var(--color-text-subtle)]">{{ plan.desc }}</p>
             </div>
           </div>
         </div>
 
         <!-- 4 Metric chips -->
         <div class="mt-5 grid grid-cols-4 gap-3">
-          <div class="flex items-center gap-3 rounded-[10px] border border-slate-100 bg-slate-50 px-4 py-3">
+          <div class="flex items-center gap-3 rounded-[10px] border border-slate-100 bg-[var(--color-bg-soft)] px-4 py-3">
             <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-100">
               <svg class="h-5 w-5 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/>
               </svg>
             </div>
             <div>
-              <div class="text-[11px] font-semibold text-slate-500">예상 지연</div>
-              <div class="text-[17px] font-extrabold text-slate-900">2.0일 <span class="text-emerald-600">→ 0일</span></div>
+              <div class="text-[11px] font-semibold text-[var(--color-text-subtle)]">예상 지연</div>
+              <div class="text-[17px] font-extrabold text-[var(--color-navy)]">2.0일 <span class="text-emerald-600">→ 0일</span></div>
               <div class="text-[11px] font-bold text-emerald-600">-2.0일 개선</div>
             </div>
           </div>
-          <div class="flex items-center gap-3 rounded-[10px] border border-slate-100 bg-slate-50 px-4 py-3">
+          <div class="flex items-center gap-3 rounded-[10px] border border-slate-100 bg-[var(--color-bg-soft)] px-4 py-3">
             <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-100">
               <svg class="h-5 w-5 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="m12 3 7 4v10l-7 4-7-4V7l7-4zm0 0v18m7-14-7 4-7-4"/>
               </svg>
             </div>
             <div>
-              <div class="text-[11px] font-semibold text-slate-500">공급 부족 물량</div>
-              <div class="text-[17px] font-extrabold text-slate-900">800kg <span class="text-emerald-600">→ 0kg</span></div>
+              <div class="text-[11px] font-semibold text-[var(--color-text-subtle)]">공급 부족 물량</div>
+              <div class="text-[17px] font-extrabold text-[var(--color-navy)]">800kg <span class="text-emerald-600">→ 0kg</span></div>
               <div class="text-[11px] font-bold text-emerald-600">800kg 개선</div>
             </div>
           </div>
-          <div class="flex items-center gap-3 rounded-[10px] border border-slate-100 bg-slate-50 px-4 py-3">
+          <div class="flex items-center gap-3 rounded-[10px] border border-slate-100 bg-[var(--color-bg-soft)] px-4 py-3">
             <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-orange-100">
               <svg class="h-5 w-5 text-orange-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
               </svg>
             </div>
             <div>
-              <div class="text-[11px] font-semibold text-slate-500">납기 충족률</div>
-              <div class="text-[17px] font-extrabold text-slate-900">72% <span class="text-emerald-600">→ 100%</span></div>
+              <div class="text-[11px] font-semibold text-[var(--color-text-subtle)]">납기 충족률</div>
+              <div class="text-[17px] font-extrabold text-[var(--color-navy)]">72% <span class="text-emerald-600">→ 100%</span></div>
               <div class="text-[11px] font-bold text-emerald-600">+28%p 개선</div>
             </div>
           </div>
-          <div class="flex items-center gap-3 rounded-[10px] border border-slate-100 bg-slate-50 px-4 py-3">
+          <div class="flex items-center gap-3 rounded-[10px] border border-slate-100 bg-[var(--color-bg-soft)] px-4 py-3">
             <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-violet-100">
               <svg class="h-5 w-5 text-violet-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 15h.01"/>
               </svg>
             </div>
             <div>
-              <div class="text-[11px] font-semibold text-slate-500">추가 운영비</div>
+              <div class="text-[11px] font-semibold text-[var(--color-text-subtle)]">추가 운영비</div>
               <div class="text-[17px] font-extrabold text-amber-600">+5.6%</div>
-              <div class="text-[11px] font-bold text-slate-400">비용 증가</div>
+              <div class="text-[11px] font-bold text-[var(--color-text-subtle)]">비용 증가</div>
             </div>
           </div>
         </div>
@@ -151,7 +151,7 @@ const changeBadgeClass = {
     <div class="grid grid-cols-2 gap-4">
       <AppCard>
         <div class="px-5 py-5">
-          <h3 class="mb-4 text-[15px] font-extrabold text-slate-900">적용 조건</h3>
+          <h3 class="mb-4 text-[15px] font-extrabold text-[var(--color-navy)]">적용 조건</h3>
           <ul class="flex flex-col gap-3">
             <li
               v-for="(row, i) in [
@@ -167,8 +167,8 @@ const changeBadgeClass = {
               <svg class="h-4 w-4 shrink-0 text-emerald-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>
               </svg>
-              <span class="text-[13px] font-semibold text-slate-700">{{ row.label }}</span>
-              <span class="ml-auto text-[13px] font-semibold text-slate-500">{{ row.value }}</span>
+              <span class="text-[13px] font-semibold text-[var(--color-text-main)]">{{ row.label }}</span>
+              <span class="ml-auto text-[13px] font-semibold text-[var(--color-text-subtle)]">{{ row.value }}</span>
             </li>
           </ul>
         </div>
@@ -176,21 +176,21 @@ const changeBadgeClass = {
 
       <AppCard>
         <div class="px-5 py-5">
-          <h3 class="mb-4 text-[15px] font-extrabold text-slate-900">시뮬레이션 결과 비교</h3>
+          <h3 class="mb-4 text-[15px] font-extrabold text-[var(--color-navy)]">시뮬레이션 결과 비교</h3>
           <table class="w-full text-[13px]">
             <thead>
               <tr class="border-b border-slate-100">
-                <th class="pb-2 text-left font-semibold text-slate-500">항목</th>
-                <th class="pb-2 text-center font-semibold text-slate-500">기준 계획</th>
-                <th class="pb-2 text-center font-semibold text-slate-500">대응안 적용 후</th>
-                <th class="pb-2 text-center font-semibold text-slate-500">변화율</th>
+                <th class="pb-2 text-left font-semibold text-[var(--color-text-subtle)]">항목</th>
+                <th class="pb-2 text-center font-semibold text-[var(--color-text-subtle)]">기준 계획</th>
+                <th class="pb-2 text-center font-semibold text-[var(--color-text-subtle)]">대응안 적용 후</th>
+                <th class="pb-2 text-center font-semibold text-[var(--color-text-subtle)]">변화율</th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="row in SIM_ROWS" :key="row.label" class="border-b border-slate-50">
-                <td class="py-2.5 font-medium text-slate-700">{{ row.label }}</td>
-                <td class="py-2.5 text-center font-medium text-slate-600">{{ row.before }}</td>
-                <td class="py-2.5 text-center font-semibold text-slate-900">{{ row.after }}</td>
+                <td class="py-2.5 font-medium text-[var(--color-text-main)]">{{ row.label }}</td>
+                <td class="py-2.5 text-center font-medium text-[var(--color-text-subtle)]">{{ row.before }}</td>
+                <td class="py-2.5 text-center font-semibold text-[var(--color-navy)]">{{ row.after }}</td>
                 <td class="py-2.5 text-center font-bold" :class="row.positive ? 'text-emerald-600' : 'text-amber-600'">{{ row.change }}</td>
               </tr>
             </tbody>
@@ -203,44 +203,44 @@ const changeBadgeClass = {
     <div class="grid grid-cols-2 gap-4">
       <AppCard>
         <div class="px-5 py-5">
-          <h3 class="mb-1 text-[15px] font-extrabold text-slate-900">현재 상태 유지 시</h3>
-          <p class="mb-4 text-[12px] font-medium text-slate-500">현재 생산계획과 자재 상황을 그대로 유지하는 기준 시뮬레이션 결과입니다.</p>
-          <p class="mb-2 text-[13px] font-bold text-slate-700">예상 결과</p>
+          <h3 class="mb-1 text-[15px] font-extrabold text-[var(--color-navy)]">현재 상태 유지 시</h3>
+          <p class="mb-4 text-[12px] font-medium text-[var(--color-text-subtle)]">현재 생산계획과 자재 상황을 그대로 유지하는 기준 시뮬레이션 결과입니다.</p>
+          <p class="mb-2 text-[13px] font-bold text-[var(--color-text-main)]">예상 결과</p>
           <div class="mb-4 flex flex-wrap gap-2">
             <span class="rounded-[6px] bg-red-100 px-3 py-1.5 text-[12px] font-bold text-red-700">예상 지연 <strong>2.0일</strong></span>
             <span class="rounded-[6px] bg-amber-100 px-3 py-1.5 text-[12px] font-bold text-amber-700">납기 미충족 <strong>28%</strong></span>
             <span class="rounded-[6px] bg-red-100 px-3 py-1.5 text-[12px] font-bold text-red-700">공급 부족 물량 <strong>800kg</strong></span>
             <span class="rounded-[6px] bg-emerald-100 px-3 py-1.5 text-[12px] font-bold text-emerald-700">추가 운영비 <strong>없음</strong></span>
           </div>
-          <p class="mb-1 text-[13px] font-bold text-slate-700">리스크 분석</p>
-          <p class="text-[12px] font-medium leading-5 text-slate-500">추가 조치를 하지 않을 경우 주요 주문의 납기 지연이 지속되며, 후속 주문에도 연쇄적인 영향이 발생할 가능성이 있습니다.</p>
+          <p class="mb-1 text-[13px] font-bold text-[var(--color-text-main)]">리스크 분석</p>
+          <p class="text-[12px] font-medium leading-5 text-[var(--color-text-subtle)]">추가 조치를 하지 않을 경우 주요 주문의 납기 지연이 지속되며, 후속 주문에도 연쇄적인 영향이 발생할 가능성이 있습니다.</p>
         </div>
       </AppCard>
 
       <AppCard>
         <div class="px-5 py-5">
-          <h3 class="mb-4 text-[15px] font-extrabold text-slate-900">대응안과 현재 상태 비교표</h3>
+          <h3 class="mb-4 text-[15px] font-extrabold text-[var(--color-navy)]">대응안과 현재 상태 비교표</h3>
           <table class="w-full text-[12px]">
             <thead>
               <tr class="border-b border-slate-100">
-                <th class="pb-2 text-left font-semibold text-slate-500">비교 항목</th>
-                <th class="pb-2 text-center font-semibold text-slate-500">현재 상태 유지</th>
-                <th class="pb-2 text-center font-semibold text-slate-500">공정 라인 추가 시</th>
-                <th class="pb-2 text-center font-semibold text-slate-500">예상 변화</th>
+                <th class="pb-2 text-left font-semibold text-[var(--color-text-subtle)]">비교 항목</th>
+                <th class="pb-2 text-center font-semibold text-[var(--color-text-subtle)]">현재 상태 유지</th>
+                <th class="pb-2 text-center font-semibold text-[var(--color-text-subtle)]">공정 라인 추가 시</th>
+                <th class="pb-2 text-center font-semibold text-[var(--color-text-subtle)]">예상 변화</th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="row in CMP_ROWS" :key="row.label" class="border-b border-slate-50">
-                <td class="py-2 font-medium text-slate-700">{{ row.label }}</td>
-                <td class="py-2 text-center font-medium text-slate-600">{{ row.current }}</td>
-                <td class="py-2 text-center font-semibold text-slate-900">{{ row.applied }}</td>
+                <td class="py-2 font-medium text-[var(--color-text-main)]">{{ row.label }}</td>
+                <td class="py-2 text-center font-medium text-[var(--color-text-subtle)]">{{ row.current }}</td>
+                <td class="py-2 text-center font-semibold text-[var(--color-navy)]">{{ row.applied }}</td>
                 <td class="py-2 text-center">
                   <span
                     v-if="row.tone !== 'none'"
                     class="inline-block rounded-[4px] px-2 py-0.5 text-[11px] font-bold"
                     :class="changeBadgeClass[row.tone]"
                   >{{ row.change }}</span>
-                  <span v-else class="text-slate-400">{{ row.change }}</span>
+                  <span v-else class="text-[var(--color-text-subtle)]">{{ row.change }}</span>
                 </td>
               </tr>
             </tbody>
@@ -253,8 +253,8 @@ const changeBadgeClass = {
     <div class="grid grid-cols-2 gap-4">
       <AppCard>
         <div class="px-5 py-5">
-          <h3 class="mb-3 text-[15px] font-extrabold text-slate-900">리스크 해석</h3>
-          <p class="mb-4 text-[13px] font-medium leading-6 text-slate-600">
+          <h3 class="mb-3 text-[15px] font-extrabold text-[var(--color-navy)]">리스크 해석</h3>
+          <p class="mb-4 text-[13px] font-medium leading-6 text-[var(--color-text-subtle)]">
             추가 조치를 하지 않을 경우 주요 주문의 납기 지연이 지속되며,<br>
             후속 주문에도 연쇄적인 영향이 발생할 가능성이 있습니다.
           </p>
@@ -287,22 +287,22 @@ const changeBadgeClass = {
 
       <AppCard>
         <div class="px-5 py-5">
-          <h3 class="mb-4 text-[15px] font-extrabold text-slate-900">선택 대응안 변경 일정</h3>
+          <h3 class="mb-4 text-[15px] font-extrabold text-[var(--color-navy)]">선택 대응안 변경 일정</h3>
           <table class="w-full text-[12px]">
             <thead>
               <tr class="border-b border-slate-100">
-                <th class="pb-2 text-left font-semibold text-slate-500">주문 ID</th>
-                <th class="pb-2 text-left font-semibold text-slate-500">생산 라인 변화</th>
-                <th class="pb-2 text-left font-semibold text-slate-500">변경 전 생산 스케줄</th>
-                <th class="pb-2 text-left font-semibold text-slate-500">변경 후 생산 스케줄</th>
+                <th class="pb-2 text-left font-semibold text-[var(--color-text-subtle)]">주문 ID</th>
+                <th class="pb-2 text-left font-semibold text-[var(--color-text-subtle)]">생산 라인 변화</th>
+                <th class="pb-2 text-left font-semibold text-[var(--color-text-subtle)]">변경 전 생산 스케줄</th>
+                <th class="pb-2 text-left font-semibold text-[var(--color-text-subtle)]">변경 후 생산 스케줄</th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="row in SCHEDULE_ROWS" :key="row.id" class="border-b border-slate-50">
-                <td class="py-2.5 font-semibold text-slate-800">{{ row.id }}</td>
-                <td class="py-2.5 font-medium text-slate-600">{{ row.lineChange }}</td>
-                <td class="py-2.5 font-medium text-slate-500">{{ row.before }}</td>
-                <td class="py-2.5 font-medium" :class="row.after === '-' ? 'text-slate-400' : 'text-slate-800'">{{ row.after }}</td>
+                <td class="py-2.5 font-semibold text-[var(--color-text-main)]">{{ row.id }}</td>
+                <td class="py-2.5 font-medium text-[var(--color-text-subtle)]">{{ row.lineChange }}</td>
+                <td class="py-2.5 font-medium text-[var(--color-text-subtle)]">{{ row.before }}</td>
+                <td class="py-2.5 font-medium" :class="row.after === '-' ? 'text-[var(--color-text-subtle)]' : 'text-[var(--color-text-main)]'">{{ row.after }}</td>
               </tr>
             </tbody>
           </table>

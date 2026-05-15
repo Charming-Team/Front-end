@@ -125,13 +125,13 @@ function iconPath(icon) {
                 class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-bold"
                 :class="step.active
                   ? (isComplete ? 'text-white bg-success' : 'bg-blue-600 text-white')
-                  : 'bg-slate-100 text-slate-500'"
+                  : 'bg-[var(--color-track-light)] text-[var(--color-text-subtle)]'"
               >
                 {{ step.number }}
               </div>
               <span
                 class="text-[13px] font-semibold"
-                :class="step.active ? 'text-slate-900' : 'text-slate-400'"
+                :class="step.active ? 'text-[var(--color-navy)]' : 'text-[var(--color-text-subtle)]'"
               >
                 {{ step.label }}
               </span>
@@ -161,11 +161,11 @@ function iconPath(icon) {
           <h2 class="text-[20px] font-extrabold tracking-[-0.03em] text-[var(--color-text-main)] sm:text-[22px]">
             {{ isComplete ? 'AI 생산 계획 생성 완료!' : 'AI 생산 계획 생성 중' }}
           </h2>
-          <p v-if="isComplete" class="mt-2 text-[13px] font-medium text-slate-500 sm:text-[14px]">
+          <p v-if="isComplete" class="mt-2 text-[13px] font-medium text-[var(--color-text-subtle)] sm:text-[14px]">
             최적의 생산 계획이 성공적으로 생성되었습니다.<br>
             주문, 자재, 라인 상태, 설비 가동률, 납기 조건을 모두 고려한 최적의 생산 계획을 확인하세요.
           </p>
-          <p v-else class="mt-2 text-[13px] font-medium text-slate-500 sm:text-[14px]">
+          <p v-else class="mt-2 text-[13px] font-medium text-[var(--color-text-subtle)] sm:text-[14px]">
             주문, 자재, 라인 상태, 설비 가동률, 납기 조건을 분석하여 최적 생산 계획을 생성하고 있습니다.
           </p>
         </div>
@@ -223,9 +223,9 @@ function iconPath(icon) {
                 aria-valuemax="100"
               ></div>
             </div>
-            <div class="shrink-0 text-[13px] font-bold text-slate-500 sm:text-[14px]">
+            <div class="shrink-0 text-[13px] font-bold text-[var(--color-text-subtle)] sm:text-[14px]">
               {{ currentProgress }}%
-              <span class="text-[12px] font-semibold text-slate-400">({{ elapsedLabel }})</span>
+              <span class="text-[12px] font-semibold text-[var(--color-text-subtle)]">({{ elapsedLabel }})</span>
             </div>
           </div>
 
@@ -253,10 +253,10 @@ function iconPath(icon) {
               </div>
 
               <div class="min-w-0 flex-1">
-                <h3 class="break-keep text-[9px] font-bold tracking-[-0.01em] leading-[1.35] text-slate-900 sm:text-[10px]">
+                <h3 class="break-keep text-[9px] font-bold tracking-[-0.01em] leading-[1.35] text-[var(--color-navy)] sm:text-[10px]">
                   {{ task.title }}
                 </h3>
-                <p class="mt-0.5 break-keep text-[10px] font-medium leading-5 text-slate-400">
+                <p class="mt-0.5 break-keep text-[10px] font-medium leading-5 text-[var(--color-text-subtle)]">
                   {{ task.description }}
                 </p>
               </div>
@@ -285,14 +285,14 @@ function iconPath(icon) {
               <!-- 대기: hollow gray circle -->
               <template v-else>
                 <span class="inline-block h-[18px] w-[18px] shrink-0 rounded-full border-2 border-slate-300"></span>
-                <span class="text-[12px] font-bold text-slate-400">대기</span>
+                <span class="text-[12px] font-bold text-[var(--color-text-subtle)]">대기</span>
               </template>
             </div>
           </div>
         </div>
 
         <!-- Footer note -->
-        <div class="mt-5 flex items-center justify-center gap-2 text-center text-[11px] font-medium text-slate-400 sm:text-[12px]">
+        <div class="mt-5 flex items-center justify-center gap-2 text-center text-[11px] font-medium text-[var(--color-text-subtle)] sm:text-[12px]">
           <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <rect x="5" y="11" width="14" height="9" rx="2" />
             <path d="M8 11V8a4 4 0 1 1 8 0v3" />
