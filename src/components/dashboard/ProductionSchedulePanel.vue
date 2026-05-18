@@ -1,24 +1,51 @@
 <template>
   <article class="card schedule-panel dashboard-panel">
     <div class="card-body p-0">
-      <div class="panel-header d-flex justify-content-between align-items-center gap-3">
+      <div
+        class="panel-header d-flex justify-content-between align-items-center gap-3"
+      >
         <h2 class="panel-title mb-0">{{ title }}</h2>
-        <div class="btn-group panel-actions" role="group" aria-label="생산 스케줄 주차 이동">
-          <button class="btn btn-light" type="button" @click="goToday">오늘</button>
-          <button class="btn btn-light square-button" type="button" aria-label="이전 주" @click="moveWeek(-1)">
+        <div
+          class="panel-actions d-flex align-items-center gap-2"
+          aria-label="생산 스케줄 주차 이동"
+        >
+          <AppButton
+            class="schedule-nav-button"
+            variant="surface"
+            size="sm"
+            @click="goToday"
+            >오늘</AppButton
+          >
+          <AppButton
+            class="schedule-icon-button"
+            variant="surface"
+            size="sm"
+            :icon-only="true"
+            aria-label="이전 주"
+            @click="moveWeek(-1)"
+          >
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="m15 18-6-6 6-6" />
             </svg>
-          </button>
-          <button class="btn btn-light square-button" type="button" aria-label="다음 주" @click="moveWeek(1)">
+          </AppButton>
+          <AppButton
+            class="schedule-icon-button"
+            variant="surface"
+            size="sm"
+            :icon-only="true"
+            aria-label="다음 주"
+            @click="moveWeek(1)"
+          >
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="m9 18 6-6-6-6" />
             </svg>
-          </button>
+          </AppButton>
         </div>
       </div>
 
-      <div class="schedule-date text-center fw-bold">{{ currentScheduleDate }}</div>
+      <div class="schedule-date text-center fw-bold">
+        {{ currentScheduleDate }}
+      </div>
       <div class="timeline-labels">
         <span v-for="day in currentWeekTimeline" :key="day">{{ day }}</span>
       </div>
@@ -38,8 +65,14 @@
         </div>
       </div>
 
-      <div class="legend d-flex justify-content-center flex-wrap gap-4 px-4 pb-4">
-        <span v-for="item in legend" :key="item.label" class="d-inline-flex align-items-center gap-2">
+      <div
+        class="legend d-flex justify-content-center flex-wrap gap-4 px-4 pb-4"
+      >
+        <span
+          v-for="item in legend"
+          :key="item.label"
+          class="d-inline-flex align-items-center gap-2"
+        >
           <i :class="item.type"></i>
           {{ item.label }}
         </span>
@@ -50,6 +83,7 @@
 
 <script setup>
 import { computed, ref } from "vue";
+import AppButton from "../common/AppButton.vue";
 
 const props = defineProps({
   title: {
@@ -96,7 +130,9 @@ const getMonday = (date) => {
 
 const baseMonday = computed(() => getMonday(new Date(props.baseWeekStart)));
 
-const currentMonday = computed(() => addDays(baseMonday.value, weekOffset.value * 7));
+const currentMonday = computed(() =>
+  addDays(baseMonday.value, weekOffset.value * 7),
+);
 
 const currentWeekTimeline = computed(() =>
   Array.from({ length: 7 }, (_, index) => {
@@ -142,23 +178,29 @@ const goToday = () => {
   letter-spacing: -0.2px;
 }
 
-.panel-actions button {
-  height: 30px;
-  border: 1px solid var(--color-border-strong);
-  background: var(--color-panel);
+.schedule-nav-button,
+.schedule-icon-button {
+  min-height: 30px;
+  border-color: var(--color-border-strong);
   color: var(--color-text-main);
   font-size: 12px;
   font-weight: 600;
   box-shadow: 0 6px 18px rgba(18, 34, 64, 0.04);
 }
 
-.square-button {
-  width: 30px;
+.schedule-nav-button {
+  padding: 0 14px;
 }
 
-.square-button svg {
-  width: 100%;
-  height: 100%;
+.schedule-icon-button {
+  width: 30px;
+  min-width: 30px;
+  padding: 0;
+}
+
+.schedule-icon-button svg {
+  width: 14px;
+  height: 14px;
   fill: none;
   stroke: currentColor;
   stroke-width: 2.4;
