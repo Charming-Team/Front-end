@@ -1,5 +1,4 @@
 <script setup>
-import AppButton from '../../../components/common/AppButton.vue'
 
 defineProps({
   label: { type: String, default: '챗봇' },

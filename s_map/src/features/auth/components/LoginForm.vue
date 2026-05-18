@@ -1,5 +1,4 @@
 <script setup>
-import AppButton from '../../../components/common/AppButton.vue'
 
 defineProps({
   email: { type: String, default: '' },
