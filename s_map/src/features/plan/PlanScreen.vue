@@ -1,6 +1,5 @@
 <script setup>
 import { computed, onMounted, watch } from 'vue'
-import AppButton from '../../components/common/AppButton.vue'
 import PlanStatusBadge from '../../components/plan/PlanStatusBadge.vue'
 import PlanCalendar from './PlanCalendar.vue'
 import { usePlanStore } from './store.js'

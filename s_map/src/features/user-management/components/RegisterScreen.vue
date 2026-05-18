@@ -1,7 +1,6 @@
 <script setup>
 import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import AppButton from '../../../components/common/AppButton.vue'
 
 const router = useRouter()
 
