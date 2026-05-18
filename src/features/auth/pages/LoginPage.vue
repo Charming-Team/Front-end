@@ -8,9 +8,14 @@ import logoMain from '../../../assets/logo_main.svg'
 
 const MOCK_USERS = [
   {
-    email: 'admin@sk.com',
+    email: 'ad@sk.com',
     password: 'smap1234!',
     role: 'ADMIN',
+  },
+  {
+    email: 'admin@sk.com',
+    password: 'smap1234!',
+    role: 'WORKER',
   },
   {
     email: 'worker@sk.com',
