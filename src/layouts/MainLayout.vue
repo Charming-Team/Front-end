@@ -56,7 +56,7 @@ const navigation = [
   { key: 'materials', label: '자재 현황', icon: icons.box, to: '/materials' },
   { key: 'lines', label: '라인 현황', icon: icons.line, to: '/' },
   { key: 'risks', label: '리스크 분석', icon: icons.risk, to: '/' },
-  { key: 'reports', label: '보고서', icon: icons.report, to: '/' },
+  { key: 'reports', label: '보고서', icon: icons.report, to: '/reports' },
 ]
 
 const userMenuOpen = ref(false)

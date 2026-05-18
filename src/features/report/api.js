@@ -1,4 +1,4 @@
-import { mockIssues, mockReports } from "./mock.js";
+import { mockIssues, mockReports, mockReportDetail } from "./mock.js";
 
 function delay(ms = 200) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -15,12 +15,17 @@ export async function fetchRecentIssues() {
 }
 
 export async function createReport(payload) {
-  await delay(500);
+  await delay(1800);
 
   return {
     id: Date.now(),
-    title: `${payload.monthLabel} 생산 보고서`,
+    title: `${payload.startDate} ~ ${payload.endDate} 생산 보고서`,
     createdAt: new Date().toISOString(),
     status: "DRAFT",
   };
+}
+
+export async function fetchReportDetail() {
+  await delay();
+  return { ...mockReportDetail };
 }

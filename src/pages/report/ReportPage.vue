@@ -1,7 +1,9 @@
 <script setup>
 import { computed, onMounted, ref, watch } from "vue";
+import { useRouter } from "vue-router";
 import AppButton from "../../components/common/AppButton.vue";
 import AppCard from "../../components/common/AppCard.vue";
+import AppLoadingOverlay from "../../components/common/AppLoadingOverlay.vue";
 import AppSearchField from "../../components/common/AppSearchField.vue";
 import ReportCreateModal from "../../components/report/ReportCreateModal.vue";
 import ReportIssueTable from "../../components/report/ReportIssueTable.vue";
@@ -12,11 +14,12 @@ import {
   fetchRecentIssues,
   fetchReports,
 } from "../../features/report/api.js";
-import { MONTH_OPTIONS } from "../../features/report/constants.js";
 import {
   mapIssueForView,
   mapReportForView,
 } from "../../features/report/mapper.js";
+
+const router = useRouter();
 
 const searchQuery = ref("");
 const reports = ref([]);
@@ -25,8 +28,10 @@ const currentPage = ref(1);
 const pageSize = 10;
 
 const isCreateModalOpen = ref(false);
-const selectedMonth = ref("2024-05");
 const isCreating = ref(false);
+
+const startDate = ref("2024-05-01");
+const endDate = ref("2024-05-31");
 
 const filteredReports = computed(() => {
   const keyword = searchQuery.value.trim().toLowerCase();
@@ -60,18 +65,12 @@ const paginatedReports = computed(() => {
   return filteredReports.value.slice(start, start + pageSize);
 });
 
-const selectedMonthLabel = computed(() => {
-  return (
-    MONTH_OPTIONS.find((option) => option.value === selectedMonth.value)?.label ??
-    selectedMonth.value
-  );
-});
-
 function openCreateModal() {
   isCreateModalOpen.value = true;
 }
 
 function closeCreateModal() {
+  if (isCreating.value) return;
   isCreateModalOpen.value = false;
 }
 
@@ -80,25 +79,20 @@ function handleSearch() {
 }
 
 function selectReport(report) {
-  console.log("보고서 선택:", report);
-  // TODO: 상세 페이지 생성 후 router.push(`/reports/${report.id}`)
+  router.push(`/reports/${report.id}`);
 }
 
 async function handleCreateReport() {
+  isCreateModalOpen.value = false;
   isCreating.value = true;
 
   try {
     const createdReport = await createReport({
-      month: selectedMonth.value,
-      monthLabel: selectedMonthLabel.value,
+      startDate: startDate.value,
+      endDate: endDate.value,
     });
 
-    console.log("생성된 보고서:", createdReport);
-
-    closeCreateModal();
-
-    // TODO: 백엔드 연동 후 생성된 보고서 상세 페이지로 이동
-    // router.push(`/reports/${createdReport.id}`)
+    router.push(`/reports/${createdReport.id}`);
   } finally {
     isCreating.value = false;
   }
@@ -204,11 +198,19 @@ onMounted(() => {
 
     <ReportCreateModal
       v-if="isCreateModalOpen"
-      :selected-month="selectedMonth"
+      :start-date="startDate"
+      :end-date="endDate"
       :loading="isCreating"
-      @update:selected-month="selectedMonth = $event"
+      @update:start-date="startDate = $event"
+      @update:end-date="endDate = $event"
       @close="closeCreateModal"
       @create="handleCreateReport"
+    />
+
+    <AppLoadingOverlay
+      :show="isCreating"
+      title="보고서를 생성하고 있습니다"
+      description="선택한 기간의 생산계획, 자재, 라인, 리스크 데이터를 분석 중입니다."
     />
   </div>
 </template>

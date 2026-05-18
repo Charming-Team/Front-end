@@ -125,3 +125,113 @@ export const mockIssues = [
     result: "이상 없음",
   },
 ];
+
+export const mockReportDetail = {
+  id: 1,
+  title: "2024년 05월 월간 생산 보고서",
+  author: "관리자",
+  createdAt: "2024.05.25 10:30",
+  typeLabel: "월간",
+  period: {
+    startDate: "2024.05.01",
+    endDate: "2024.05.31",
+  },
+  summaryRows: [
+    { label: "보고서 기간", value: "2024.05.01 ~ 2024.05.31", change: "-" },
+    { label: "총 생산 계획 수량", value: "120,000 EA", change: "-" },
+    { label: "총 생산 완료 수량", value: "115,200 EA", change: "-" },
+    { label: "생산 계획 대비 실적", value: "96.0%", change: "↓ 4.0%p" },
+    { label: "라인 가동률", value: "88.5%", change: "↓ 2.1%p" },
+    { label: "Cycle Time (평균)", value: "54.2 초", change: "↑ 1.8 초" },
+    { label: "불량 수량", value: "1,152 EA", change: "-" },
+    { label: "불량률", value: "1.00%", change: "↑ 0.12%p" },
+    { label: "설비 다운 타임", value: "18.6 시간", change: "↓ 3.4 시간" },
+    { label: "작업자 투입 시간", value: "2,048.5 시간", change: "-" },
+    { label: "안전 사고 건수", value: "1 건", change: "-" },
+    { label: "납기 준수율", value: "98.1%", change: "↑ 1.3%p" },
+  ],
+  lineRows: [
+    {
+      line: "A 라인",
+      utilization: "91.2%",
+      completed: "45,600 EA",
+      defectRate: "0.95%",
+      note: "↑ 우수",
+    },
+    {
+      line: "B 라인",
+      utilization: "87.3%",
+      completed: "38,400 EA",
+      defectRate: "1.20%",
+      note: "↓ 주의",
+    },
+    {
+      line: "C 라인",
+      utilization: "86.0%",
+      completed: "31,200 EA",
+      defectRate: "0.85%",
+      note: "↑ 우수",
+    },
+  ],
+  equipmentRows: [
+    {
+      name: "설비 01",
+      utilization: "92.1%",
+      downTime: "6.3 시간",
+      status: "정상",
+    },
+    {
+      name: "설비 02",
+      utilization: "87.4%",
+      downTime: "9.8 시간",
+      status: "정상",
+    },
+    {
+      name: "설비 03",
+      utilization: "91.0%",
+      downTime: "7.2 시간",
+      status: "정상",
+    },
+    {
+      name: "설비 04",
+      utilization: "83.2%",
+      downTime: "11.4 시간",
+      status: "주의",
+    },
+    {
+      name: "설비 05",
+      utilization: "88.7%",
+      downTime: "8.6 시간",
+      status: "정상",
+    },
+  ],
+  analysis: {
+    overview:
+      "2024년 5월 한 달간의 생산 활동을 분석한 결과, 전반적으로 안정적인 운영이 이루어졌으나 일부 지표에서 개선이 필요한 부분이 확인되었습니다.",
+    sections: [
+      {
+        title: "생산 실적 분석",
+        items: [
+          "총 생산 완료 수량은 115,200 EA로, 계획 대비 96.0%의 실적을 달성하였습니다.",
+          "생산 계획 대비 실적이 전월 대비 4.0%p 하락하였으며, 이는 라인 B의 가동률 저하 영향이 주요 원인으로 분석됩니다.",
+        ],
+      },
+      {
+        title: "설비 및 라인 현황",
+        items: [
+          "라인 평균 가동률은 88.5%로 전월 대비 2.1%p 하락하였으며, 특히 라인 B의 가동률이 87.3%로 가장 낮았습니다.",
+          "설비 04의 가동률이 83.2%로 가장 낮고 다운 타임이 11.4시간으로 많아 생산성에 영향을 미쳤습니다.",
+        ],
+      },
+      {
+        title: "품질 및 안전 현황",
+        items: [
+          "전체 불량률은 1.00%로 전월 대비 0.12%p 증가하였습니다.",
+          "안전 사고는 1건 발생하였으며, 작업 환경 및 안전 수칙 준수 강화가 필요합니다.",
+        ],
+      },
+    ],
+    recommendation:
+      "라인 B 및 설비 04의 운영 효율 개선을 우선 과제로 설정하고, 정기 점검 및 예방 유지보수를 강화하여 가동률을 향상시키는 것이 필요합니다. 또한 품질 관리 프로세스 점검을 통해 불량률 감소를 도모해야 합니다.",
+  },
+};
