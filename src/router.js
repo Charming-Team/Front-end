@@ -17,6 +17,18 @@ const router = createRouter({
       },
     },
     {
+      path: "/admin/register",
+      component: () => import("./pages/admin/AdminRegisterPage.vue"),
+      meta: {
+        requiresAuth: true,
+        layout: "admin",
+        pageTitle: "회원등록",
+        pageDescription: "새 사용자 계정을 등록합니다.",
+        activeMenu: "admin-register",
+        userName: "서버 관리자",
+      },
+    },
+    {
       path: "/",
       component: () => import("./pages/Dashboard.vue"),
       meta: {

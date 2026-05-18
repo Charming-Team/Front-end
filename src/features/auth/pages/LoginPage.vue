@@ -15,12 +15,12 @@ const MOCK_USERS = [
   {
     email: 'admin@sk.com',
     password: 'smap1234!',
-    role: 'WORKER',
+    role: 'OPERATOR',
   },
   {
     email: 'worker@sk.com',
     password: 'worker1234!',
-    role: 'WORKER',
+    role: 'OPERATOR',
   },
 ]
 

@@ -16,8 +16,8 @@ const metrics = [
 
 const roleDistribution = [
   { label: '서버관리자', count: 3, percent: 3, tone: 'red' },
-  { label: '공장관리자', count: 8, percent: 9, tone: 'orange' },
-  { label: '공정관리자', count: 24, percent: 27, tone: 'green' },
+  { label: '경영진', count: 8, percent: 9, tone: 'orange' },
+  { label: '제조관리직', count: 24, percent: 27, tone: 'green' },
   { label: '작업자', count: 89, percent: 100, tone: 'gray' },
 ]
 </script>
