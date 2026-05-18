@@ -44,7 +44,7 @@ const icons = {
 const navigation = [
   { key: 'admin-dashboard', label: '대시보드', icon: icons.dashboard, to: '/admin' },
   { key: 'admin-register', label: '회원등록', icon: icons.userPlus, to: '/admin/register' },
-  { key: 'admin-users', label: '사용자 조회', icon: icons.users },
+  { key: 'admin-users', label: '사용자 조회', icon: icons.users, to: '/admin/users' },
 ]
 
 const userMenuOpen = ref(false)

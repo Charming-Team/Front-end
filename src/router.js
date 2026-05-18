@@ -29,6 +29,18 @@ const router = createRouter({
       },
     },
     {
+      path: "/admin/users",
+      component: () => import("./pages/admin/AdminUsersPage.vue"),
+      meta: {
+        requiresAuth: true,
+        layout: "admin",
+        pageTitle: "사용자 조회",
+        pageDescription: "등록된 사용자 계정과 권한 상태를 확인합니다.",
+        activeMenu: "admin-users",
+        userName: "서버 관리자",
+      },
+    },
+    {
       path: "/",
       component: () => import("./pages/Dashboard.vue"),
       meta: {
