@@ -1,0 +1,80 @@
+.admin-role-section {
+  display: block;
+}
+
+.dashboard-panel {
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-panel);
+  box-shadow: 0 7px 18px rgba(0, 0, 0, 0.05);
+}
+
+.admin-panel {
+  min-height: 210px;
+}
+
+.panel-header {
+  min-height: 46px;
+  padding: 12px 26px 8px;
+}
+
+.panel-title {
+  color: var(--color-text-main);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+}
+
+.role-list {
+  display: grid;
+  padding: 0 26px 18px;
+}
+
+.role-row {
+  display: grid;
+  gap: 7px;
+  padding: 9px 0;
+  border-top: 1px solid var(--color-track-light);
+}
+
+.role-row:first-child {
+  border-top: 0;
+}
+
+.role-row__meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--color-navy);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.role-track {
+  height: 7px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--color-track);
+}
+
+.role-track i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+}
+
+.role-track .red {
+  background: var(--color-danger);
+}
+
+.role-track .orange {
+  background: var(--color-warning);
+}
+
+.role-track .green {
+  background: #5bbd66;
+}
+
+.role-track .gray {
+  background: #6b7280;
+}

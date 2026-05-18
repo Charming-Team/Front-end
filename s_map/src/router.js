@@ -5,6 +5,18 @@ const router = createRouter({
   history: createWebHistory(),
   routes: [
     {
+      path: "/admin",
+      component: () => import("./pages/admin/AdminDashboardPage.vue"),
+      meta: {
+        requiresAuth: true,
+        layout: "admin",
+        pageTitle: "서버관리자 대시보드",
+        pageDescription: "S-MAP 시스템 현황",
+        activeMenu: "admin-dashboard",
+        userName: "서버 관리자",
+      },
+    },
+    {
       path: "/",
       component: () => import("./pages/Dashboard.vue"),
       meta: {
