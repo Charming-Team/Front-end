@@ -25,6 +25,16 @@ const router = createRouter({
       },
     },
     {
+      path: "/materials",
+      component: () => import("./pages/materials/MaterialStatusPage.vue"),
+      meta: {
+        requiresAuth: true,
+        pageTitle: "자재 현황",
+        pageDescription: "자재 재고 및 상태를 실시간으로 확인하세요.",
+        activeMenu: "materials",
+      },
+    },
+    {
       path: "/register",
       component: () => import("./pages/RegisterPage.vue"),
     },
