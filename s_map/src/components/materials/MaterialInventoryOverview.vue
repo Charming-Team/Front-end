@@ -110,7 +110,7 @@ onUnmounted(() => {
         <div class="inventory-bar">
           <span
             class="inventory-bar-fill"
-            :class="`inventory-bar-fill--${material.status}`"
+            :class="`inventory-bar-fill--${statusMeta[material.status].tone}`"
             :style="{ width: `${getPercentage(material)}%` }"
           ></span>
         </div>
