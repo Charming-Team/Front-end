@@ -143,6 +143,7 @@ watch(pageCount, (nextPageCount) => {
       :total-count="totalCount"
       :page-size="pageSize"
       :page-size-options="pageSizeOptions"
+      :show-register-button="false"
       :status-options="statusOptions"
       :status-meta="statusMeta"
       :selected-status="selectedStatus"

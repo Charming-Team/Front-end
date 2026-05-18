@@ -11,6 +11,7 @@ defineProps({
   totalCount: { type: Number, default: 0 },
   pageSize: { type: String, required: true },
   pageSizeOptions: { type: Array, default: () => [] },
+  showRegisterButton: { type: Boolean, default: true },
   statusOptions: { type: Array, default: () => [] },
   statusMeta: { type: Object, required: true },
   selectedStatus: { type: String, required: true },
@@ -34,7 +35,13 @@ const emit = defineEmits([
     <AppSectionHeader class="section-header-shell table-section-header" title="자재 목록">
       <template #actions>
         <div class="toolbar">
-          <AppButton variant="surface" size="sm" class="add-button" @click="emit('open-register')">
+          <AppButton
+            v-if="showRegisterButton"
+            variant="surface"
+            size="sm"
+            class="add-button"
+            @click="emit('open-register')"
+          >
             <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
               <path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" />
             </svg>
