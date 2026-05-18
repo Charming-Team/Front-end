@@ -72,6 +72,16 @@ const router = createRouter({
         activeMenu: "production",
       },
     },
+    {
+      path: "/reports",
+      component: () => import("./pages/report/ReportPage.vue"),
+      meta: {
+        requiresAuth: true,
+        pageTitle: "보고서",
+        pageDescription: "보고서 작성 및 이력을 확인하고 관리할 수 있습니다.",
+        activeMenu: "report",
+      },
+    },
   ],
 });
 
