@@ -1,9 +1,9 @@
 export const statusOptions = [
   { value: "all", label: "전체 자재" },
-  { value: "normal", label: "정상" },
-  { value: "risk", label: "부족위험" },
-  { value: "shortage", label: "부족" },
-  { value: "pending", label: "입고대기" },
+  { value: "NORMAL", label: "정상" },
+  { value: "LOW", label: "부족위험" },
+  { value: "SHORTAGE", label: "부족" },
+  { value: "INBOUND_WAITING", label: "입고대기" },
 ];
 
 export const pageSizeOptions = [
@@ -13,10 +13,10 @@ export const pageSizeOptions = [
 ];
 
 export const statusMeta = {
-  normal: { label: "정상", tone: "normal" },
-  risk: { label: "부족위험", tone: "risk" },
-  shortage: { label: "부족", tone: "shortage" },
-  pending: { label: "입고대기", tone: "pending" },
+  NORMAL: { label: "정상", tone: "normal" },
+  LOW: { label: "부족위험", tone: "risk" },
+  SHORTAGE: { label: "부족", tone: "shortage" },
+  INBOUND_WAITING: { label: "입고대기", tone: "pending" },
 };
 
 export const inventoryCardIds = [
@@ -57,7 +57,7 @@ export const mockServerMaterialDefaults = {
   depletionDate: "26/08/14",
   safeStock: 3000,
   levelLabel: "68%",
-  status: "pending",
+  status: "INBOUND_WAITING",
 };
 
 export const initialMaterials = [
@@ -69,7 +69,7 @@ export const initialMaterials = [
     currentStock: 2300,
     safeStock: 3000,
     levelLabel: "78%",
-    status: "normal",
+    status: "NORMAL",
   },
   {
     id: "Re-002",
@@ -79,7 +79,7 @@ export const initialMaterials = [
     currentStock: 1860,
     safeStock: 3000,
     levelLabel: "62%",
-    status: "risk",
+    status: "LOW",
   },
   {
     id: "Re-003",
@@ -89,7 +89,7 @@ export const initialMaterials = [
     currentStock: 900,
     safeStock: 2000,
     levelLabel: "45%",
-    status: "risk",
+    status: "LOW",
   },
   {
     id: "Ad-x",
@@ -99,7 +99,7 @@ export const initialMaterials = [
     currentStock: 480,
     safeStock: 1500,
     levelLabel: "32%",
-    status: "shortage",
+    status: "SHORTAGE",
   },
   {
     id: "Co-b",
@@ -109,7 +109,7 @@ export const initialMaterials = [
     currentStock: 2430,
     safeStock: 3000,
     levelLabel: "81%",
-    status: "normal",
+    status: "NORMAL",
   },
   {
     id: "Co-a",
@@ -119,7 +119,7 @@ export const initialMaterials = [
     currentStock: 2100,
     safeStock: 3000,
     levelLabel: "70%",
-    status: "normal",
+    status: "NORMAL",
   },
   {
     id: "St-011",
@@ -129,7 +129,7 @@ export const initialMaterials = [
     currentStock: 1510,
     safeStock: 2000,
     levelLabel: "76%",
-    status: "pending",
+    status: "INBOUND_WAITING",
   },
   {
     id: "Pa-020",
@@ -139,7 +139,7 @@ export const initialMaterials = [
     currentStock: 5400,
     safeStock: 6000,
     levelLabel: "90%",
-    status: "normal",
+    status: "NORMAL",
   },
   {
     id: "Mb-101",
@@ -149,7 +149,7 @@ export const initialMaterials = [
     currentStock: 3400,
     safeStock: 3200,
     levelLabel: "106%",
-    status: "normal",
+    status: "NORMAL",
   },
   {
     id: "Sl-008",
@@ -159,7 +159,7 @@ export const initialMaterials = [
     currentStock: 690,
     safeStock: 1600,
     levelLabel: "43%",
-    status: "shortage",
+    status: "SHORTAGE",
   },
   {
     id: "Cl-210",
@@ -169,7 +169,7 @@ export const initialMaterials = [
     currentStock: 1250,
     safeStock: 1800,
     levelLabel: "69%",
-    status: "risk",
+    status: "LOW",
   },
   {
     id: "Lb-404",
@@ -179,7 +179,7 @@ export const initialMaterials = [
     currentStock: 1880,
     safeStock: 1700,
     levelLabel: "111%",
-    status: "normal",
+    status: "NORMAL",
   },
   {
     id: "Re-004",
@@ -189,7 +189,7 @@ export const initialMaterials = [
     currentStock: 1720,
     safeStock: 3000,
     levelLabel: "57%",
-    status: "risk",
+    status: "LOW",
   },
   {
     id: "Pe-014",
@@ -199,7 +199,7 @@ export const initialMaterials = [
     currentStock: 760,
     safeStock: 1900,
     levelLabel: "40%",
-    status: "shortage",
+    status: "SHORTAGE",
   },
   {
     id: "Co-c",
@@ -209,7 +209,7 @@ export const initialMaterials = [
     currentStock: 2250,
     safeStock: 3000,
     levelLabel: "75%",
-    status: "normal",
+    status: "NORMAL",
   },
   {
     id: "Ad-y",
@@ -219,7 +219,7 @@ export const initialMaterials = [
     currentStock: 820,
     safeStock: 1500,
     levelLabel: "55%",
-    status: "pending",
+    status: "INBOUND_WAITING",
   },
   {
     id: "Fi-101",
@@ -229,7 +229,7 @@ export const initialMaterials = [
     currentStock: 2800,
     safeStock: 3500,
     levelLabel: "80%",
-    status: "normal",
+    status: "NORMAL",
   },
   {
     id: "Re-005",
@@ -239,6 +239,6 @@ export const initialMaterials = [
     currentStock: 980,
     safeStock: 3000,
     levelLabel: "33%",
-    status: "shortage",
+    status: "SHORTAGE",
   },
 ];

@@ -6,7 +6,6 @@ import MaterialTableSection from "../../components/materials/MaterialTableSectio
 import MaterialAddModal from "./MaterialAddModal.vue";
 import {
   initialMaterials,
-  inventoryCardIds,
   materialCatalog,
   mockServerMaterialDefaults,
   pageSizeOptions,
@@ -25,11 +24,16 @@ const currentPage = ref(1);
 const isRegisterModalOpen = ref(false);
 const registerForm = ref(createDefaultForm());
 const materials = ref([...initialMaterials]);
+const inventoryStatusOrder = ["SHORTAGE", "LOW", "INBOUND_WAITING"];
 
 const inventoryCards = computed(() =>
-  inventoryCardIds
-    .map((id) => materials.value.find((material) => material.id === id))
-    .filter(Boolean)
+  [...materials.value]
+    .filter((material) => material.status !== "NORMAL")
+    .sort(
+      (left, right) =>
+        inventoryStatusOrder.indexOf(left.status) -
+        inventoryStatusOrder.indexOf(right.status)
+    )
 );
 
 const filteredMaterials = computed(() => {
