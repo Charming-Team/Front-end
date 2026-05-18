@@ -1,10 +1,10 @@
 <template>
   <section class="card utilization-panel dashboard-panel">
-    <div class="panel-header d-flex justify-content-between align-items-center gap-3">
+    <div
+      class="panel-header d-flex justify-content-between align-items-center gap-3"
+    >
       <h2 class="panel-title mb-0">{{ title }}</h2>
-      <button class="more-link btn btn-link d-inline-flex align-items-center gap-1 p-0 border-0" type="button">
-        더보기 <span class="arrow"></span>
-      </button>
+      <PanelMoreButton />
     </div>
 
     <div class="gauge-grid">
@@ -19,6 +19,7 @@
 
 <script setup>
 import UtilizationGaugeCard from "./UtilizationGaugeCard.vue";
+import PanelMoreButton from "../common/PanelMoreButton.vue";
 
 defineProps({
   title: {
@@ -54,33 +55,6 @@ defineProps({
   font-size: 16px;
   font-weight: 700;
   letter-spacing: -0.2px;
-}
-
-.more-link {
-  color: var(--color-text-main);
-  font-size: 12px;
-  font-weight: 600;
-  background: transparent;
-  box-shadow: none;
-  line-height: 1;
-  text-decoration: none;
-}
-
-.more-link:hover,
-.more-link:focus {
-  color: var(--color-text-main);
-  background: transparent;
-  box-shadow: none;
-  text-decoration: none;
-}
-
-.arrow {
-  width: 7px;
-  height: 7px;
-  display: inline-block;
-  border-top: 2px solid currentColor;
-  border-right: 2px solid currentColor;
-  transform: rotate(45deg);
 }
 
 .gauge-grid {
