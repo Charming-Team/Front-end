@@ -6,6 +6,10 @@ defineProps({
     type: Object,
     required: true,
   },
+  showExecutiveButton: {
+    type: Boolean,
+    default: true,
+  },
 });
 
 const emit = defineEmits([
@@ -33,7 +37,9 @@ const emit = defineEmits([
           {{ report.title }}
         </h1>
 
-        <div class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-[14px] font-bold text-slate-500">
+        <div
+          class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-[14px] font-bold text-slate-500"
+        >
           <span>작성자 : {{ report.author }}</span>
           <span class="h-3 w-px bg-slate-300" />
           <span>작성일 : {{ report.createdAt }}</span>
@@ -44,6 +50,7 @@ const emit = defineEmits([
 
       <div class="flex flex-wrap justify-end gap-3">
         <AppButton
+          v-if="showExecutiveButton"
           variant="secondary"
           class="min-w-[150px]"
           @click="emit('create-executive')"
