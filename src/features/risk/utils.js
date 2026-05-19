@@ -17,6 +17,37 @@ export const riskLevelMap = {
   },
 };
 
+export const riskCauseTypeMap = {
+  MATERIAL_SHORTAGE: {
+    label: '자재 부족',
+    className: 'risk-cause-badge risk-cause-badge--material',
+  },
+  LOW_YIELD: {
+    label: '수율 저하',
+    className: 'risk-cause-badge risk-cause-badge--yield',
+  },
+  LINE_WAITING_INCREASE: {
+    label: '라인 대기 증가',
+    className: 'risk-cause-badge risk-cause-badge--waiting',
+  },
+  LOW_THROUGHPUT: {
+    label: '처리량 부족',
+    className: 'risk-cause-badge risk-cause-badge--throughput',
+  },
+  MACHINE_STATUS_ABNORMAL: {
+    label: '설비 상태 이상',
+    className: 'risk-cause-badge risk-cause-badge--machine',
+  },
+};
+
+export function getRiskCauseLabel(type) {
+  return riskCauseTypeMap[type]?.label ?? '기타 원인';
+}
+
+export function getRiskCauseBadgeClass(type) {
+  return riskCauseTypeMap[type]?.className ?? 'risk-cause-badge';
+}
+
 export function formatNumber(value) {
   return Number(value).toLocaleString();
 }

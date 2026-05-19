@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { setToken } from '../../../utils/storage.js'
+import { setToken, setUserRole } from '../../../utils/storage.js'
 import AuthCard from '../components/AuthCard.vue'
 import LoginForm from '../components/LoginForm.vue'
 import logoMain from '../../../assets/logo_main.svg'
@@ -21,6 +21,16 @@ const MOCK_USERS = [
     email: 'worker@sk.com',
     password: 'worker1234!',
     role: 'OPERATOR',
+  },
+  {
+    email: 'manager@sk.com',
+    password: 'smap1234!',
+    role: 'MANUFACTURING_MANAGER',
+  },
+  {
+    email: 'executive@sk.com',
+    password: 'smap1234!',
+    role: 'EXECUTIVE',
   },
 ]
 
@@ -46,6 +56,7 @@ async function handleLogin() {
   }
 
   setToken('mock-token-s-map')
+  setUserRole(user.role)
   router.push(user.role === 'ADMIN' ? '/admin' : '/')
 }
 </script>
