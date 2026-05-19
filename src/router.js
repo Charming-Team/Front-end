@@ -115,7 +115,7 @@ const router = createRouter({
         requiresAuth: true,
         pageTitle: "보고서",
         pageDescription: "보고서 작성 및 이력을 확인하고 관리할 수 있습니다.",
-        activeMenu: "report",
+        activeMenu: "reports",
       },
     },
     {
@@ -125,7 +125,7 @@ const router = createRouter({
         requiresAuth: true,
         pageTitle: "보고서",
         pageDescription: "생성된 보고서의 상세 내용을 확인합니다.",
-        activeMenu: "report",
+        activeMenu: "reports",
       },
     },
   ],
