@@ -1,6 +1,22 @@
 <script setup>
 import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { registerUser } from '../api.js'
+
+const props = defineProps({
+  redirectPath: {
+    type: String,
+    default: '/',
+  },
+  cancelPath: {
+    type: String,
+    default: '/login',
+  },
+  elevated: {
+    type: Boolean,
+    default: false,
+  },
+})
 
 const router = useRouter()
 
@@ -10,35 +26,64 @@ const form = reactive({
   password: '',
   confirmPassword: '',
   role: '',
-  company: '',
+  companyName: '',
   department: '',
-  phone: '',
+  phoneNumber: '',
 })
 
 const error = ref('')
 const success = ref(false)
+const loading = ref(false)
+const registeredUser = ref(null)
 
 const roles = [
-  { value: 'factory_admin', label: '공장 관리자' },
-  { value: 'process_engineer', label: '공정 엔지니어' },
-  { value: 'executive', label: '경영자' },
-  { value: 'server_admin', label: '서버 관리자' },
+  { value: 'ADMIN', label: '서버 관리자' },
+  { value: 'OPERATOR', label: '작업자' },
+  { value: 'EXECUTIVE', label: '경영진' },
+  { value: 'MANUFACTURING_MANAGER', label: '제조관리직' },
 ]
 
-function handleSubmit() {
+async function handleSubmit() {
   error.value = ''
   if (form.password !== form.confirmPassword) {
     error.value = '비밀번호가 일치하지 않습니다.'
     return
   }
 
-  success.value = true
-  setTimeout(() => router.push('/'), 2000)
+  loading.value = true
+
+  try {
+    const response = await registerUser({
+      name: form.name.trim(),
+      email: form.email.trim(),
+      password: form.password,
+      role: form.role,
+      department: form.department.trim(),
+      companyName: form.companyName.trim(),
+      phoneNumber: form.phoneNumber.trim(),
+    })
+
+    if (!response.success) {
+      throw new Error(response.message || '사용자 등록에 실패했습니다.')
+    }
+
+    registeredUser.value = response.data
+    success.value = true
+    setTimeout(() => router.push(props.redirectPath), 2000)
+  } catch (err) {
+    error.value = err.message || '사용자 등록에 실패했습니다.'
+  } finally {
+    loading.value = false
+  }
+}
+
+function handleCancel() {
+  router.push(props.cancelPath)
 }
 </script>
 
 <template>
-  <div class="register-shell">
+  <div class="register-shell" :class="{ 'register-shell--elevated': elevated }">
     <div class="register-wrap">
       <div class="register-card">
         <div class="register-header">
@@ -48,7 +93,7 @@ function handleSubmit() {
 
         <div v-if="success" class="register-success">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5" /></svg>
-          사용자가 등록되었습니다. 대시보드로 이동합니다...
+          {{ registeredUser?.name || '사용자' }} 사용자가 등록되었습니다. 대시보드로 이동합니다...
         </div>
 
         <form v-else class="register-form" @submit.prevent="handleSubmit">
@@ -83,25 +128,25 @@ function handleSubmit() {
 
             <div class="field-group">
               <label class="field-label" for="reg-company">회사명 <span class="req">*</span></label>
-              <input id="reg-company" v-model="form.company" type="text" class="field-input" placeholder="회사명을 입력하세요" required />
+              <input id="reg-company" v-model="form.companyName" type="text" class="field-input" placeholder="회사명을 입력하세요" required />
             </div>
 
             <div class="field-group">
-              <label class="field-label" for="reg-dept">부서</label>
-              <input id="reg-dept" v-model="form.department" type="text" class="field-input" placeholder="부서를 입력하세요" />
+              <label class="field-label" for="reg-dept">부서 <span class="req">*</span></label>
+              <input id="reg-dept" v-model="form.department" type="text" class="field-input" placeholder="부서를 입력하세요" required />
             </div>
 
             <div class="field-group">
-              <label class="field-label" for="reg-phone">연락처</label>
-              <input id="reg-phone" v-model="form.phone" type="tel" class="field-input" placeholder="연락처를 입력하세요" />
+              <label class="field-label" for="reg-phone">연락처 <span class="req">*</span></label>
+              <input id="reg-phone" v-model="form.phoneNumber" type="tel" class="field-input" placeholder="연락처를 입력하세요" required />
             </div>
           </div>
 
           <p v-if="error" class="register-error">{{ error }}</p>
 
           <div class="form-actions">
-            <AppButton variant="secondary" size="lg" @click="router.push('/login')">취소</AppButton>
-            <AppButton type="submit" variant="primary" size="lg">등록</AppButton>
+            <AppButton variant="secondary" size="lg" :disabled="loading" @click="handleCancel">취소</AppButton>
+            <AppButton type="submit" variant="primary" size="lg" :disabled="loading">{{ loading ? '등록 중...' : '사용자 등록' }}</AppButton>
           </div>
         </form>
       </div>

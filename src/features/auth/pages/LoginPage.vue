@@ -6,8 +6,23 @@ import AuthCard from '../components/AuthCard.vue'
 import LoginForm from '../components/LoginForm.vue'
 import logoMain from '../../../assets/logo_main.svg'
 
-const MOCK_EMAIL = 'admin@sk.com'
-const MOCK_PASSWORD = 'smap1234!'
+const MOCK_USERS = [
+  {
+    email: 'ad@sk.com',
+    password: 'smap1234!',
+    role: 'ADMIN',
+  },
+  {
+    email: 'admin@sk.com',
+    password: 'smap1234!',
+    role: 'OPERATOR',
+  },
+  {
+    email: 'worker@sk.com',
+    password: 'worker1234!',
+    role: 'OPERATOR',
+  },
+]
 
 const router = useRouter()
 const email = ref('')
@@ -20,14 +35,18 @@ async function handleLogin() {
   loading.value = true
   await new Promise(resolve => setTimeout(resolve, 320))
 
-  if (email.value !== MOCK_EMAIL || password.value !== MOCK_PASSWORD) {
+  const user = MOCK_USERS.find(
+    item => item.email === email.value && item.password === password.value
+  )
+
+  if (!user) {
     error.value = '이메일 또는 비밀번호가 올바르지 않습니다.'
     loading.value = false
     return
   }
 
   setToken('mock-token-s-map')
-  router.push('/')
+  router.push(user.role === 'ADMIN' ? '/admin' : '/')
 }
 </script>
 
