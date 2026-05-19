@@ -51,6 +51,16 @@ const router = createRouter({
       },
     },
     {
+      path: '/orders',
+      component: () => import('./pages/orders/OrderManagementPage.vue'),
+      meta: {
+        requiresAuth: true,
+        pageTitle: '주문 관리',
+        pageDescription: '주문 현황을 조회하고 관리할 수 있습니다.',
+        activeMenu: 'orders',
+      },
+    },
+    {
       path: '/plan',
       component: () => import('./pages/plan/PlanPage.vue'),
       meta: {
@@ -77,16 +87,6 @@ const router = createRouter({
         requiresAuth: true,
         pageTitle: '리스크 분석',
         pageDescription: '각 주문의 리스크를 분석하고 원인을 파악하세요.',
-        activeMenu: 'risks',
-      },
-    },
-    {
-      path: '/risk/:orderNo',
-      component: () => import('./pages/risk/RiskDetailPage.vue'),
-      meta: {
-        requiresAuth: true,
-        pageTitle: '리스크 상세 분석',
-        pageDescription: '선택한 주문의 지연 위험 원인과 대응 방안을 확인하세요.',
         activeMenu: 'risks',
       },
     },
