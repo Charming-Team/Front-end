@@ -78,6 +78,20 @@ export const riskItems = [
     lineName: 'LINE-PP-02',
     riskLevel: 'SAFE',
   },
+  {
+    id: 6,
+    orderNo: 'ORD-205',
+    customerName: 'F사',
+    productName: 'PA-Natural',
+    productGroup: 'PA',
+    quantity: 1200,
+    completedQuantity: 528,
+    remainingQuantity: 672,
+    dueDate: '2026-07-04',
+    progressRate: 44,
+    lineName: 'LINE-PA-01',
+    riskLevel: 'WARNING',
+  },
 ];
 
 export const riskDetailMap = {
@@ -155,5 +169,23 @@ export const riskDetailMap = {
     progressMessage: '현재 주문 수량 700개 중 665개가 완료되어 있으며, 35개가 남아 있습니다.',
     recommendation: '현재 계획을 유지해도 무리가 없으며, 별도 생산계획 조정은 필요하지 않습니다.',
     causes: ['진행률이 높고 잔여 생산량이 적습니다.', '현재 배정된 LINE-PP-02 기준 납기 내 완료 가능성이 높습니다.'],
+  },
+
+  'ORD-205': {
+    riskLevel: 'WARNING',
+    riskLevelLabel: '위험',
+    delayProbability: 0.68,
+    predictedAt: '2026-06-10 09:55',
+    title: '리스크 상세 분석',
+    causeTypes: ['MATERIAL_SHORTAGE', 'LINE_WAITING_INCREASE'],
+    summary:
+      'ORD-205 주문건은 자재 부족으로 인해 계획된 생산 투입 시점이 지연될 가능성이 있습니다. PA-Natural 원료 입고 일정과 라인 대기 작업을 함께 확인해야 합니다.',
+    progressMessage: '현재 주문 수량 1200개 중 528개가 완료되어 있으며, 672개가 남아 있습니다.',
+    recommendation:
+      'PA-Natural 원료 입고 일정을 확인하고, 필요 시 대체 자재 사용 또는 생산 가능 라인으로 일부 물량을 분산하는 방안을 검토하세요.',
+    causes: [
+      'PA-Natural 생산에 필요한 주요 원료의 입고 수량이 계획 대비 부족합니다.',
+      '선행 작업과 전환 작업이 겹쳐 주문 투입이 늦어질 수 있습니다.',
+    ],
   },
 };

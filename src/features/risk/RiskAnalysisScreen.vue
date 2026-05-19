@@ -254,7 +254,7 @@ const selectedLine = ref('');
 const selectedRiskLevel = ref('');
 const selectedRiskItem = ref(null);
 
-const lineOptions = ['LINE-ABS-01', 'LINE-ABS-02', 'LINE-PP-01', 'LINE-PP-02', 'LINE-PE-01', 'LINE-PE-02'];
+const lineOptions = [...new Set(riskItems.map((item) => item.lineName).filter(Boolean))];
 
 const baseFilteredRiskItems = computed(() => {
   const normalizedKeyword = keyword.value.trim().toLowerCase();
