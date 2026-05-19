@@ -81,6 +81,16 @@ const router = createRouter({
       },
     },
     {
+      path: "/lines",
+      component: () => import("./pages/lines/LineStatusPage.vue"),
+      meta: {
+        requiresAuth: true,
+        pageTitle: "라인 현황",
+        pageDescription: "라인별 가동 현황과 주문별 생산 라인 분배 현황을 확인하세요.",
+        activeMenu: "lines",
+      },
+    },
+    {
       path: "/risk",
       component: () => import("./pages/risk/RiskAnalysisPage.vue"),
       meta: {
