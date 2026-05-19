@@ -1,5 +1,7 @@
 <script setup>
-defineProps({
+import { watch } from "vue";
+
+const props = defineProps({
   show: {
     type: Boolean,
     default: false,
@@ -17,6 +19,33 @@ defineProps({
     default: "success",
   },
 });
+
+let lastToastKey = "";
+
+watch(
+  () => [props.show, props.title, props.message, props.type],
+  ([show, title, message, type]) => {
+    if (!show) {
+      lastToastKey = "";
+      return;
+    }
+
+    const toastKey = `${title}|${message}|${type}`;
+    if (toastKey === lastToastKey) return;
+    lastToastKey = toastKey;
+
+    window.dispatchEvent(
+      new CustomEvent("s-map:toast-notification", {
+        detail: {
+          title,
+          message,
+          type,
+          to: `${window.location.pathname}${window.location.search}`,
+        },
+      })
+    );
+  }
+);
 </script>
 
 <template>

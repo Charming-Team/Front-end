@@ -63,6 +63,17 @@ export const riskItems = [
     lineName: 'LINE-B',
     riskLevel: 'SAFE',
   },
+  {
+    id: 6,
+    orderNo: 'ORD-205',
+    customerName: 'F사',
+    productName: 'PA-Natural',
+    quantity: 1200,
+    dueDate: '2026-07-04',
+    progressRate: 44,
+    lineName: 'LINE-D',
+    riskLevel: 'WARNING',
+  },
 ];
 export const riskDetailMap = {
   'ORD-198': {
@@ -123,6 +134,54 @@ export const riskDetailMap = {
         lineName: 'LINE-B',
         plannedStartAt: '2026-06-24 09:00',
         plannedEndAt: '2026-06-28 18:00',
+        status: 'SCHEDULED',
+      },
+    ],
+  },
+  'ORD-205': {
+    orderNo: 'ORD-205',
+    expectedCompletionDate: '2026-07-08',
+    predictedDelayDays: 4.3,
+    delayProbability: 0.68,
+    riskLevel: 'WARNING',
+    summary:
+      'ORD-205는 자재 부족으로 인해 계획된 생산 투입 시점이 지연될 가능성이 있습니다. PA-Natural 원료 입고 일정과 LINE-D의 대기 작업을 함께 확인해야 합니다.',
+    causes: [
+      {
+        type: 'MATERIAL_SHORTAGE',
+        label: '자재 부족',
+        impact: '예상 지연 +3.1일',
+        description: 'PA-Natural 생산에 필요한 주요 원료의 입고 수량이 계획 대비 부족합니다.',
+        evidence: '필요 수량 6,500개 / 가용 수량 4,900개',
+      },
+      {
+        type: 'LINE_WAITING_INCREASE',
+        label: '라인 대기시간 증가',
+        impact: '예상 지연 +1.2일',
+        description: 'LINE-D에 선행 작업과 전환 작업이 겹쳐 주문 투입이 늦어질 수 있습니다.',
+        evidence: 'LINE-D 대기 작업 3건 / 평균 대기시간 9.5시간',
+      },
+    ],
+    actions: [
+      {
+        title: '부족 자재 입고 일정 확인',
+        description: '구매 담당자에게 PA-Natural 원료 입고 가능 일정을 확인합니다.',
+      },
+      {
+        title: '대체 자재 사용 검토',
+        description: '동일 규격의 대체 자재 사용 가능 여부를 품질 기준과 함께 검토합니다.',
+      },
+      {
+        title: 'LINE-D 작업 순서 조정',
+        description: '전환 작업 시간을 줄일 수 있도록 유사 제품 작업을 묶어 재배치합니다.',
+      },
+    ],
+    relatedPlans: [
+      {
+        planId: 'PLAN-205',
+        lineName: 'LINE-D',
+        plannedStartAt: '2026-07-01 09:00',
+        plannedEndAt: '2026-07-04 18:00',
         status: 'SCHEDULED',
       },
     ],
