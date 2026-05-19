@@ -1,11 +1,11 @@
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
-import { useRouter } from 'vue-router'
-import AlarmButton from '../components/common/AlarmButton.vue'
-import UserChip from '../components/common/UserChip.vue'
-import ChatbotButton from '../features/chatbot/components/ChatbotButton.vue'
-import { clearToken } from '../utils/storage.js'
-import logoSymbol from '../assets/logo_main.svg'
+import { ref, onMounted, onUnmounted } from 'vue';
+import { useRouter } from 'vue-router';
+import AlarmButton from '../components/common/AlarmButton.vue';
+import UserChip from '../components/common/UserChip.vue';
+import ChatbotButton from '../features/chatbot/components/ChatbotButton.vue';
+import { clearToken } from '../utils/storage.js';
+import logoSymbol from '../assets/logo_main.svg';
 
 defineProps({
   pageTitle: {
@@ -28,15 +28,15 @@ defineProps({
     type: [Number, String],
     default: 15,
   },
-})
+});
 
-const router = useRouter()
+const router = useRouter();
 
 const baseIcon = `
   <svg viewBox="0 0 24 24" aria-hidden="true">
     <path d="M4 11.5 12 5l8 6.5V20a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1v-8.5Z" />
   </svg>
-`
+`;
 
 const icons = {
   dashboard: baseIcon,
@@ -47,7 +47,7 @@ const icons = {
   risk: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 4 10 17H2L12 4Z" /><path d="M12 10v5M12 18h.01" /></svg>`,
   report: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14v16H5Z" /><path d="M8 9h8M8 13h5M16 14l2 2 3-4" /></svg>`,
   logout: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" /></svg>`,
-}
+};
 
 const navigation = [
   { key: 'dashboard', label: '대시보드', icon: icons.dashboard, to: '/' },
@@ -55,30 +55,30 @@ const navigation = [
   { key: 'production', label: '생산계획', icon: icons.plan, to: '/plan' },
   { key: 'materials', label: '자재 현황', icon: icons.box, to: '/materials' },
   { key: 'lines', label: '라인 현황', icon: icons.line, to: '/' },
-  { key: 'risks', label: '리스크 분석', icon: icons.risk, to: '/' },
+  { key: 'risks', label: '리스크 분석', icon: icons.risk, to: '/risk' },
   { key: 'reports', label: '보고서', icon: icons.report, to: '/reports' },
-]
+];
 
-const userMenuOpen = ref(false)
-const userMenuRef = ref(null)
+const userMenuOpen = ref(false);
+const userMenuRef = ref(null);
 
 function toggleUserMenu() {
-  userMenuOpen.value = !userMenuOpen.value
+  userMenuOpen.value = !userMenuOpen.value;
 }
 
 function onDocumentClick(e) {
   if (userMenuRef.value && !userMenuRef.value.contains(e.target)) {
-    userMenuOpen.value = false
+    userMenuOpen.value = false;
   }
 }
 
-onMounted(() => document.addEventListener('click', onDocumentClick))
-onUnmounted(() => document.removeEventListener('click', onDocumentClick))
+onMounted(() => document.addEventListener('click', onDocumentClick));
+onUnmounted(() => document.removeEventListener('click', onDocumentClick));
 
 function logout() {
-  userMenuOpen.value = false
-  clearToken()
-  router.push('/login')
+  userMenuOpen.value = false;
+  clearToken();
+  router.push('/login');
 }
 </script>
 
@@ -102,7 +102,6 @@ function logout() {
           <span>{{ item.label }}</span>
         </RouterLink>
       </nav>
-
     </aside>
 
     <main class="main-content">
@@ -115,22 +114,31 @@ function logout() {
         <div class="top-actions d-flex align-items-center">
           <AlarmButton :count="notificationCount" />
           <div ref="userMenuRef" class="position-relative">
-            <div style="cursor: pointer;" @click.stop="toggleUserMenu">
+            <div style="cursor: pointer" @click.stop="toggleUserMenu">
               <UserChip :label="userName" />
             </div>
             <div
               v-if="userMenuOpen"
               class="position-absolute end-0 overflow-hidden rounded-xl border border-slate-200 bg-white"
-              style="top: calc(100% + 6px); min-width: 150px; z-index: 200; box-shadow: 0 8px 24px rgba(15,23,42,0.12);"
+              style="top: calc(100% + 6px); min-width: 150px; z-index: 200; box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12)"
             >
               <button
                 type="button"
                 class="d-flex align-items-center gap-2 w-100 border-0 bg-transparent text-start"
-                style="padding: 10px 16px; font-size: 14px; font-weight: 600; color: var(--color-text-main); cursor: pointer;"
+                style="padding: 10px 16px; font-size: 14px; font-weight: 600; color: var(--color-text-main); cursor: pointer"
                 @click="logout"
               >
-                <svg viewBox="0 0 24 24" style="width:16px;height:16px;flex-shrink:0;" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>
+                <svg
+                  viewBox="0 0 24 24"
+                  style="width: 16px; height: 16px; flex-shrink: 0"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" />
                 </svg>
                 로그아웃
               </button>
