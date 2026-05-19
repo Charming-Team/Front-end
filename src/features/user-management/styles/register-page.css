@@ -7,6 +7,12 @@
   background: var(--color-bg);
 }
 
+.register-shell--elevated {
+  min-height: calc(100vh - 120px);
+  padding-top: 24px;
+  padding-bottom: 24px;
+}
+
 .register-wrap {
   width: 100%;
   max-width: 980px;
@@ -77,14 +83,15 @@
 
 .form-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 24px 32px;
+  grid-template-columns: 1fr;
+  gap: 16px;
 }
 
 .field-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr);
+  align-items: center;
+  gap: 24px;
 }
 
 .field-label {
@@ -139,11 +146,20 @@
 }
 
 @media (max-width: 768px) {
+  .register-shell--elevated {
+    min-height: 100vh;
+  }
+
   .register-card {
     padding: 28px 20px 32px;
   }
 
   .form-grid {
     grid-template-columns: 1fr;
+  }
+
+  .field-group {
+    grid-template-columns: 1fr;
+    gap: 8px;
   }
 }
