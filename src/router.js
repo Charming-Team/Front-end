@@ -15,6 +15,16 @@ const router = createRouter({
       },
     },
     {
+      path: "/orders",
+      component: () => import("./pages/orders/OrderManagementPage.vue"),
+      meta: {
+        requiresAuth: true,
+        pageTitle: "주문 관리",
+        pageDescription: "주문 현황을 조회하고 관리할 수 있습니다.",
+        activeMenu: "orders",
+      },
+    },
+    {
       path: "/plan",
       component: () => import("./pages/plan/PlanPage.vue"),
       meta: {

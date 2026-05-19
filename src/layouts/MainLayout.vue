@@ -51,7 +51,7 @@ const icons = {
 
 const navigation = [
   { key: 'dashboard', label: '대시보드', icon: icons.dashboard, to: '/' },
-  { key: 'orders', label: '주문 관리', icon: icons.calendar, to: '/' },
+  { key: 'orders', label: '주문 관리', icon: icons.calendar, to: '/orders' },
   { key: 'production', label: '생산계획', icon: icons.plan, to: '/plan' },
   { key: 'materials', label: '자재 현황', icon: icons.box, to: '/materials' },
   { key: 'lines', label: '라인 현황', icon: icons.line, to: '/' },
