@@ -4,10 +4,11 @@ import { RouterLink } from 'vue-router'
 import PlanFilterBar from '../../components/plan/PlanFilterBar.vue'
 import MonthPlanCalendar from '../../components/calendar/MonthPlanCalendar.vue'
 import WeekPlanCalendar from '../../components/calendar/WeekPlanCalendar.vue'
-import { LINE_THEMES, FIXED_LINE_ORDER } from './constants.js'
+import { LINE_THEMES, FIXED_LINE_ORDER, PLAN_STATUS_LABELS } from './constants.js'
 
 const props = defineProps({
   plans: { type: Array, default: () => [] },
+  previewPlans: { type: Array, default: () => [] },
   lines: { type: Array, default: () => [] },
   statusOptions: { type: Array, default: () => [] },
   status: { type: String, default: '' },
@@ -16,6 +17,9 @@ const props = defineProps({
   error: { type: String, default: '' },
   hasFilters: { type: Boolean, default: false },
   selectedPlanId: { type: [Number, null], default: null },
+  calendarEditing: { type: Boolean, default: false },
+  calendarSaving: { type: Boolean, default: false },
+  calendarSaveError: { type: String, default: '' },
 })
 
 const emit = defineEmits([
@@ -25,6 +29,12 @@ const emit = defineEmits([
   'update:search',
   'search',
   'status-change',
+  'move-plan',
+  'preview-plan-move',
+  'clear-plan-move-preview',
+  'enter-calendar-edit',
+  'complete-calendar-edit',
+  'open-bulk-upload',
 ])
 
 const viewMode = ref('month')
@@ -49,6 +59,115 @@ function toAllDayEnd(iso) {
   return date
 }
 
+function startOfDay(date) {
+  const next = new Date(date)
+  next.setHours(0, 0, 0, 0)
+  return next
+}
+
+function addDays(date, amount) {
+  const next = new Date(date)
+  next.setDate(next.getDate() + amount)
+  return next
+}
+
+function startOfWeek(date) {
+  const next = startOfDay(date)
+  next.setDate(next.getDate() - next.getDay())
+  return next
+}
+
+function endOfWeek(date) {
+  return addDays(startOfWeek(date), 6)
+}
+
+function getVisibleDateRange() {
+  if (viewMode.value === 'week') {
+    return {
+      start: addDays(startOfDay(anchorDate.value), -3),
+      end: addDays(startOfDay(anchorDate.value), 3),
+    }
+  }
+
+  const monthStart = new Date(anchorDate.value.getFullYear(), anchorDate.value.getMonth(), 1)
+  const monthEnd = new Date(anchorDate.value.getFullYear(), anchorDate.value.getMonth() + 1, 0)
+  return {
+    start: startOfWeek(monthStart),
+    end: endOfWeek(monthEnd),
+  }
+}
+
+function getVisibleDates() {
+  const { start, end } = getVisibleDateRange()
+  const dates = []
+  for (let date = start; date <= end; date = addDays(date, 1)) {
+    dates.push(date)
+  }
+  return dates
+}
+
+function planCoversDate(plan, date) {
+  const day = startOfDay(date).getTime()
+  return (
+    startOfDay(plan.plannedStartAt).getTime() <= day &&
+    startOfDay(plan.plannedEndAt).getTime() >= day
+  )
+}
+
+function toDateKey(date) {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+function createPlanEvent(plan) {
+  const theme = LINE_THEMES[plan.lineName] ?? {
+    bg: '#EEF2F7', chip: '#E2E8F0', border: '#CBD5E1', text: '#475569',
+  }
+  const selected = plan.planId === props.selectedPlanId
+  const lineOrder = orderedLineNames.value.indexOf(plan.lineName)
+  return {
+    id: String(plan.planId),
+    title: plan.productName,
+    start: plan.plannedStartAt,
+    end: toAllDayEnd(plan.plannedEndAt),
+    allDay: true,
+    backgroundColor: theme.bg,
+    borderColor: theme.border,
+    textColor: theme.text,
+    classNames: selected ? ['is-selected-plan'] : [],
+    order: lineOrder === -1 ? 999 : lineOrder,
+    extendedProps: {
+      plan,
+      lineName: plan.lineName,
+      lineOrder: lineOrder === -1 ? 999 : lineOrder,
+    },
+  }
+}
+
+function createLinePlaceholderEvent(lineName, date) {
+  const lineOrder = orderedLineNames.value.indexOf(lineName)
+  return {
+    id: `line-placeholder-${viewMode.value}-${toDateKey(date)}-${lineName}`,
+    title: '',
+    start: date,
+    end: addDays(date, 1),
+    allDay: true,
+    editable: false,
+    backgroundColor: 'transparent',
+    borderColor: 'transparent',
+    textColor: 'transparent',
+    classNames: ['line-lane-placeholder'],
+    order: lineOrder === -1 ? 999 : lineOrder,
+    extendedProps: {
+      isLinePlaceholder: true,
+      lineName,
+      lineOrder: lineOrder === -1 ? 999 : lineOrder,
+    },
+  }
+}
+
 const orderedLineNames = computed(() => {
   const names = new Set()
   props.lines.forEach(line => { if (line?.lineName) names.add(line.lineName) })
@@ -68,55 +187,50 @@ const legendItems = computed(() =>
 )
 
 const calendarEvents = computed(() =>
-  props.plans
+  {
+    const planEvents = props.plans
     .slice()
     .sort((left, right) =>
       compareLineNames(left.lineName, right.lineName)
       || new Date(left.plannedStartAt) - new Date(right.plannedStartAt)
       || (left.planSequence ?? 0) - (right.planSequence ?? 0)
     )
-    .map(plan => {
-      const theme = LINE_THEMES[plan.lineName] ?? {
-        bg: '#EEF2F7', chip: '#E2E8F0', border: '#CBD5E1', text: '#475569',
-      }
-      const selected = plan.planId === props.selectedPlanId
-      const lineOrder = orderedLineNames.value.indexOf(plan.lineName)
-      return {
-        id: String(plan.planId),
-        title: plan.productName,
-        start: plan.plannedStartAt,
-        end: toAllDayEnd(plan.plannedEndAt),
-        allDay: true,
-        backgroundColor: theme.bg,
-        borderColor: theme.border,
-        textColor: theme.text,
-        classNames: selected ? ['is-selected-plan'] : [],
-        order: lineOrder === -1 ? 999 : lineOrder,
-        extendedProps: {
-          plan,
-          lineName: plan.lineName,
-          lineOrder: lineOrder === -1 ? 999 : lineOrder,
-        },
-      }
-    })
+    .map(createPlanEvent)
+
+    const placeholderEvents = orderedLineNames.value.flatMap(lineName =>
+      getVisibleDates()
+        .filter(date => !props.plans.some(plan => plan.lineName === lineName && planCoversDate(plan, date)))
+        .map(date => createLinePlaceholderEvent(lineName, date))
+    )
+
+    return [...planEvents, ...placeholderEvents]
+  }
+)
+
+const previewCalendarEvents = computed(() =>
+  props.previewPlans.map(plan => ({
+    ...createPlanEvent(plan),
+    id: `preview-${plan.planId}`,
+    classNames: ['plan-move-preview'],
+  }))
 )
 
 function prevRange() {
   const next = new Date(anchorDate.value)
-  if (viewMode.value === 'month') {
-    next.setMonth(next.getMonth() - 1)
-  } else {
+  if (viewMode.value === 'week') {
     next.setDate(next.getDate() - 7)
+  } else {
+    next.setMonth(next.getMonth() - 1)
   }
   anchorDate.value = next
 }
 
 function nextRange() {
   const next = new Date(anchorDate.value)
-  if (viewMode.value === 'month') {
-    next.setMonth(next.getMonth() + 1)
-  } else {
+  if (viewMode.value === 'week') {
     next.setDate(next.getDate() + 7)
+  } else {
+    next.setMonth(next.getMonth() + 1)
   }
   anchorDate.value = next
 }
@@ -248,27 +362,69 @@ function setViewMode(mode) {
 
       <!-- 네비게이션 + 캘린더 -->
       <template v-else>
-        <div class="mb-4 flex items-center gap-2">
-          <AppButton class="min-w-[42px]" variant="secondary" size="sm" @click="prevRange">‹</AppButton>
-          <span class="min-w-[140px] text-center text-[15px] font-semibold text-slate-900">{{ currentRangeLabel }}</span>
-          <AppButton class="min-w-[42px]" variant="secondary" size="sm" @click="nextRange">›</AppButton>
-          <AppButton class="ml-1" variant="primary" size="sm" @click="goToday">오늘</AppButton>
+        <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <div class="flex items-center gap-2">
+            <AppButton class="min-w-[42px]" variant="secondary" size="sm" @click="prevRange">‹</AppButton>
+            <span class="min-w-[140px] text-center text-[15px] font-semibold text-slate-900">{{ currentRangeLabel }}</span>
+            <AppButton class="min-w-[42px]" variant="secondary" size="sm" @click="nextRange">›</AppButton>
+            <AppButton class="ml-1" variant="primary" size="sm" @click="goToday">오늘</AppButton>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <span v-if="calendarSaveError" class="text-[13px] font-semibold text-red-600">{{ calendarSaveError }}</span>
+            <AppButton
+              v-if="!calendarEditing"
+              variant="secondary"
+              size="sm"
+              @click="emit('open-bulk-upload')"
+            >
+              일괄 등록
+            </AppButton>
+            <AppButton
+              v-if="!calendarEditing"
+              variant="secondary"
+              size="sm"
+              @click="emit('enter-calendar-edit')"
+            >
+              수정
+            </AppButton>
+            <AppButton
+              v-else
+              variant="primary"
+              size="sm"
+              :disabled="calendarSaving"
+              @click="emit('complete-calendar-edit')"
+            >
+              {{ calendarSaving ? '저장 중...' : '완료' }}
+            </AppButton>
+          </div>
         </div>
 
         <MonthPlanCalendar
           v-if="viewMode === 'month'"
           :anchor-date="anchorDate"
           :events="calendarEvents"
+          :preview-events="previewCalendarEvents"
+          :editable="calendarEditing"
           @update-range-label="currentRangeLabel = $event"
           @select-plan="emit('select-plan', $event)"
+          @move-plan="emit('move-plan', $event)"
+          @preview-plan-move="emit('preview-plan-move', $event)"
+          @clear-plan-move-preview="emit('clear-plan-move-preview')"
         />
 
         <WeekPlanCalendar
           v-else
           :anchor-date="anchorDate"
           :events="calendarEvents"
+          :preview-events="previewCalendarEvents"
+          :editable="calendarEditing"
+          :status-labels="PLAN_STATUS_LABELS"
           @update-range-label="currentRangeLabel = $event"
           @select-plan="emit('select-plan', $event)"
+          @move-plan="emit('move-plan', $event)"
+          @preview-plan-move="emit('preview-plan-move', $event)"
+          @clear-plan-move-preview="emit('clear-plan-move-preview')"
         />
       </template>
 

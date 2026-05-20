@@ -1,19 +1,34 @@
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import FullCalendar from '@fullcalendar/vue3'
 import dayGridPlugin from '@fullcalendar/daygrid/index.js'
 import interactionPlugin from '@fullcalendar/interaction/index.js'
 import koLocale from '@fullcalendar/core/locales/ko.js'
-import { PLAN_STATUS_LABELS } from '../../features/plan/constants.js'
 
 const props = defineProps({
   anchorDate: { type: Date, required: true },
   events: { type: Array, default: () => [] },
+  previewEvents: { type: Array, default: () => [] },
+  editable: { type: Boolean, default: false },
+  statusLabels: { type: Object, default: () => ({}) },
 })
 
-const emit = defineEmits(['select-plan', 'update-range-label'])
+const emit = defineEmits([
+  'select-plan',
+  'update-range-label',
+  'move-plan',
+  'preview-plan-move',
+  'clear-plan-move-preview',
+])
 
+const rootRef = ref(null)
 const calendarRef = ref(null)
+const previewSegments = ref([])
+const lastPreviewKey = ref('')
+const BLOCKED_MOVE_STATUSES = ['COMPLETED', 'CANCELLED']
+const DAY_IN_MS = 86_400_000
+const LANE_HEIGHT = 27
+const PREVIEW_BAR_HEIGHT = 24
 
 function startOfDay(date) {
   const next = new Date(date)
@@ -50,6 +65,108 @@ function formatWeekLabel(date) {
   return `${start.getFullYear()}년 ${start.getMonth() + 1}월 ${start.getDate()}일 - ${end.getFullYear()}년 ${end.getMonth() + 1}월 ${end.getDate()}일`
 }
 
+function emitPlanMove(info) {
+  const plan = info.event.extendedProps.plan
+  if (!plan || !info.event.start) {
+    info.revert()
+    return
+  }
+
+  emit('clear-plan-move-preview')
+  lastPreviewKey.value = ''
+
+  const newStart = startOfDay(info.event.start)
+  const originalStart = startOfDay(plan.plannedStartAt)
+  const deltaDays = Math.round((newStart - originalStart) / DAY_IN_MS)
+
+  emit('move-plan', {
+    planId: plan.planId,
+    deltaDays,
+    revert: () => info.revert(),
+  })
+}
+
+function emitPlanMovePreview(dropInfo, draggedEvent) {
+  const plan = draggedEvent.extendedProps.plan
+  if (!props.editable || !plan || !dropInfo.start) return
+
+  const newStart = startOfDay(dropInfo.start)
+  const originalStart = startOfDay(plan.plannedStartAt)
+  const deltaDays = Math.round((newStart - originalStart) / DAY_IN_MS)
+  const previewKey = `${plan.planId}:${deltaDays}`
+  if (previewKey === lastPreviewKey.value) return
+
+  lastPreviewKey.value = previewKey
+  emit('preview-plan-move', { planId: plan.planId, deltaDays })
+}
+
+function formatDateKey(date) {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+function eachPlanDate(plan) {
+  const dates = []
+  for (let date = startOfDay(plan.plannedStartAt); date <= startOfDay(plan.plannedEndAt); date.setDate(date.getDate() + 1)) {
+    dates.push(new Date(date))
+  }
+  return dates
+}
+
+function buildPreviewSegments() {
+  nextTick(() => {
+    const root = rootRef.value
+    if (!root || props.previewEvents.length === 0) {
+      previewSegments.value = []
+      return
+    }
+
+    const rootRect = root.getBoundingClientRect()
+    const segments = []
+
+    props.previewEvents.forEach(event => {
+      const plan = event.extendedProps.plan
+      const lineOrder = event.extendedProps.lineOrder ?? 0
+      const visibleCells = eachPlanDate(plan)
+        .map(date => root.querySelector(`.fc-daygrid-day[data-date="${formatDateKey(date)}"]`))
+        .filter(Boolean)
+        .map(cell => ({ cell, rect: cell.getBoundingClientRect() }))
+
+      const rows = []
+      visibleCells.forEach(item => {
+        const row = rows.find(candidate => Math.abs(candidate.top - item.rect.top) < 2)
+        if (row) {
+          row.items.push(item)
+        } else {
+          rows.push({ top: item.rect.top, items: [item] })
+        }
+      })
+
+      rows.forEach(row => {
+        const items = row.items.sort((left, right) => left.rect.left - right.rect.left)
+        const first = items[0]
+        const last = items[items.length - 1]
+        const eventsArea = first.cell.querySelector('.fc-daygrid-day-events')?.getBoundingClientRect() ?? first.rect
+        segments.push({
+          id: `${event.id}-${Math.round(row.top)}`,
+          title: event.title,
+          left: first.rect.left - rootRect.left + 6,
+          top: eventsArea.top - rootRect.top + (lineOrder * LANE_HEIGHT) + 4,
+          width: last.rect.right - first.rect.left - 12,
+          height: PREVIEW_BAR_HEIGHT,
+          backgroundColor: event.backgroundColor,
+          borderColor: event.borderColor,
+          textColor: event.textColor,
+        })
+      })
+    })
+
+    previewSegments.value = segments
+  })
+}
+
 const calendarOptions = computed(() => ({
   plugins: [dayGridPlugin, interactionPlugin],
   locale: koLocale,
@@ -68,9 +185,9 @@ const calendarOptions = computed(() => ({
   fixedWeekCount: false,
   firstDay: 0,
   weekends: true,
-  editable: false,
+  editable: props.editable,
   selectable: false,
-  eventStartEditable: false,
+  eventStartEditable: props.editable,
   eventDurationEditable: false,
   dayMaxEventRows: 6,
   displayEventTime: false,
@@ -79,9 +196,34 @@ const calendarOptions = computed(() => ({
   eventOrder: 'order,start,-duration,title',
   eventOrderStrict: true,
   events: props.events,
+  eventAllow: (_, draggedEvent) => {
+    if (!props.editable) return false
+    const plan = draggedEvent.extendedProps.plan
+    if (!plan) return false
+    const status = plan.planStatus
+    return !BLOCKED_MOVE_STATUSES.includes(status)
+  },
+  eventDragStart: () => {
+    lastPreviewKey.value = ''
+    emit('clear-plan-move-preview')
+  },
+  eventDragStop: () => {
+    lastPreviewKey.value = ''
+    emit('clear-plan-move-preview')
+  },
+  eventDrop: emitPlanMove,
   eventClick: info => {
     const plan = info.event.extendedProps.plan
     if (plan) emit('select-plan', plan)
+  },
+}))
+
+const previewAwareCalendarOptions = computed(() => ({
+  ...calendarOptions.value,
+  eventAllow: (dropInfo, draggedEvent) => {
+    const allowed = calendarOptions.value.eventAllow(dropInfo, draggedEvent)
+    if (allowed) emitPlanMovePreview(dropInfo, draggedEvent)
+    return allowed
   },
 }))
 
@@ -102,11 +244,27 @@ watch(
   },
   { immediate: true }
 )
+
+watch(
+  () => props.previewEvents,
+  buildPreviewSegments,
+  { deep: true, flush: 'post' }
+)
+
+onMounted(() => {
+  window.addEventListener('resize', buildPreviewSegments)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', buildPreviewSegments)
+})
 </script>
 
 <template>
   <div
+    ref="rootRef"
     class="week-plan-calendar
+      relative
       [&_.fc]:font-sans
       [&_.fc]:text-slate-900
       [&_.fc-theme-standard_.fc-scrollgrid]:border-0
@@ -141,9 +299,11 @@ watch(
       [&_.fc_.fc-event]:transition
       [&_.fc_.fc-event:hover]:brightness-102
       [&_.fc_.fc-event:hover]:shadow-[0_2px_8px_rgba(15,23,42,0.08)]
+      [&_.fc_.line-lane-placeholder]:invisible
+      [&_.fc_.line-lane-placeholder]:pointer-events-none
       [&_.fc_.fc-view-harness]:bg-white"
   >
-    <FullCalendar ref="calendarRef" :options="calendarOptions">
+    <FullCalendar ref="calendarRef" :options="previewAwareCalendarOptions">
       <template #dayHeaderContent="arg">
         <div class="flex items-center justify-center gap-2 text-[15px] font-semibold">
           <span :class="isTodayDate(arg.date) ? 'text-blue-700' : 'text-slate-700'">{{ arg.text }}</span>
@@ -167,10 +327,30 @@ watch(
               color: arg.textColor,
             }"
           >
-            {{ PLAN_STATUS_LABELS[arg.event.extendedProps.plan.planStatus] ?? arg.event.extendedProps.plan.planStatus }}
+            {{ statusLabels[arg.event.extendedProps.plan.planStatus] ?? arg.event.extendedProps.plan.planStatus }}
           </span>
         </div>
       </template>
     </FullCalendar>
+
+    <div v-if="previewSegments.length > 0" class="pointer-events-none absolute inset-0 z-20">
+      <div
+        v-for="segment in previewSegments"
+        :key="segment.id"
+        class="absolute flex items-center justify-center overflow-hidden rounded-full border border-dashed px-3 text-center text-[12px] font-bold leading-none shadow-[0_4px_14px_rgba(15,23,42,0.16)]"
+        :style="{
+          left: `${segment.left}px`,
+          top: `${segment.top}px`,
+          width: `${segment.width}px`,
+          height: `${segment.height}px`,
+          backgroundColor: segment.backgroundColor,
+          borderColor: segment.borderColor,
+          color: segment.textColor,
+          opacity: 0.72,
+        }"
+      >
+        <span class="truncate">{{ segment.title }}</span>
+      </div>
+    </div>
   </div>
 </template>
