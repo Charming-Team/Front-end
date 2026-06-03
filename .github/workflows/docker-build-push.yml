@@ -20,7 +20,7 @@ permissions:
 
 env:
   IMAGE_NAME: front-end
-  APP_DIR: s_map
+  APP_DIR: .
 
 jobs:
   build-and-push:

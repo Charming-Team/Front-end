@@ -1,0 +1,12 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "http://skala3-team12-dev-alb-604801636.ap-northeast-2.elb.amazonaws.com/api/:path*"
+    },
+    {
+      "source": "/ai/:path*",
+      "destination": "http://skala3-team12-dev-alb-604801636.ap-northeast-2.elb.amazonaws.com/ai/:path*"
+    }
+  ]
+}
