@@ -13,19 +13,20 @@ export class ApiError extends Error {
 }
 
 export async function apiRequest(path, options = {}) {
+  const { skipAuth = false, ...fetchOptions } = options
   const token = getToken()
-  const headers = new Headers(options.headers || {})
+  const headers = new Headers(fetchOptions.headers || {})
 
-  if (!headers.has('Content-Type') && options.body) {
+  if (!headers.has('Content-Type') && fetchOptions.body) {
     headers.set('Content-Type', 'application/json')
   }
 
-  if (token && !headers.has('Authorization')) {
+  if (!skipAuth && token && !headers.has('Authorization')) {
     headers.set('Authorization', `Bearer ${token}`)
   }
 
   const response = await fetch(`${API_BASE_URL}${path}`, {
-    ...options,
+    ...fetchOptions,
     headers,
   })
 
