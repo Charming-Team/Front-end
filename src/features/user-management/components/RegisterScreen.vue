@@ -1,7 +1,7 @@
 <script setup>
 import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { registerUser } from '../api.js'
+import { createAdminUser, registerUser } from '../api.js'
 
 const props = defineProps({
   redirectPath: {
@@ -13,6 +13,10 @@ const props = defineProps({
     default: '/login',
   },
   elevated: {
+    type: Boolean,
+    default: false,
+  },
+  adminMode: {
     type: Boolean,
     default: false,
   },
@@ -35,6 +39,8 @@ const error = ref('')
 const success = ref(false)
 const loading = ref(false)
 const registeredUser = ref(null)
+const passwordPattern = /^(?=.*[A-Z])(?=.*[!@#$~])(?=(?:.*\d){2,}).{11,100}$/
+const phonePattern = /^010-\d{4}-\d{4}$/
 
 const roles = [
   { value: 'ADMIN', label: '서버 관리자' },
@@ -49,19 +55,35 @@ async function handleSubmit() {
     error.value = '비밀번호가 일치하지 않습니다.'
     return
   }
+  if (props.adminMode && !form.email.trim().toLowerCase().endsWith('@sk.com')) {
+    error.value = '이메일은 sk.com 도메인만 사용할 수 있습니다.'
+    return
+  }
+  if (props.adminMode && !passwordPattern.test(form.password)) {
+    error.value = '비밀번호는 대문자 1개, 특수기호(!,@,#,$,~) 1개, 숫자 2개를 포함하고 11자 이상이어야 합니다.'
+    return
+  }
+  if (props.adminMode && !phonePattern.test(form.phoneNumber.trim())) {
+    error.value = '연락처는 010-1234-5678 형식이어야 합니다.'
+    return
+  }
 
   loading.value = true
 
   try {
-    const response = await registerUser({
+    const payload = {
       name: form.name.trim(),
       email: form.email.trim(),
       password: form.password,
+      passwordConfirm: form.confirmPassword,
       role: form.role,
       department: form.department.trim(),
       companyName: form.companyName.trim(),
       phoneNumber: form.phoneNumber.trim(),
-    })
+    }
+    const response = props.adminMode
+      ? await createAdminUser(payload)
+      : await registerUser(payload)
 
     if (!response.success) {
       throw new Error(response.message || '사용자 등록에 실패했습니다.')

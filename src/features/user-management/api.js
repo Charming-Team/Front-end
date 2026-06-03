@@ -1,3 +1,5 @@
+import { apiRequest } from '../../utils/api.js'
+
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
 
 const MOCK_USERS = [
@@ -244,6 +246,20 @@ const MOCK_USERS = [
 ]
 
 let nextUserId = Math.max(...MOCK_USERS.map(user => user.id)) + 1
+
+export async function createAdminUser(payload) {
+  const data = await apiRequest('/api/admin/users', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+
+  return {
+    success: true,
+    code: 'COMMON200',
+    message: '사용자가 등록되었습니다.',
+    data,
+  }
+}
 
 export async function registerUser(payload) {
   await sleep(300)
