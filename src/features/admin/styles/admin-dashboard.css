@@ -25,9 +25,25 @@
   letter-spacing: -0.2px;
 }
 
+.admin-message {
+  margin: 0;
+  padding: 14px 26px 18px;
+  color: var(--color-text-sub);
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.admin-message--error {
+  color: var(--color-danger);
+}
+
 .role-list {
   display: grid;
   padding: 0 26px 18px;
+}
+
+.role-list .admin-message {
+  padding: 14px 0 0;
 }
 
 .role-row {

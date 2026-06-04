@@ -3,7 +3,6 @@ import { computed, onMounted, ref } from 'vue'
 import AppButton from '../../../components/common/AppButton.vue'
 import AppModal from '../../../components/common/AppModal.vue'
 import AppSearchField from '../../../components/common/AppSearchField.vue'
-import AppSelect from '../../../components/common/AppSelect.vue'
 import { deleteUser, fetchUsers } from '../api.js'
 
 const ROLE_LABELS = {
@@ -13,8 +12,14 @@ const ROLE_LABELS = {
   MANUFACTURING_MANAGER: '제조관리직',
 }
 
+const STATUS_LABELS = {
+  ACTIVE: '활성',
+  SUSPENDED: '정지',
+  BANNED: '차단',
+  WITHDRAWN: '탈퇴',
+}
+
 const search = ref('')
-const roleFilter = ref('')
 const page = ref(0)
 const pageSize = ref(10)
 const users = ref([])
@@ -32,14 +37,6 @@ const deleting = ref(false)
 const error = ref('')
 const deleteTarget = ref(null)
 
-const roleOptions = [
-  { value: '', label: '전체 권한' },
-  { value: 'ADMIN', label: '서버관리자' },
-  { value: 'OPERATOR', label: '작업자' },
-  { value: 'EXECUTIVE', label: '경영진' },
-  { value: 'MANUFACTURING_MANAGER', label: '제조관리직' },
-]
-
 const pageSummary = computed(() => {
   const currentPage = pageInfo.value.totalPages === 0 ? 0 : pageInfo.value.number + 1
   return `${currentPage} / ${pageInfo.value.totalPages}`
@@ -47,6 +44,10 @@ const pageSummary = computed(() => {
 
 function roleLabel(role) {
   return ROLE_LABELS[role] ?? role
+}
+
+function statusLabel(status) {
+  return STATUS_LABELS[status] ?? status
 }
 
 async function loadUsers(targetPage = page.value) {
@@ -58,7 +59,6 @@ async function loadUsers(targetPage = page.value) {
       page: targetPage,
       size: pageSize.value,
       search: search.value,
-      role: roleFilter.value,
     })
 
     if (!response.success) {
@@ -76,10 +76,6 @@ async function loadUsers(targetPage = page.value) {
 }
 
 function handleSearch() {
-  loadUsers(0)
-}
-
-function handleFilterChange() {
   loadUsers(0)
 }
 
@@ -134,7 +130,6 @@ onMounted(() => loadUsers())
         button-label="검색"
         @search="handleSearch"
       />
-      <AppSelect v-model="roleFilter" :options="roleOptions" @change="handleFilterChange" />
     </div>
 
     <article class="user-list-card">
@@ -154,6 +149,7 @@ onMounted(() => loadUsers())
               <th>이름</th>
               <th>이메일</th>
               <th>권한</th>
+              <th>상태</th>
               <th>부서</th>
               <th>회사명</th>
               <th>연락처</th>
@@ -162,10 +158,10 @@ onMounted(() => loadUsers())
           </thead>
           <tbody>
             <tr v-if="loading">
-              <td colspan="7" class="user-table__empty">사용자 목록을 불러오는 중입니다.</td>
+              <td colspan="8" class="user-table__empty">사용자 목록을 불러오는 중입니다.</td>
             </tr>
             <tr v-else-if="pageInfo.empty">
-              <td colspan="7" class="user-table__empty">조회된 사용자가 없습니다.</td>
+              <td colspan="8" class="user-table__empty">조회된 사용자가 없습니다.</td>
             </tr>
             <tr v-for="user in users" v-else :key="user.id">
               <td>
@@ -173,6 +169,11 @@ onMounted(() => loadUsers())
               </td>
               <td>{{ user.email }}</td>
               <td>{{ roleLabel(user.role) }}</td>
+              <td>
+                <span class="user-status" :class="`user-status--${String(user.status).toLowerCase()}`">
+                  {{ statusLabel(user.status) }}
+                </span>
+              </td>
               <td>{{ user.department }}</td>
               <td>{{ user.companyName }}</td>
               <td>{{ user.phoneNumber }}</td>

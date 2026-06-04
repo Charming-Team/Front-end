@@ -6,7 +6,7 @@
 
 .user-list-toolbar {
   display: grid;
-  grid-template-columns: minmax(280px, 1fr) 180px;
+  grid-template-columns: minmax(280px, 1fr);
   gap: 12px;
   align-items: center;
 }
@@ -62,7 +62,7 @@
 
 .user-table {
   width: 100%;
-  min-width: 900px;
+  min-width: 980px;
   border-collapse: collapse;
 }
 
@@ -94,6 +94,34 @@
 .user-table strong {
   color: var(--color-navy);
   font-weight: 800;
+}
+
+.user-status {
+  display: inline-flex;
+  align-items: center;
+  min-width: 44px;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 4px 8px;
+  background: var(--color-bg-soft);
+  color: var(--color-text-subtle);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.user-status--active {
+  background: #e8f7ec;
+  color: #1f7a3b;
+}
+
+.user-status--suspended {
+  background: #fff7e6;
+  color: #9a5b00;
+}
+
+.user-status--banned {
+  background: var(--color-danger-bg);
+  color: var(--color-danger-dark);
 }
 
 .user-table__actions {
