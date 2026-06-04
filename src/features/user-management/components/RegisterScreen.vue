@@ -39,6 +39,7 @@ const error = ref('')
 const success = ref(false)
 const loading = ref(false)
 const registeredUser = ref(null)
+const emailPattern = /^[a-z0-9._%+-]+@sk\.com$/i
 const passwordPattern = /^(?=.*[A-Z])(?=.*[!@#$~])(?=(?:.*\d){2,}).{11,100}$/
 const phonePattern = /^010-\d{4}-\d{4}$/
 
@@ -49,13 +50,27 @@ const roles = [
   { value: 'MANUFACTURING_MANAGER', label: '제조관리직' },
 ]
 
+function formatPhoneNumber(value) {
+  const digits = value.replace(/\D/g, '').slice(0, 11)
+
+  if (digits.length <= 3) return digits
+  if (digits.length <= 7) return `${digits.slice(0, 3)}-${digits.slice(3)}`
+  return `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7)}`
+}
+
+function handlePhoneInput(event) {
+  form.phoneNumber = formatPhoneNumber(event.target.value)
+}
+
 async function handleSubmit() {
   error.value = ''
+  form.phoneNumber = formatPhoneNumber(form.phoneNumber)
+
   if (form.password !== form.confirmPassword) {
     error.value = '비밀번호가 일치하지 않습니다.'
     return
   }
-  if (props.adminMode && !form.email.trim().toLowerCase().endsWith('@sk.com')) {
+  if (props.adminMode && !emailPattern.test(form.email.trim())) {
     error.value = '이메일은 sk.com 도메인만 사용할 수 있습니다.'
     return
   }
@@ -73,7 +88,7 @@ async function handleSubmit() {
   try {
     const payload = {
       name: form.name.trim(),
-      email: form.email.trim(),
+      email: form.email.trim().toLowerCase(),
       password: form.password,
       passwordConfirm: form.confirmPassword,
       role: form.role,
@@ -127,7 +142,18 @@ function handleCancel() {
 
             <div class="field-group">
               <label class="field-label" for="reg-email">이메일 <span class="req">*</span></label>
-              <input id="reg-email" v-model="form.email" type="email" class="field-input" placeholder="이메일을 입력하세요" required />
+              <input
+                id="reg-email"
+                v-model="form.email"
+                type="email"
+                class="field-input"
+                placeholder="user@sk.com"
+                inputmode="email"
+                autocomplete="email"
+                :pattern="adminMode ? '[a-zA-Z0-9._%+-]+@sk\\.com' : undefined"
+                title="이메일은 sk.com 도메인만 사용할 수 있습니다."
+                required
+              />
             </div>
 
             <div class="field-group">
@@ -160,7 +186,20 @@ function handleCancel() {
 
             <div class="field-group">
               <label class="field-label" for="reg-phone">연락처 <span class="req">*</span></label>
-              <input id="reg-phone" v-model="form.phoneNumber" type="tel" class="field-input" placeholder="연락처를 입력하세요" required />
+              <input
+                id="reg-phone"
+                :value="form.phoneNumber"
+                type="tel"
+                class="field-input"
+                placeholder="010-1234-5678"
+                inputmode="numeric"
+                autocomplete="tel"
+                maxlength="13"
+                pattern="010-[0-9]{4}-[0-9]{4}"
+                title="연락처는 010-1234-5678 형식이어야 합니다."
+                required
+                @input="handlePhoneInput"
+              />
             </div>
           </div>
 
