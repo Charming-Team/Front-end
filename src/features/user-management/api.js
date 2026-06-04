@@ -307,22 +307,14 @@ export async function fetchUsers({ page = 0, size = 10, search = '' } = {}) {
 }
 
 export async function deleteUser(userId) {
-  await sleep(220)
-
-  const targetIndex = MOCK_USERS.findIndex(user => user.id === userId)
-
-  if (targetIndex === -1) {
-    const error = new Error('삭제할 사용자를 찾을 수 없습니다.')
-    error.status = 404
-    throw error
-  }
-
-  const [deletedUser] = MOCK_USERS.splice(targetIndex, 1)
+  await apiRequest(`/api/admin/users/${encodeURIComponent(userId)}`, {
+    method: 'DELETE',
+  })
 
   return {
     success: true,
-    code: 'USER_DELETED',
-    message: '사용자가 삭제되었습니다.',
-    data: { ...deletedUser },
+    code: 'COMMON200',
+    message: '사용자가 탈퇴 처리되었습니다.',
+    data: null,
   }
 }

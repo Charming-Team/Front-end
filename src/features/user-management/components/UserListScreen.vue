@@ -106,13 +106,13 @@ async function handleDeleteUser() {
     const response = await deleteUser(deleteTarget.value.id)
 
     if (!response.success) {
-      throw new Error(response.message || '사용자 삭제에 실패했습니다.')
+      throw new Error(response.message || '사용자 탈퇴 처리에 실패했습니다.')
     }
 
     deleteTarget.value = null
     await loadUsers(page.value)
   } catch (err) {
-    error.value = err.message || '사용자 삭제에 실패했습니다.'
+    error.value = err.message || '사용자 탈퇴 처리에 실패했습니다.'
   } finally {
     deleting.value = false
   }
@@ -153,7 +153,7 @@ onMounted(() => loadUsers())
               <th>부서</th>
               <th>회사명</th>
               <th>연락처</th>
-              <th class="user-table__actions-heading" aria-label="삭제"></th>
+              <th class="user-table__actions-heading" aria-label="탈퇴"></th>
             </tr>
           </thead>
           <tbody>
@@ -178,7 +178,7 @@ onMounted(() => loadUsers())
               <td>{{ user.companyName }}</td>
               <td>{{ user.phoneNumber }}</td>
               <td class="user-table__actions">
-                <AppButton variant="danger-outline" size="sm" @click="openDeleteModal(user)">삭제</AppButton>
+                <AppButton variant="danger-outline" size="sm" @click="openDeleteModal(user)">탈퇴</AppButton>
               </td>
             </tr>
           </tbody>
@@ -196,12 +196,12 @@ onMounted(() => loadUsers())
 
     <AppModal
       v-if="deleteTarget"
-      title="사용자 삭제"
+      title="회원 탈퇴"
       @close="closeDeleteModal"
     >
       <div class="delete-modal-body">
         <p>
-          <strong>{{ deleteTarget.name }}</strong> 사용자를 삭제하시겠습니까?
+          <strong>{{ deleteTarget.name }}</strong> 사용자를 탈퇴 처리하시겠습니까?
         </p>
         <span>{{ deleteTarget.email }}</span>
       </div>
@@ -210,7 +210,7 @@ onMounted(() => loadUsers())
         <div class="delete-modal-actions">
           <AppButton variant="secondary" :disabled="deleting" @click="closeDeleteModal">취소</AppButton>
           <AppButton variant="danger-outline" :disabled="deleting" @click="handleDeleteUser">
-            {{ deleting ? '삭제 중...' : '삭제' }}
+            {{ deleting ? '처리 중...' : '탈퇴 처리' }}
           </AppButton>
         </div>
       </template>
