@@ -1,29 +1,23 @@
 <script setup>
-import { computed, ref, watch } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import MaterialInventoryOverview from "../../components/materials/MaterialInventoryOverview.vue";
 import MaterialSearchCard from "../../components/materials/MaterialSearchCard.vue";
 import MaterialTableSection from "../../components/materials/MaterialTableSection.vue";
-import MaterialAddModal from "./MaterialAddModal.vue";
 import {
-  initialMaterials,
-  materialCatalog,
-  mockServerMaterialDefaults,
   pageSizeOptions,
   statusMeta,
   statusOptions,
 } from "./mockData.js";
-import {
-  createDefaultForm,
-  parseNumber,
-} from "./utils.js";
+import { fetchMaterials } from "./api.js";
+import { formatMaterialType } from "./utils.js";
 
 const searchQuery = ref("");
 const selectedStatus = ref("all");
 const pageSize = ref("10");
 const currentPage = ref(1);
-const isRegisterModalOpen = ref(false);
-const registerForm = ref(createDefaultForm());
-const materials = ref([...initialMaterials]);
+const materials = ref([]);
+const loading = ref(false);
+const error = ref("");
 const inventoryStatusOrder = ["SHORTAGE", "LOW", "INBOUND_WAITING"];
 
 const inventoryCards = computed(() =>
@@ -40,10 +34,18 @@ const filteredMaterials = computed(() => {
   const keyword = searchQuery.value.trim().toLowerCase();
 
   return materials.value.filter((material) => {
+    const searchableValues = [
+      material.id,
+      material.materialId,
+      material.name,
+      material.type,
+      material.typeCode,
+      material.description,
+    ];
     const matchesKeyword =
       !keyword ||
-      [material.id, material.name, material.product].some((value) =>
-        String(value).toLowerCase().includes(keyword)
+      searchableValues.some((value) =>
+        String(value ?? "").toLowerCase().includes(keyword)
       );
 
     const matchesStatus =
@@ -57,55 +59,70 @@ const totalCount = computed(() => filteredMaterials.value.length);
 const pageCount = computed(() =>
   Math.max(1, Math.ceil(filteredMaterials.value.length / Number(pageSize.value)))
 );
-const visiblePages = computed(() =>
-  Array.from({ length: pageCount.value }, (_, index) => index + 1)
-);
+const visiblePages = computed(() => {
+  const total = pageCount.value;
+  const current = currentPage.value;
+  const start = Math.max(1, Math.min(current - 2, total - 4));
+  const end = Math.min(total, start + 4);
+
+  return Array.from({ length: end - start + 1 }, (_, index) => start + index);
+});
 const paginatedMaterials = computed(() => {
   const size = Number(pageSize.value);
   const start = (currentPage.value - 1) * size;
   return filteredMaterials.value.slice(start, start + size);
 });
 
-function openRegisterModal() {
-  registerForm.value = createDefaultForm();
-  isRegisterModalOpen.value = true;
+function toNumber(value) {
+  const number = Number(value);
+  return Number.isFinite(number) ? number : 0;
 }
 
-function closeRegisterModal() {
-  isRegisterModalOpen.value = false;
+function normalizeMaterialStatus(material) {
+  if (material.inventoryStatus) return material.inventoryStatus;
+  return material.inventoryRegistered ? "NORMAL" : "INBOUND_WAITING";
 }
 
-function saveMaterial(form) {
-  const nextId =
-    form.id.trim() || `New-${String(materials.value.length + 1).padStart(3, "0")}`;
-  const incomingStock = parseNumber(form.incomingStock);
-  const existingMaterial = materials.value.find((material) => material.id === nextId);
-  const currentStock = (existingMaterial?.currentStock ?? 0) + incomingStock;
+function normalizeLevelLabel(currentStock, safeStock) {
+  if (!safeStock) return "0%";
+  return `${Math.round((currentStock / safeStock) * 100)}%`;
+}
 
-  const nextMaterial = {
-    id: nextId,
-    name: form.name.trim() || "신규 자재",
-    product: form.product.trim() || "-",
+function normalizeMaterial(material) {
+  const currentStock = toNumber(material.currentQuantity);
+  const safeStock = toNumber(material.safetyStockQuantity);
+
+  return {
+    materialId: material.materialId,
+    id: material.materialCode || String(material.materialId),
+    name: material.materialName || "-",
+    type: formatMaterialType(material.materialType),
+    typeCode: material.materialType || "",
+    unit: material.unit || "",
+    description: material.description || "-",
     currentStock,
-    depletionDate: existingMaterial?.depletionDate ?? mockServerMaterialDefaults.depletionDate,
-    safeStock: existingMaterial?.safeStock ?? mockServerMaterialDefaults.safeStock,
-    levelLabel: existingMaterial?.levelLabel ?? mockServerMaterialDefaults.levelLabel,
-    status: existingMaterial?.status ?? mockServerMaterialDefaults.status,
-    orderCost: parseNumber(form.orderCost),
+    availableStock: toNumber(material.availableQuantity),
+    reservedStock: toNumber(material.reservedQuantity),
+    safeStock,
+    levelLabel: normalizeLevelLabel(currentStock, safeStock),
+    status: normalizeMaterialStatus(material),
   };
+}
 
-  const existingIndex = materials.value.findIndex((material) => material.id === nextMaterial.id);
+async function loadMaterials() {
+  loading.value = true;
+  error.value = "";
 
-  if (existingIndex >= 0) {
-    materials.value = materials.value.map((material, index) =>
-      index === existingIndex ? { ...material, ...nextMaterial } : material
-    );
-  } else {
-    materials.value = [nextMaterial, ...materials.value];
+  try {
+    const response = await fetchMaterials({ page: 0, size: 100 });
+    const content = Array.isArray(response?.content) ? response.content : [];
+    materials.value = content.map(normalizeMaterial);
+  } catch (err) {
+    materials.value = [];
+    error.value = err.message || "자재 목록을 불러오지 못했습니다.";
+  } finally {
+    loading.value = false;
   }
-
-  currentPage.value = 1;
-  closeRegisterModal();
 }
 
 function goToFirstPage() {
@@ -113,6 +130,7 @@ function goToFirstPage() {
 }
 
 function goToPage(page) {
+  if (page < 1 || page > pageCount.value || page === currentPage.value) return;
   currentPage.value = page;
 }
 
@@ -123,6 +141,8 @@ function goToPrevPage() {
 function goToNextPage() {
   currentPage.value = Math.min(pageCount.value, currentPage.value + 1);
 }
+
+onMounted(loadMaterials);
 
 watch([searchQuery, selectedStatus, pageSize], () => {
   currentPage.value = 1;
@@ -153,21 +173,15 @@ watch(pageCount, (nextPageCount) => {
       :selected-status="selectedStatus"
       :current-page="currentPage"
       :visible-pages="visiblePages"
-      @open-register="openRegisterModal"
+      :loading="loading"
+      :error="error"
+      @retry="loadMaterials"
       @update:selected-status="selectedStatus = $event"
       @update:page-size="pageSize = $event"
       @go-first-page="goToFirstPage"
       @go-prev-page="goToPrevPage"
       @go-page="goToPage"
       @go-next-page="goToNextPage"
-    />
-
-    <MaterialAddModal
-      v-if="isRegisterModalOpen"
-      :catalog="materialCatalog"
-      :initial-form="registerForm"
-      @close="closeRegisterModal"
-      @save="saveMaterial"
     />
   </div>
 </template>
