@@ -42,7 +42,7 @@ const router = createRouter({
     },
     {
       path: '/',
-      component: () => import('./pages/Dashboard.vue'),
+      component: () => import('./pages/dashboard/DashboardPage.vue'),
       meta: {
         requiresAuth: true,
         pageTitle: '대시보드',
