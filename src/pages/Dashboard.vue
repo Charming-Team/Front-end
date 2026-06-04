@@ -7,17 +7,27 @@
       :gantt-rows="ganttRows"
       :legend="legend"
     />
-    <OrderStatusPanel :orders="orders" :average-rate="58" />
+    <OrderStatusPanel
+      :orders="orders"
+      :average-rate="58"
+      @navigate="goToOrders"
+    />
   </section>
 
-  <UtilizationPanel :items="utilization" />
+  <UtilizationPanel :items="utilization" @navigate="goToLines" />
 </template>
 
 <script setup>
+import { useRouter } from "vue-router";
 import DashboardMetricGrid from "../components/dashboard/DashboardMetricGrid.vue";
 import OrderStatusPanel from "../components/dashboard/OrderStatusPanel.vue";
 import ProductionSchedulePanel from "../components/dashboard/ProductionSchedulePanel.vue";
 import UtilizationPanel from "../components/dashboard/UtilizationPanel.vue";
+
+const router = useRouter();
+
+const goToOrders = () => router.push("/orders");
+const goToLines = () => router.push("/lines");
 
 const metrics = [
   {

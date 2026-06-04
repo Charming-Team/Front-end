@@ -1,4 +1,6 @@
 <script setup>
+defineEmits(["click"]);
+
 defineProps({
   label: {
     type: String,
@@ -8,7 +10,7 @@ defineProps({
 </script>
 
 <template>
-  <button class="panel-more-button" type="button">
+  <button class="panel-more-button" type="button" @click="$emit('click', $event)">
     <span>{{ label }}</span>
     <span class="panel-more-button__arrow" aria-hidden="true"></span>
   </button>
