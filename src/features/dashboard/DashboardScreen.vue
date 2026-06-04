@@ -19,10 +19,10 @@
 
 <script setup>
 import { useRouter } from "vue-router";
-import DashboardMetricGrid from "../components/dashboard/DashboardMetricGrid.vue";
-import OrderStatusPanel from "../components/dashboard/OrderStatusPanel.vue";
-import ProductionSchedulePanel from "../components/dashboard/ProductionSchedulePanel.vue";
-import UtilizationPanel from "../components/dashboard/UtilizationPanel.vue";
+import DashboardMetricGrid from "../../components/dashboard/DashboardMetricGrid.vue";
+import OrderStatusPanel from "../../components/dashboard/OrderStatusPanel.vue";
+import ProductionSchedulePanel from "../../components/dashboard/ProductionSchedulePanel.vue";
+import UtilizationPanel from "../../components/dashboard/UtilizationPanel.vue";
 
 const router = useRouter();
 
