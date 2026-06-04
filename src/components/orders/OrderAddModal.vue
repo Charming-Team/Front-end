@@ -2,7 +2,6 @@
 import { reactive, watch } from "vue";
 import AppButton from "../common/AppButton.vue";
 import AppModal from "../common/AppModal.vue";
-import AppSelect from "../common/AppSelect.vue";
 import { createDefaultOrderForm } from "../../features/orders/utils.js";
 
 const props = defineProps({
@@ -10,11 +9,19 @@ const props = defineProps({
     type: Object,
     default: () => createDefaultOrderForm(),
   },
-  productOptions: {
-    type: Array,
-    default: () => [],
+  nextOrderNo: {
+    type: String,
+    default: "",
   },
   productionStartDateMin: {
+    type: String,
+    default: "",
+  },
+  saving: {
+    type: Boolean,
+    default: false,
+  },
+  error: {
     type: String,
     default: "",
   },
@@ -47,24 +54,23 @@ function onProductionStartDateInput(event) {
     <div class="modal-form">
       <label>
         <span>주문번호</span>
-        <input v-model="form.id" type="text" placeholder="ORD-198" />
+        <input
+          :value="nextOrderNo || form.orderNo || '저장 시 서버에서 발급됩니다'"
+          type="text"
+          readonly
+        />
       </label>
       <label>
         <span>고객사</span>
         <input v-model="form.customer" type="text" placeholder="A사" />
       </label>
       <label>
-        <span>제품</span>
-        <AppSelect
-          :model-value="form.product"
-          :options="productOptions"
-          class="modal-select"
-          @update:model-value="form.product = $event"
-        />
+        <span>제품 ID</span>
+        <input v-model="form.productId" type="number" min="1" placeholder="1" />
       </label>
       <label>
         <span>수량</span>
-        <input v-model="form.quantity" type="text" placeholder="1000" />
+        <input v-model="form.quantity" type="number" min="1" placeholder="1000" />
       </label>
       <label>
         <span>납기일</span>
@@ -87,11 +93,29 @@ function onProductionStartDateInput(event) {
         <span>고객사 담당자</span>
         <input v-model="form.customerManager" type="text" placeholder="배난수" />
       </label>
+      <label>
+        <span>계약 금액</span>
+        <input v-model="form.contractAmount" type="text" inputmode="numeric" placeholder="10000000" />
+      </label>
+      <label>
+        <span>지체상금</span>
+        <input v-model="form.latePenaltyAmount" type="text" inputmode="numeric" placeholder="500000" />
+      </label>
+
+      <p v-if="error" class="modal-error">{{ error }}</p>
     </div>
 
     <template #footer>
       <div class="modal-actions">
-        <AppButton variant="primary" size="sm" class="modal-save" @click="onSave">저장</AppButton>
+        <AppButton
+          variant="primary"
+          size="sm"
+          class="modal-save"
+          :disabled="saving"
+          @click="onSave"
+        >
+          {{ saving ? "저장 중" : "저장" }}
+        </AppButton>
       </div>
     </template>
   </AppModal>
@@ -128,22 +152,9 @@ function onProductionStartDateInput(event) {
   outline: none;
 }
 
-.modal-select:deep(.relative) {
-  min-width: 0;
-}
-
-.modal-select:deep(select) {
-  height: 36px;
-  min-height: 36px;
-  border-radius: 8px;
-  padding: 0 36px 0 12px;
-  font-size: 13px;
-  font-weight: 600;
-  box-shadow: none;
-}
-
-.modal-select:deep(span) {
-  right: 12px;
+.modal-form input[readonly] {
+  background: #f8fafc;
+  color: #667085;
 }
 
 .modal-actions {
@@ -151,10 +162,25 @@ function onProductionStartDateInput(event) {
   justify-content: center;
 }
 
+.modal-error {
+  margin: 2px 0 0;
+  border-radius: 8px;
+  background: #fef3f2;
+  padding: 10px 12px;
+  color: #d92d20;
+  font-size: 13px;
+  font-weight: 800;
+}
+
 .modal-save {
   min-width: 76px;
   min-height: 36px;
   border-radius: 8px;
+}
+
+.modal-save:disabled {
+  opacity: 0.6;
+  cursor: default;
 }
 
 @media (max-width: 560px) {

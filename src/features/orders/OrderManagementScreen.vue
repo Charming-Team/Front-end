@@ -1,27 +1,41 @@
 <script setup>
-import { computed, ref, watch } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
+import { useRoute } from "vue-router";
 import OrderAddModal from "../../components/orders/OrderAddModal.vue";
 import OrderDetailModal from "../../components/orders/OrderDetailModal.vue";
 import OrderSearchCard from "../../components/orders/OrderSearchCard.vue";
 import OrderTableSection from "../../components/orders/OrderTableSection.vue";
+import { getUserRole } from "../../utils/storage.js";
 import {
-  initialOrders,
+  createOrder,
+  fetchNextOrderNo,
+  fetchOrder,
+  fetchOrders,
+} from "./api.js";
+import {
   pageSizeOptions,
   statusMeta,
   statusOptions,
 } from "./mockData.js";
 import { getProductionStartDateMinDate } from "./productionAvailability.js";
 import {
+  buildOrderCreatePayload,
   buildSelectOptions,
   createDefaultOrderForm,
-  createOrderFromForm,
   getVisiblePages,
-  matchesDateRange,
+  normalizeOrderDetail,
+  normalizeOrderSummary,
+  validateOrderForm,
 } from "./utils.js";
 
-const orders = ref([...initialOrders]);
+const route = useRoute();
+const orders = ref([]);
 const pageSize = ref("10");
 const currentPage = ref(1);
+const pageCount = ref(1);
+const totalCount = ref(0);
+const loading = ref(false);
+const error = ref("");
 
 const draftKeyword = ref("");
 const draftStatus = ref("all");
@@ -39,62 +53,98 @@ const selectedEndDate = ref("");
 
 const isAddModalOpen = ref(false);
 const addForm = ref(createDefaultOrderForm());
+const nextOrderNo = ref("");
+const addLoading = ref(false);
+const addError = ref("");
 const selectedOrder = ref(null);
+const detailLoading = ref(false);
+const detailError = ref("");
 
-const customerOptions = computed(() => buildSelectOptions(orders.value, "customer", "고객사 전체"));
-const productOptions = computed(() => buildSelectOptions(orders.value, "product", "제품 전체"));
-const productFormOptions = computed(() =>
-  [...new Set(orders.value.map((order) => order.product).filter(Boolean))].map((product) => ({
-    value: product,
-    label: product,
-  }))
+function keepSelectedOption(options, value) {
+  if (!value || value === "all" || options.some((option) => option.value === value)) {
+    return options;
+  }
+
+  return [...options, { value, label: value }];
+}
+
+function isInvalidDateRange(startDate, endDate) {
+  return Boolean(startDate && endDate && startDate > endDate);
+}
+
+const customerOptions = computed(() =>
+  keepSelectedOption(buildSelectOptions(orders.value, "customer", "고객사 전체"), draftCustomer.value)
 );
-const productionStartDateMin = computed(() => getProductionStartDateMinDate());
+const productOptions = computed(() => {
+  const productMap = new Map();
 
-const filteredOrders = computed(() => {
-  const keyword = searchQuery.value.trim().toLowerCase();
-
-  return orders.value.filter((order) => {
-    const matchesKeyword =
-      !keyword ||
-      [order.id, order.customer, order.product].some((value) =>
-        String(value).toLowerCase().includes(keyword)
-      );
-
-    const matchesStatus =
-      selectedStatus.value === "all" || order.status === selectedStatus.value;
-    const matchesCustomer =
-      selectedCustomer.value === "all" || order.customer === selectedCustomer.value;
-    const matchesProduct =
-      selectedProduct.value === "all" || order.product === selectedProduct.value;
-    const matchesDueDate = matchesDateRange(
-      order.dueDate,
-      selectedStartDate.value,
-      selectedEndDate.value
-    );
-
-    return (
-      matchesKeyword &&
-      matchesStatus &&
-      matchesCustomer &&
-      matchesProduct &&
-      matchesDueDate
-    );
+  orders.value.forEach((order) => {
+    if (!order.productId) return;
+    const labelParts = [order.product, order.productCode].filter(Boolean);
+    productMap.set(String(order.productId), labelParts.length ? labelParts.join(" / ") : `제품 ${order.productId}`);
   });
-});
 
-const totalCount = computed(() => filteredOrders.value.length);
-const pageCount = computed(() =>
-  Math.max(1, Math.ceil(filteredOrders.value.length / Number(pageSize.value)))
-);
-const visiblePages = computed(() => getVisiblePages(currentPage.value, pageCount.value));
-const paginatedOrders = computed(() => {
-  const size = Number(pageSize.value);
-  const start = (currentPage.value - 1) * size;
-  return filteredOrders.value.slice(start, start + size);
+  return keepSelectedOption([
+    { value: "all", label: "제품 전체" },
+    ...Array.from(productMap.entries()).map(([value, label]) => ({ value, label })),
+  ], draftProduct.value);
 });
+const productionStartDateMin = computed(() => getProductionStartDateMinDate());
+const canCreateOrder = computed(() => getUserRole() === "MANUFACTURING_MANAGER");
+const visiblePages = computed(() => getVisiblePages(currentPage.value, pageCount.value));
+const paginatedOrders = computed(() => orders.value);
+
+async function loadOrders() {
+  if (isInvalidDateRange(selectedStartDate.value, selectedEndDate.value)) {
+    orders.value = [];
+    totalCount.value = 0;
+    pageCount.value = 1;
+    error.value = "납기일 시작일은 종료일보다 늦을 수 없습니다.";
+    return;
+  }
+
+  loading.value = true;
+  error.value = "";
+
+  try {
+    const response = await fetchOrders({
+      page: Math.max(0, currentPage.value - 1),
+      size: Number(pageSize.value),
+      keyword: searchQuery.value,
+      status: selectedStatus.value,
+      customerName: selectedCustomer.value,
+      productId: selectedProduct.value,
+      dueDateFrom: selectedStartDate.value,
+      dueDateTo: selectedEndDate.value,
+    });
+    const content = Array.isArray(response?.content) ? response.content : [];
+
+    orders.value = content.map(normalizeOrderSummary);
+    totalCount.value = Number(response?.totalElements ?? content.length);
+    pageCount.value = Math.max(
+      1,
+      Number(response?.totalPages ?? Math.ceil(totalCount.value / Number(pageSize.value)))
+    );
+  } catch (err) {
+    orders.value = [];
+    totalCount.value = 0;
+    pageCount.value = 1;
+    error.value = err.message || "주문 목록을 불러오지 못했습니다.";
+  } finally {
+    loading.value = false;
+  }
+}
 
 function applyFilters() {
+  if (isInvalidDateRange(draftStartDate.value, draftEndDate.value)) {
+    orders.value = [];
+    totalCount.value = 0;
+    pageCount.value = 1;
+    error.value = "납기일 시작일은 종료일보다 늦을 수 없습니다.";
+    currentPage.value = 1;
+    return;
+  }
+
   searchQuery.value = draftKeyword.value;
   selectedStatus.value = draftStatus.value;
   selectedCustomer.value = draftCustomer.value;
@@ -102,6 +152,7 @@ function applyFilters() {
   selectedStartDate.value = draftStartDate.value;
   selectedEndDate.value = draftEndDate.value;
   currentPage.value = 1;
+  loadOrders();
 }
 
 function resetFilters() {
@@ -114,24 +165,84 @@ function resetFilters() {
   applyFilters();
 }
 
-function openAddModal() {
+async function openAddModal() {
   addForm.value = createDefaultOrderForm();
+  nextOrderNo.value = "";
+  addError.value = "";
   isAddModalOpen.value = true;
+
+  try {
+    const response = await fetchNextOrderNo();
+    nextOrderNo.value = response?.orderNo || "";
+    addForm.value = {
+      ...addForm.value,
+      orderNo: nextOrderNo.value,
+    };
+  } catch (err) {
+    addError.value = err.message || "다음 주문번호를 불러오지 못했습니다.";
+  }
 }
 
 function closeAddModal() {
+  if (addLoading.value) return;
   isAddModalOpen.value = false;
 }
 
-function saveOrder(form) {
-  const newOrder = createOrderFromForm(form, orders.value.length);
-  orders.value = [newOrder, ...orders.value];
-  closeAddModal();
-  applyFilters();
+async function saveOrder(form) {
+  const validationMessage = validateOrderForm(form);
+  if (validationMessage) {
+    addError.value = validationMessage;
+    return;
+  }
+
+  addLoading.value = true;
+  addError.value = "";
+
+  try {
+    await createOrder(buildOrderCreatePayload(form));
+    isAddModalOpen.value = false;
+    currentPage.value = 1;
+    await loadOrders();
+  } catch (err) {
+    addError.value = err.message || "주문 등록에 실패했습니다.";
+  } finally {
+    addLoading.value = false;
+  }
 }
 
-function openDetailModal(order) {
+async function openDetailModal(order) {
   selectedOrder.value = order;
+  detailLoading.value = true;
+  detailError.value = "";
+
+  try {
+    const response = await fetchOrder(order.orderId);
+    selectedOrder.value = normalizeOrderDetail(response);
+  } catch (err) {
+    detailError.value = err.message || "주문 상세를 불러오지 못했습니다.";
+  } finally {
+    detailLoading.value = false;
+  }
+}
+
+async function openDetailById(orderId) {
+  const resolvedOrderId = Array.isArray(orderId) ? orderId[0] : orderId;
+  if (!resolvedOrderId) return;
+
+  await openDetailModal({
+    orderId: resolvedOrderId,
+    id: String(resolvedOrderId),
+    customer: "-",
+    product: "-",
+    quantity: 0,
+    dueDate: "",
+    status: "WAITING",
+  });
+}
+
+async function retryDetail() {
+  if (!selectedOrder.value) return;
+  await openDetailModal(selectedOrder.value);
 }
 
 function closeDetailModal() {
@@ -139,27 +250,51 @@ function closeDetailModal() {
 }
 
 function goToFirstPage() {
+  if (currentPage.value === 1) return;
   currentPage.value = 1;
+  loadOrders();
 }
 
 function goToPage(page) {
+  if (page < 1 || page > pageCount.value || page === currentPage.value) return;
   currentPage.value = page;
+  loadOrders();
 }
 
 function goToPrevPage() {
+  if (currentPage.value === 1) return;
   currentPage.value = Math.max(1, currentPage.value - 1);
+  loadOrders();
 }
 
 function goToNextPage() {
+  if (currentPage.value === pageCount.value) return;
   currentPage.value = Math.min(pageCount.value, currentPage.value + 1);
+  loadOrders();
 }
 
 watch(pageSize, () => {
   currentPage.value = 1;
+  loadOrders();
 });
 
 watch(pageCount, (nextPageCount) => {
-  if (currentPage.value > nextPageCount) currentPage.value = nextPageCount;
+  if (currentPage.value > nextPageCount) {
+    currentPage.value = nextPageCount;
+    loadOrders();
+  }
+});
+
+watch(
+  () => route.query.orderId,
+  (nextOrderId) => {
+    if (nextOrderId) openDetailById(nextOrderId);
+  }
+);
+
+onMounted(async () => {
+  await loadOrders();
+  if (route.query.orderId) await openDetailById(route.query.orderId);
 });
 </script>
 
@@ -186,7 +321,11 @@ watch(pageCount, (nextPageCount) => {
       :start-date="draftStartDate"
       :end-date="draftEndDate"
       :current-page="currentPage"
+      :page-count="pageCount"
       :visible-pages="visiblePages"
+      :show-add-button="canCreateOrder"
+      :loading="loading"
+      :error="error"
       @open-add="openAddModal"
       @open-detail="openDetailModal"
       @update:selected-status="draftStatus = $event"
@@ -197,6 +336,7 @@ watch(pageCount, (nextPageCount) => {
       @update:page-size="pageSize = $event"
       @search="applyFilters"
       @reset="resetFilters"
+      @retry="loadOrders"
       @go-first-page="goToFirstPage"
       @go-prev-page="goToPrevPage"
       @go-page="goToPage"
@@ -206,8 +346,10 @@ watch(pageCount, (nextPageCount) => {
     <OrderAddModal
       v-if="isAddModalOpen"
       :initial-form="addForm"
-      :product-options="productFormOptions"
+      :next-order-no="nextOrderNo"
       :production-start-date-min="productionStartDateMin"
+      :saving="addLoading"
+      :error="addError"
       @update:production-start-date="addForm.productionStartDate = $event"
       @close="closeAddModal"
       @save="saveOrder"
@@ -217,6 +359,9 @@ watch(pageCount, (nextPageCount) => {
       v-if="selectedOrder"
       :order="selectedOrder"
       :status-meta="statusMeta"
+      :loading="detailLoading"
+      :error="detailError"
+      @retry="retryDetail"
       @close="closeDetailModal"
     />
   </div>
