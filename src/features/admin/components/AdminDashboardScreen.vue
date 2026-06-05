@@ -1,25 +1,66 @@
 <script setup>
+import { computed, onMounted, ref } from 'vue'
 import DashboardMetricCard from '../../../components/dashboard/DashboardMetricCard.vue'
+import { fetchAdminDashboard } from '../api.js'
 
-const metrics = [
+const ROLE_TONES = {
+  ADMIN: 'red',
+  EXECUTIVE: 'orange',
+  MANUFACTURING_MANAGER: 'green',
+  OPERATOR: 'gray',
+}
+
+const dashboard = ref({
+  totalUsers: 0,
+  activeUsers: 0,
+  roleDistribution: [],
+})
+const loading = ref(false)
+const error = ref('')
+
+const metrics = computed(() => [
   {
     title: '전체 사용자',
-    value: '124',
+    value: loading.value ? '-' : String(dashboard.value.totalUsers),
     unit: '명',
   },
   {
     title: '활성 사용자',
-    value: '98',
+    value: loading.value ? '-' : String(dashboard.value.activeUsers),
     unit: '명',
   },
-]
+])
 
-const roleDistribution = [
-  { label: '서버관리자', count: 3, percent: 3, tone: 'red' },
-  { label: '경영진', count: 8, percent: 9, tone: 'orange' },
-  { label: '제조관리직', count: 24, percent: 27, tone: 'green' },
-  { label: '작업자', count: 89, percent: 100, tone: 'gray' },
-]
+const roleDistribution = computed(() => {
+  const roles = dashboard.value.roleDistribution ?? []
+  const maxCount = Math.max(...roles.map(role => role.count), 0)
+
+  return roles.map(role => ({
+    label: role.roleName || role.role,
+    count: role.count,
+    percent: maxCount > 0 ? Math.max((role.count / maxCount) * 100, 2) : 0,
+    tone: ROLE_TONES[role.role] ?? 'gray',
+  }))
+})
+
+async function loadDashboard() {
+  loading.value = true
+  error.value = ''
+
+  try {
+    dashboard.value = await fetchAdminDashboard() ?? {
+      totalUsers: 0,
+      activeUsers: 0,
+      roleDistribution: [],
+    }
+  } catch (err) {
+    error.value = err.message || '관리자 대시보드를 불러오지 못했습니다.'
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(() => loadDashboard())
 </script>
 
 <template>
@@ -38,6 +79,8 @@ const roleDistribution = [
         <h2 class="panel-title mb-0">권한별 사용자 분포</h2>
       </div>
 
+      <p v-if="error" class="admin-message admin-message--error">{{ error }}</p>
+      <p v-else-if="loading" class="admin-message">사용자 현황을 불러오는 중입니다.</p>
       <div class="role-list">
         <div v-for="role in roleDistribution" :key="role.label" class="role-row">
           <div class="role-row__meta">
@@ -48,6 +91,9 @@ const roleDistribution = [
             <i :class="role.tone" :style="{ width: `${role.percent}%` }"></i>
           </div>
         </div>
+        <p v-if="!loading && !error && roleDistribution.length === 0" class="admin-message">
+          표시할 사용자 현황이 없습니다.
+        </p>
       </div>
     </article>
   </section>

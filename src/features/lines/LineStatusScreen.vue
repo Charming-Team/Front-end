@@ -1,23 +1,33 @@
 <script setup>
-import { computed, ref, watch } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import LineCompositionChart from "../../components/lines/LineCompositionChart.vue";
 import LineOperatingTable from "../../components/lines/LineOperatingTable.vue";
 import LineOrderDistributionSection from "../../components/lines/LineOrderDistributionSection.vue";
 import LineSearchBar from "../../components/lines/LineSearchBar.vue";
 import {
-  lineItems,
+  fetchLineMachineOperationStatuses,
+  fetchLineOperationStatuses,
+  fetchOrderDistribution,
+  searchLineOrders,
+} from "./api.js";
+import {
   lineStatusMeta,
   lineStatusOptions,
   pageSizeOptions,
-  productionOrders,
 } from "./mockData.js";
 import {
   buildLineOptions,
   getVisiblePages,
+  normalizeLineMachineStatus,
+  normalizeLineOperationStatus,
+  normalizeOrderDistribution,
+  normalizeOrderSearchResult,
 } from "./utils.js";
 
 const pageSize = ref("5");
 const currentPage = ref(1);
+const pageCount = ref(1);
+const totalCount = ref(0);
 
 const draftLine = ref("all");
 const draftStatus = ref("all");
@@ -28,80 +38,171 @@ const selectedStatus = ref("all");
 const draftOrderKeyword = ref("");
 const orderKeyword = ref("");
 
-const lineOptions = computed(() => buildLineOptions(lineItems));
+const lines = ref([]);
+const allLines = ref([]);
+const machineLines = ref([]);
+const orderDistributions = ref([]);
 
-const filteredLines = computed(() =>
-  lineItems.filter((item) => {
-    const matchesLine = selectedLine.value === "all" || item.id === selectedLine.value;
-    const matchesStatus =
-      selectedStatus.value === "all" || item.status === selectedStatus.value;
+const lineLoading = ref(false);
+const lineError = ref("");
+const machineLoading = ref(false);
+const machineError = ref("");
+const orderLoading = ref(false);
+const orderError = ref("");
 
-    return matchesLine && matchesStatus;
-  })
-);
-
-const totalCount = computed(() => filteredLines.value.length);
-const pageCount = computed(() =>
-  Math.max(1, Math.ceil(filteredLines.value.length / Number(pageSize.value)))
-);
+const lineOptions = computed(() => buildLineOptions(allLines.value.length ? allLines.value : lines.value));
 const visiblePages = computed(() =>
   getVisiblePages(currentPage.value, pageCount.value)
 );
-const paginatedLines = computed(() => {
-  const size = Number(pageSize.value);
-  const start = (currentPage.value - 1) * size;
-  return filteredLines.value.slice(start, start + size);
+
+const chartItems = computed(() => {
+  const visibleLineIds = new Set(
+    allLines.value
+      .filter((line) => {
+        const matchesLine = selectedLine.value === "all" || String(line.lineId) === selectedLine.value;
+        const matchesStatus = selectedStatus.value === "all" || line.status === selectedStatus.value;
+        return matchesLine && matchesStatus;
+      })
+      .map((line) => String(line.lineId))
+  );
+
+  return machineLines.value.filter((line) => visibleLineIds.has(String(line.lineId)));
 });
 
-const filteredOrders = computed(() => {
-  const keyword = orderKeyword.value.trim().toLowerCase();
+async function loadLineOptionsAndMachines() {
+  machineLoading.value = true;
+  machineError.value = "";
 
-  return productionOrders.filter((order) => {
-    const lineNames = order.lineDetails.map((item) => item.lineName);
-    const matchesKeyword =
-      !keyword ||
-      [order.id, order.product, ...lineNames].some((value) =>
-        String(value).toLowerCase().includes(keyword)
-      );
+  try {
+    const [lineResponse, machineResponse] = await Promise.all([
+      fetchLineOperationStatuses({ page: 0, size: 100 }),
+      fetchLineMachineOperationStatuses(),
+    ]);
+    const lineContent = Array.isArray(lineResponse?.content) ? lineResponse.content : [];
 
-    return matchesKeyword;
-  });
-});
+    allLines.value = lineContent.map(normalizeLineOperationStatus);
+    machineLines.value = Array.isArray(machineResponse)
+      ? machineResponse.map(normalizeLineMachineStatus)
+      : [];
+  } catch (err) {
+    allLines.value = [];
+    machineLines.value = [];
+    machineError.value = err.message || "라인별 설비 가동 현황을 불러오지 못했습니다.";
+  } finally {
+    machineLoading.value = false;
+  }
+}
+
+async function loadLines() {
+  lineLoading.value = true;
+  lineError.value = "";
+
+  try {
+    const response = await fetchLineOperationStatuses({
+      page: Math.max(0, currentPage.value - 1),
+      size: Number(pageSize.value),
+      lineId: selectedLine.value,
+      status: selectedStatus.value,
+    });
+    const content = Array.isArray(response?.content) ? response.content : [];
+
+    lines.value = content.map(normalizeLineOperationStatus);
+    totalCount.value = Number(response?.totalElements ?? content.length);
+    pageCount.value = Math.max(
+      1,
+      Number(response?.totalPages ?? Math.ceil(totalCount.value / Number(pageSize.value)))
+    );
+  } catch (err) {
+    lines.value = [];
+    totalCount.value = 0;
+    pageCount.value = 1;
+    lineError.value = err.message || "라인별 가동 현황을 불러오지 못했습니다.";
+  } finally {
+    lineLoading.value = false;
+  }
+}
+
+async function loadOrderDistributions() {
+  orderLoading.value = true;
+  orderError.value = "";
+
+  try {
+    const response = await searchLineOrders({
+      page: 0,
+      size: 5,
+      keyword: orderKeyword.value,
+    });
+    const content = Array.isArray(response?.content) ? response.content : [];
+
+    orderDistributions.value = await Promise.all(
+      content.map(async (order) => {
+        try {
+          return normalizeOrderDistribution(await fetchOrderDistribution(order.orderId));
+        } catch {
+          return normalizeOrderSearchResult(order);
+        }
+      })
+    );
+  } catch (err) {
+    orderDistributions.value = [];
+    orderError.value = err.message || "라인 현황 주문 검색 결과를 불러오지 못했습니다.";
+  } finally {
+    orderLoading.value = false;
+  }
+}
 
 function applyLineFilters() {
   selectedLine.value = draftLine.value;
   selectedStatus.value = draftStatus.value;
   currentPage.value = 1;
+  loadLines();
 }
 
 function applyOrderSearch() {
   orderKeyword.value = draftOrderKeyword.value;
+  loadOrderDistributions();
 }
 
 function goToFirstPage() {
+  if (currentPage.value === 1) return;
   currentPage.value = 1;
+  loadLines();
 }
 
 function goToPage(page) {
+  if (page < 1 || page > pageCount.value || page === currentPage.value) return;
   currentPage.value = page;
+  loadLines();
 }
 
 function goToPrevPage() {
+  if (currentPage.value === 1) return;
   currentPage.value = Math.max(1, currentPage.value - 1);
+  loadLines();
 }
 
 function goToNextPage() {
+  if (currentPage.value === pageCount.value) return;
   currentPage.value = Math.min(pageCount.value, currentPage.value + 1);
+  loadLines();
 }
 
 watch(pageSize, () => {
   currentPage.value = 1;
+  loadLines();
 });
 
 watch(pageCount, (nextPageCount) => {
   if (currentPage.value > nextPageCount) {
     currentPage.value = nextPageCount;
+    loadLines();
   }
+});
+
+onMounted(() => {
+  loadLineOptionsAndMachines();
+  loadLines();
+  loadOrderDistributions();
 });
 </script>
 
@@ -109,7 +210,7 @@ watch(pageCount, (nextPageCount) => {
   <div class="line-status-page">
     <div class="line-status-page__top">
       <LineOperatingTable
-        :lines="paginatedLines"
+        :lines="lines"
         :line-options="lineOptions"
         :status-options="lineStatusOptions"
         :status-meta="lineStatusMeta"
@@ -119,18 +220,26 @@ watch(pageCount, (nextPageCount) => {
         :page-size="pageSize"
         :page-size-options="pageSizeOptions"
         :current-page="currentPage"
+        :page-count="pageCount"
         :visible-pages="visiblePages"
+        :loading="lineLoading"
+        :error="lineError"
         @update:selected-line="draftLine = $event"
         @update:selected-status="draftStatus = $event"
         @update:page-size="pageSize = $event"
         @search="applyLineFilters"
+        @retry="loadLines"
         @go-first-page="goToFirstPage"
         @go-prev-page="goToPrevPage"
         @go-page="goToPage"
         @go-next-page="goToNextPage"
       />
 
-      <LineCompositionChart :items="filteredLines" />
+      <LineCompositionChart
+        :items="chartItems"
+        :loading="machineLoading"
+        :error="machineError"
+      />
     </div>
 
     <LineSearchBar
@@ -139,8 +248,16 @@ watch(pageCount, (nextPageCount) => {
       @search="applyOrderSearch"
     />
 
+    <div v-if="orderLoading" class="line-status-page__state">주문별 생산 라인 분배 현황을 불러오는 중입니다.</div>
+    <div v-else-if="orderError" class="line-status-page__state line-status-page__state--error">
+      {{ orderError }}
+    </div>
+    <div v-else-if="orderDistributions.length === 0" class="line-status-page__state">
+      조회된 주문별 생산 라인 분배 현황이 없습니다.
+    </div>
+
     <LineOrderDistributionSection
-      v-for="order in filteredOrders"
+      v-for="order in orderDistributions"
       :key="order.id"
       :order="order"
       :status-meta="lineStatusMeta"
@@ -158,6 +275,22 @@ watch(pageCount, (nextPageCount) => {
   display: grid;
   grid-template-columns: minmax(0, 1.35fr) minmax(360px, 1fr);
   gap: 12px;
+}
+
+.line-status-page__state {
+  display: grid;
+  min-height: 120px;
+  place-items: center;
+  border: 1px solid #e7edf5;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #667085;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.line-status-page__state--error {
+  color: #d92d20;
 }
 
 @media (max-width: 1180px) {

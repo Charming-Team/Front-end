@@ -285,83 +285,36 @@ export async function registerUser(payload) {
   }
 }
 
-export async function fetchUsers({ page = 0, size = 10, search = '', role = '', status = '' } = {}) {
-  await sleep(250)
-
-  const normalizedSearch = search.trim().toLowerCase()
-  const filteredUsers = MOCK_USERS.filter(user => {
-    const matchesSearch =
-      !normalizedSearch ||
-      user.name.toLowerCase().includes(normalizedSearch) ||
-      user.email.toLowerCase().includes(normalizedSearch) ||
-      user.department.toLowerCase().includes(normalizedSearch) ||
-      user.companyName.toLowerCase().includes(normalizedSearch)
-    const matchesRole = !role || user.role === role
-    const matchesStatus = !status || user.status === status
-
-    return matchesSearch && matchesRole && matchesStatus
+export async function fetchUsers({ page = 0, size = 10, search = '' } = {}) {
+  const params = new URLSearchParams({
+    page: String(page),
+    size: String(size),
   })
+  const keyword = search.trim()
 
-  const pageNumber = Math.max(Number(page), 0)
-  const pageSize = Math.max(Number(size), 1)
-  const totalElements = filteredUsers.length
-  const totalPages = Math.ceil(totalElements / pageSize)
-  const safePageNumber = totalPages === 0 ? 0 : Math.min(pageNumber, totalPages - 1)
-  const start = safePageNumber * pageSize
-  const content = filteredUsers.slice(start, start + pageSize).map(user => ({ ...user }))
+  if (keyword) {
+    params.set('keyword', keyword)
+  }
+
+  const data = await apiRequest(`/api/admin/users?${params.toString()}`)
 
   return {
     success: true,
-    code: 'USER_LIST_FETCHED',
+    code: 'COMMON200',
     message: '사용자 목록을 조회했습니다.',
-    data: {
-      totalElements,
-      totalPages,
-      pageable: {
-        unpaged: false,
-        pageNumber: safePageNumber,
-        paged: true,
-        pageSize,
-        offset: start,
-        sort: {
-          unsorted: true,
-          sorted: false,
-          empty: true,
-        },
-      },
-      numberOfElements: content.length,
-      first: safePageNumber === 0,
-      last: totalPages === 0 || safePageNumber >= totalPages - 1,
-      size: pageSize,
-      content,
-      number: safePageNumber,
-      sort: {
-        unsorted: true,
-        sorted: false,
-        empty: true,
-      },
-      empty: content.length === 0,
-    },
+    data,
   }
 }
 
 export async function deleteUser(userId) {
-  await sleep(220)
-
-  const targetIndex = MOCK_USERS.findIndex(user => user.id === userId)
-
-  if (targetIndex === -1) {
-    const error = new Error('삭제할 사용자를 찾을 수 없습니다.')
-    error.status = 404
-    throw error
-  }
-
-  const [deletedUser] = MOCK_USERS.splice(targetIndex, 1)
+  await apiRequest(`/api/admin/users/${encodeURIComponent(userId)}`, {
+    method: 'DELETE',
+  })
 
   return {
     success: true,
-    code: 'USER_DELETED',
-    message: '사용자가 삭제되었습니다.',
-    data: { ...deletedUser },
+    code: 'COMMON200',
+    message: '사용자가 탈퇴 처리되었습니다.',
+    data: null,
   }
 }

@@ -4,7 +4,10 @@ import AppButton from "../common/AppButton.vue";
 import AppModal from "../common/AppModal.vue";
 import AppStatusBadge from "../common/AppStatusBadge.vue";
 import {
+  formatCurrency,
   formatDateLabel,
+  formatDateTimeLabel,
+  formatDurationHours,
   formatNumber,
 } from "../../features/orders/utils.js";
 
@@ -17,32 +20,62 @@ const props = defineProps({
     type: Object,
     required: true,
   },
+  loading: {
+    type: Boolean,
+    default: false,
+  },
+  error: {
+    type: String,
+    default: "",
+  },
 });
 
-const emit = defineEmits(["close"]);
+const emit = defineEmits(["close", "retry"]);
+
+const status = computed(() => props.statusMeta[props.order.status] ?? {
+  label: props.order.statusLabel || props.order.status,
+  tone: "pending",
+});
 
 const summaryText = computed(() =>
-  props.order.priority <= 1 ? "우선 대응이 필요한 주문입니다." : "일정에 맞춰 관리 중인 주문입니다."
+  props.order.priorityMessage ||
+  (props.order.priority && props.order.priority <= 1
+    ? "우선 대응이 필요한 주문입니다."
+    : "일정에 맞춰 관리 중인 주문입니다.")
 );
 
 const primaryRows = computed(() => [
   { label: "주문번호", value: props.order.id },
   { label: "고객사", value: props.order.customer },
   { label: "제품", value: props.order.product },
+  { label: "제품 코드", value: props.order.productCode || "-" },
   { label: "수량", value: formatNumber(props.order.quantity) },
+  { label: "주문일", value: formatDateLabel(props.order.orderDate) },
   { label: "납기일", value: formatDateLabel(props.order.dueDate) },
 ]);
 
 const secondaryRows = computed(() => [
-  { label: "생산 시작일", value: formatDateLabel(props.order.productionStartDate) },
-  { label: "예상 소요시간", value: `${props.order.expectedLeadDays}일` },
+  { label: "계획 시작", value: formatDateTimeLabel(props.order.plannedStartAt) },
+  { label: "계획 종료", value: formatDateTimeLabel(props.order.plannedEndAt) },
+  { label: "예상 소요시간", value: formatDurationHours(props.order.estimatedDurationHr) },
+  { label: "생산 라인", value: props.order.lineNames || "-" },
   { label: "생산 담당자", value: props.order.productionManager },
   { label: "고객사 담당자", value: props.order.customerManager },
+  { label: "계약 금액", value: formatCurrency(props.order.contractAmount) },
+  { label: "지체상금", value: formatCurrency(props.order.latePenaltyAmount) },
 ]);
 </script>
 
 <template>
   <AppModal title="주문 상세" @close="emit('close')">
+    <div v-if="loading" class="modal-state">주문 상세를 불러오는 중입니다.</div>
+
+    <div v-else-if="error" class="modal-state modal-state--error">
+      <span>{{ error }}</span>
+      <button type="button" @click="emit('retry')">다시 시도</button>
+    </div>
+
+    <template v-else>
     <div class="summary-card">
       <div class="summary-top">
         <div class="summary-title-block">
@@ -51,13 +84,13 @@ const secondaryRows = computed(() => [
         </div>
 
         <AppStatusBadge
-          :label="statusMeta[order.status].label"
-          :tone="statusMeta[order.status].tone"
+          :label="status.label"
+          :tone="status.tone"
         />
       </div>
 
       <div class="summary-meta">
-        <div class="meta-chip">
+        <div v-if="order.priority" class="meta-chip">
           <span class="meta-chip__label">우선순위</span>
           <span class="priority-chip">{{ order.priority }}</span>
         </div>
@@ -86,6 +119,7 @@ const secondaryRows = computed(() => [
         </div>
       </section>
     </div>
+    </template>
 
     <template #footer>
       <div class="modal-actions">
@@ -101,6 +135,28 @@ const secondaryRows = computed(() => [
   border: 1px solid #e7edf5;
   border-radius: 14px;
   background: #ffffff;
+}
+
+.modal-state {
+  display: grid;
+  min-height: 180px;
+  place-items: center;
+  color: #667085;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.modal-state--error {
+  gap: 10px;
+  color: #d92d20;
+}
+
+.modal-state--error button {
+  border: 0;
+  background: transparent;
+  color: #185ec9;
+  font-weight: 800;
+  cursor: pointer;
 }
 
 .summary-top {

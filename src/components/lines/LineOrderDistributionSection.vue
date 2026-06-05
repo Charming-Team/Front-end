@@ -49,7 +49,7 @@ defineProps({
 
         <AppCard class="summary-card metric-card">
           <p class="metric-card__label">납기까지 남은 기간</p>
-          <strong class="metric-card__value">{{ order.daysUntilDeadline }} 일</strong>
+          <strong class="metric-card__value">{{ order.daysUntilDeadlineLabel }}</strong>
         </AppCard>
       </div>
 
@@ -71,6 +71,9 @@ defineProps({
                 </tr>
               </thead>
               <tbody>
+                <tr v-if="order.lineDetails.length === 0">
+                  <td colspan="7" class="table-state">조회된 라인 분배 현황이 없습니다.</td>
+                </tr>
                 <tr v-for="item in order.lineDetails" :key="`${item.lineName}-${item.productName}`">
                   <td>{{ item.lineName }}</td>
                   <td>{{ item.productName }}</td>
@@ -86,8 +89,8 @@ defineProps({
                   </td>
                   <td>
                     <AppStatusBadge
-                      :label="statusMeta[item.status].label"
-                      :tone="statusMeta[item.status].tone"
+                      :label="statusMeta[item.status]?.label ?? item.statusLabel ?? item.status"
+                      :tone="statusMeta[item.status]?.tone ?? 'pending'"
                     />
                   </td>
                   <td>{{ item.changeEta }}</td>
@@ -232,6 +235,12 @@ defineProps({
   font-size: 14px;
   font-weight: 600;
   white-space: nowrap;
+}
+
+.table-state {
+  height: 96px;
+  color: #667085 !important;
+  text-align: center;
 }
 
 .progress-cell {

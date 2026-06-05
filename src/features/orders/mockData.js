@@ -70,7 +70,7 @@ export const initialOrders = [
     product: "PE-Clear",
     quantity: 900,
     dueDate: "2026-07-30",
-    status: "PLANNED",
+    status: "WAITING",
     productionStartDate: "2026-07-10",
     productionManager: "이서준",
     customerManager: "장하나",
@@ -83,7 +83,7 @@ export const initialOrders = [
     product: "ABS-Black",
     quantity: 1200,
     dueDate: "2026-08-05",
-    status: "PLANNED",
+    status: "WAITING",
     productionStartDate: "2026-07-17",
     productionManager: "강도현",
     customerManager: "나유정",
@@ -96,7 +96,7 @@ export const initialOrders = [
     product: "PP-Heat",
     quantity: 1000,
     dueDate: "2026-08-12",
-    status: "PLANNED",
+    status: "WAITING",
     productionStartDate: "2026-07-22",
     productionManager: "유민석",
     customerManager: "오지수",
@@ -106,16 +106,21 @@ export const initialOrders = [
 ];
 
 export const statusMeta = {
+  WAITING: { label: "예정", tone: "pending" },
   IN_PROGRESS: { label: "진행 중", tone: "normal" },
+  COMPLETED: { label: "완료", tone: "normal" },
   DELAYED: { label: "지연", tone: "shortage" },
+  CANCELLED: { label: "취소", tone: "cancelled" },
   PLANNED: { label: "예정", tone: "pending" },
 };
 
 export const statusOptions = [
   { value: "all", label: "상태 전체" },
+  { value: "WAITING", label: "예정" },
   { value: "IN_PROGRESS", label: "진행 중" },
+  { value: "COMPLETED", label: "완료" },
   { value: "DELAYED", label: "지연" },
-  { value: "PLANNED", label: "예정" },
+  { value: "CANCELLED", label: "취소" },
 ];
 
 export const pageSizeOptions = [
