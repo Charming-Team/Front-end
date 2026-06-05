@@ -15,7 +15,10 @@ defineProps({
   pageSize: { type: String, required: true },
   pageSizeOptions: { type: Array, default: () => [] },
   currentPage: { type: Number, default: 1 },
+  pageCount: { type: Number, default: 1 },
   visiblePages: { type: Array, default: () => [] },
+  loading: { type: Boolean, default: false },
+  error: { type: String, default: "" },
 });
 
 const emit = defineEmits([
@@ -23,6 +26,7 @@ const emit = defineEmits([
   "update:selectedStatus",
   "update:pageSize",
   "search",
+  "retry",
   "go-first-page",
   "go-prev-page",
   "go-page",
@@ -67,19 +71,33 @@ const emit = defineEmits([
           </tr>
         </thead>
         <tbody>
-          <tr v-for="line in lines" :key="line.id">
-            <td>{{ line.name }}</td>
-            <td>{{ line.utilizationRate }}%</td>
-            <td>{{ line.currentProduct }}</td>
-            <td>{{ line.nextProduct }}</td>
-            <td>{{ line.nextChangeEta }}</td>
-            <td>
-              <AppStatusBadge
-                :label="statusMeta[line.status].label"
-                :tone="statusMeta[line.status].tone"
-              />
+          <tr v-if="loading">
+            <td colspan="6" class="table-state">라인 가동 현황을 불러오는 중입니다.</td>
+          </tr>
+          <tr v-else-if="error">
+            <td colspan="6" class="table-state table-state--error">
+              <span>{{ error }}</span>
+              <button type="button" @click="emit('retry')">다시 시도</button>
             </td>
           </tr>
+          <tr v-else-if="lines.length === 0">
+            <td colspan="6" class="table-state">조회된 라인이 없습니다.</td>
+          </tr>
+          <template v-else>
+            <tr v-for="line in lines" :key="line.id">
+              <td>{{ line.name }}</td>
+              <td>{{ line.utilizationRate }}%</td>
+              <td>{{ line.currentProduct }}</td>
+              <td>{{ line.nextProduct }}</td>
+              <td>{{ line.nextChangeEta }}</td>
+              <td>
+                <AppStatusBadge
+                  :label="statusMeta[line.status]?.label ?? line.statusLabel ?? line.status"
+                  :tone="statusMeta[line.status]?.tone ?? 'pending'"
+                />
+              </td>
+            </tr>
+          </template>
         </tbody>
       </table>
     </div>
@@ -96,12 +114,24 @@ const emit = defineEmits([
       </div>
 
       <div class="pagination">
-        <button class="page-nav" type="button" aria-label="첫 페이지" @click="emit('go-first-page')">
+        <button
+          class="page-nav"
+          type="button"
+          aria-label="첫 페이지"
+          :disabled="loading || currentPage === 1"
+          @click="emit('go-first-page')"
+        >
           <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
             <path d="M12.5 5 8 10l4.5 5M8 5 3.5 10 8 15" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
           </svg>
         </button>
-        <button class="page-nav" type="button" aria-label="이전 페이지" @click="emit('go-prev-page')">
+        <button
+          class="page-nav"
+          type="button"
+          aria-label="이전 페이지"
+          :disabled="loading || currentPage === 1"
+          @click="emit('go-prev-page')"
+        >
           <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
             <path d="M11.5 5 7 10l4.5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
           </svg>
@@ -113,12 +143,19 @@ const emit = defineEmits([
           class="page-number"
           :class="{ 'page-number--active': currentPage === page }"
           type="button"
+          :disabled="loading"
           @click="emit('go-page', page)"
         >
           {{ page }}
         </button>
 
-        <button class="page-nav" type="button" aria-label="다음 페이지" @click="emit('go-next-page')">
+        <button
+          class="page-nav"
+          type="button"
+          aria-label="다음 페이지"
+          :disabled="loading || currentPage >= pageCount"
+          @click="emit('go-next-page')"
+        >
           <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
             <path d="m8.5 5 4.5 5-4.5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
           </svg>
@@ -197,6 +234,25 @@ const emit = defineEmits([
   font-weight: 600;
   vertical-align: middle;
   word-break: keep-all;
+}
+
+.table-state {
+  height: 124px;
+  color: #667085 !important;
+  text-align: center;
+}
+
+.table-state--error {
+  color: #d92d20 !important;
+}
+
+.table-state--error button {
+  margin-left: 10px;
+  border: 0;
+  background: transparent;
+  color: #185ec9;
+  font-weight: 800;
+  cursor: pointer;
 }
 
 .line-table th:nth-child(1),
@@ -295,6 +351,12 @@ const emit = defineEmits([
   background: #185ec9;
   color: #ffffff;
   box-shadow: 0 6px 14px rgba(24, 94, 201, 0.18);
+}
+
+.page-nav:disabled,
+.page-number:disabled {
+  opacity: 0.45;
+  cursor: default;
 }
 
 @media (max-width: 900px) {
