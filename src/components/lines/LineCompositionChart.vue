@@ -4,14 +4,17 @@ import AppSectionHeader from "../common/AppSectionHeader.vue";
 
 defineProps({
   items: { type: Array, default: () => [] },
+  loading: { type: Boolean, default: false },
+  error: { type: String, default: "" },
 });
 
 const legendItems = [
-  { key: "running", label: "생산 중", color: "#17a34a" },
-  { key: "idle", label: "대기", color: "#2563eb" },
-  { key: "stopped", label: "셋업", color: "#94a3b8" },
-  { key: "error", label: "오류", color: "#ef4444" },
-  { key: "maintenance", label: "점검", color: "#f59e0b" },
+  { key: "RUNNING", label: "생산 중", color: "#17a34a" },
+  { key: "IDLE", label: "대기", color: "#2563eb" },
+  { key: "SETUP", label: "셋업", color: "#f59e0b" },
+  { key: "STOPPED", label: "정지", color: "#94a3b8" },
+  { key: "ERROR", label: "오류", color: "#ef4444" },
+  { key: "MAINTENANCE", label: "점검", color: "#a855f7" },
 ];
 
 const statusLabelMap = Object.fromEntries(
@@ -34,7 +37,13 @@ const statusColorMap = Object.fromEntries(
       </span>
     </div>
 
-    <div class="chart-list">
+    <div v-if="loading" class="chart-state">설비 가동 현황을 불러오는 중입니다.</div>
+
+    <div v-else-if="error" class="chart-state chart-state--error">{{ error }}</div>
+
+    <div v-else-if="items.length === 0" class="chart-state">조회된 설비 가동 현황이 없습니다.</div>
+
+    <div v-else class="chart-list">
       <div v-for="line in items" :key="line.id" class="chart-row">
         <div class="chart-row__meta">
           <span class="chart-row__label">{{ line.name }}</span>
@@ -45,9 +54,9 @@ const statusColorMap = Object.fromEntries(
             v-for="equipment in line.equipments"
             :key="`${line.id}-${equipment.name}`"
             class="chart-row__segment"
-            :title="`${equipment.name} · ${statusLabelMap[equipment.status]}`"
+            :title="`${equipment.name} · ${equipment.statusLabel || statusLabelMap[equipment.status] || equipment.status}`"
             :style="{
-              backgroundColor: statusColorMap[equipment.status],
+              backgroundColor: statusColorMap[equipment.status] ?? '#94a3b8',
             }"
           >
             <span class="chart-row__segment-label">{{ equipment.label }}</span>
@@ -109,6 +118,19 @@ const statusColorMap = Object.fromEntries(
   display: grid;
   gap: 16px;
   padding: 2px 6px 0;
+}
+
+.chart-state {
+  display: grid;
+  min-height: 160px;
+  place-items: center;
+  color: #667085;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.chart-state--error {
+  color: #d92d20;
 }
 
 .chart-row {

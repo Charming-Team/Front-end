@@ -4,7 +4,7 @@ import AppCard from "../common/AppCard.vue";
 import AppSectionHeader from "../common/AppSectionHeader.vue";
 import AppSelect from "../common/AppSelect.vue";
 import AppStatusBadge from "../common/AppStatusBadge.vue";
-import { formatKg } from "../../features/materials/utils.js";
+import { formatMaterialQuantity } from "../../features/materials/utils.js";
 
 defineProps({
   materials: { type: Array, default: () => [] },
@@ -17,12 +17,15 @@ defineProps({
   selectedStatus: { type: String, required: true },
   currentPage: { type: Number, default: 1 },
   visiblePages: { type: Array, default: () => [] },
+  loading: { type: Boolean, default: false },
+  error: { type: String, default: "" },
 });
 
 const emit = defineEmits([
   "open-register",
   "update:selectedStatus",
   "update:pageSize",
+  "retry",
   "go-first-page",
   "go-prev-page",
   "go-page",
@@ -64,28 +67,44 @@ const emit = defineEmits([
           <tr>
             <th>자재 ID</th>
             <th>자재명</th>
-            <th>관련 제품명</th>
-            <th>예상 소진 시점</th>
+            <th>자재 유형</th>
+            <th>가용 재고</th>
+            <th>예약 재고</th>
             <th>현재 재고</th>
             <th>안전 재고</th>
             <th>상태</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="material in materials" :key="material.id">
-            <td>{{ material.id }}</td>
-            <td>{{ material.name }}</td>
-            <td>{{ material.product }}</td>
-            <td>{{ material.depletionDate }}</td>
-            <td>{{ formatKg(material.currentStock) }}</td>
-            <td>{{ formatKg(material.safeStock) }}</td>
-            <td>
-              <AppStatusBadge
-                :label="statusMeta[material.status].label"
-                :tone="statusMeta[material.status].tone"
-              />
+          <tr v-if="loading">
+            <td colspan="8" class="table-state">자재 목록을 불러오는 중입니다.</td>
+          </tr>
+          <tr v-else-if="error">
+            <td colspan="8" class="table-state table-state--error">
+              <span>{{ error }}</span>
+              <button type="button" @click="emit('retry')">다시 시도</button>
             </td>
           </tr>
+          <tr v-else-if="materials.length === 0">
+            <td colspan="8" class="table-state">조회된 자재가 없습니다.</td>
+          </tr>
+          <template v-else>
+            <tr v-for="material in materials" :key="material.materialId">
+              <td>{{ material.id }}</td>
+              <td>{{ material.name }}</td>
+              <td>{{ material.type }}</td>
+              <td>{{ formatMaterialQuantity(material.availableStock, material.unit) }}</td>
+              <td>{{ formatMaterialQuantity(material.reservedStock, material.unit) }}</td>
+              <td>{{ formatMaterialQuantity(material.currentStock, material.unit) }}</td>
+              <td>{{ formatMaterialQuantity(material.safeStock, material.unit) }}</td>
+              <td>
+                <AppStatusBadge
+                  :label="statusMeta[material.status]?.label ?? material.status"
+                  :tone="statusMeta[material.status]?.tone ?? 'pending'"
+                />
+              </td>
+            </tr>
+          </template>
         </tbody>
       </table>
     </div>
@@ -102,12 +121,24 @@ const emit = defineEmits([
       </div>
 
       <div class="pagination">
-        <button class="page-nav" type="button" aria-label="첫 페이지" @click="emit('go-first-page')">
+        <button
+          class="page-nav"
+          type="button"
+          aria-label="첫 페이지"
+          :disabled="loading || currentPage === 1"
+          @click="emit('go-first-page')"
+        >
           <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
             <path d="M12.5 5 8 10l4.5 5M8 5 3.5 10 8 15" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
           </svg>
         </button>
-        <button class="page-nav" type="button" aria-label="이전 페이지" @click="emit('go-prev-page')">
+        <button
+          class="page-nav"
+          type="button"
+          aria-label="이전 페이지"
+          :disabled="loading || currentPage === 1"
+          @click="emit('go-prev-page')"
+        >
           <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
             <path d="M11.5 5 7 10l4.5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
           </svg>
@@ -119,12 +150,19 @@ const emit = defineEmits([
           class="page-number"
           :class="{ 'page-number--active': currentPage === page }"
           type="button"
+          :disabled="loading"
           @click="emit('go-page', page)"
         >
           {{ page }}
         </button>
 
-        <button class="page-nav" type="button" aria-label="다음 페이지" @click="emit('go-next-page')">
+        <button
+          class="page-nav"
+          type="button"
+          aria-label="다음 페이지"
+          :disabled="loading || currentPage === visiblePages.at(-1)"
+          @click="emit('go-next-page')"
+        >
           <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
             <path d="m8.5 5 4.5 5-4.5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
           </svg>
@@ -145,9 +183,12 @@ const emit = defineEmits([
 .toolbar-select:deep(span) { right: 12px; }
 .toolbar-select:deep(svg) { width: 14px; height: 14px; }
 .table-wrap { overflow-x: auto; border: 1px solid #e7edf5; border-radius: 8px; margin: 0 6px; }
-.material-table { width: 100%; min-width: 860px; border-collapse: collapse; background: #ffffff; }
+.material-table { width: 100%; min-width: 960px; border-collapse: collapse; background: #ffffff; }
 .material-table thead th { padding: 12px 16px; background: #f8fafc; color: #475467; font-size: 13px; font-weight: 800; text-align: left; white-space: nowrap; }
 .material-table tbody td { padding: 12px 16px; border-top: 1px solid #eef2f7; color: #344054; font-size: 14px; font-weight: 600; white-space: nowrap; }
+.table-state { height: 124px; color: #667085; text-align: center; }
+.table-state--error { color: #d92d20; }
+.table-state--error button { margin-left: 10px; border: 0; background: transparent; color: #185ec9; font-weight: 800; cursor: pointer; }
 .table-footer { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 12px; margin-top: 12px; padding: 0 6px; }
 .table-footer-left { display: flex; align-items: center; gap: 10px; justify-self: start; }
 .table-count { color: #667085; font-size: 14px; font-weight: 700; }
@@ -158,6 +199,7 @@ const emit = defineEmits([
 .page-nav svg { width: 13px; height: 13px; }
 .page-number { border-color: transparent; }
 .page-number--active { background: #185ec9; color: #ffffff; box-shadow: 0 6px 14px rgba(24, 94, 201, 0.18); }
+.page-nav:disabled, .page-number:disabled { opacity: 0.45; cursor: default; }
 @media (max-width: 900px) { .table-footer { grid-template-columns: 1fr; justify-items: start; } .pagination { justify-self: start; } }
 @media (max-width: 760px) { .table-section-header { flex-direction: column; align-items: stretch; } .toolbar { flex-wrap: wrap; } }
 @media (max-width: 560px) { .section-card { padding: 12px 16px; } .section-header-shell { margin: 0 -16px 12px; padding: 0 16px 8px; } .table-wrap, .table-footer { margin: 0; padding: 0; } }

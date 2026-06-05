@@ -49,4 +49,9 @@ defineProps({
   background: #eaf1ff;
   color: #2f62c9;
 }
+
+.app-status-badge--cancelled {
+  background: #eef0f3;
+  color: #5f6673;
+}
 </style>

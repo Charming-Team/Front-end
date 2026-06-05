@@ -42,7 +42,7 @@ const router = createRouter({
     },
     {
       path: '/',
-      component: () => import('./pages/Dashboard.vue'),
+      component: () => import('./pages/dashboard/DashboardPage.vue'),
       meta: {
         requiresAuth: true,
         pageTitle: '대시보드',
@@ -61,6 +61,10 @@ const router = createRouter({
       },
     },
     {
+      path: '/orders/:id',
+      redirect: to => ({ path: '/orders', query: { ...to.query, orderId: to.params.id } }),
+    },
+    {
       path: '/plan',
       component: () => import('./pages/plan/PlanPage.vue'),
       meta: {
@@ -69,6 +73,14 @@ const router = createRouter({
         pageDescription: '적용된 생산계획 목록과 상세 정보를 확인합니다.',
         activeMenu: 'production',
       },
+    },
+    {
+      path: '/production-plans',
+      redirect: to => ({ path: '/plan', query: to.query }),
+    },
+    {
+      path: '/production-plans/:id',
+      redirect: to => ({ path: '/plan', query: { ...to.query, planId: to.params.id } }),
     },
     {
       path: '/materials',
@@ -81,6 +93,10 @@ const router = createRouter({
       },
     },
     {
+      path: '/materials/:id',
+      redirect: to => ({ path: '/materials', query: { ...to.query, materialId: to.params.id } }),
+    },
+    {
       path: '/lines',
       component: () => import('./pages/lines/LineStatusPage.vue'),
       meta: {
@@ -89,6 +105,10 @@ const router = createRouter({
         pageDescription: '라인별 가동 현황과 주문별 생산 라인 분배 현황을 확인하세요.',
         activeMenu: 'lines',
       },
+    },
+    {
+      path: '/lines/:id',
+      redirect: to => ({ path: '/lines', query: { ...to.query, lineId: to.params.id } }),
     },
     {
       path: '/risk',

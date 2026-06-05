@@ -1,16 +1,26 @@
 export const lineStatusMeta = {
   RUNNING: { label: "가동 중", tone: "normal" },
+  IDLE: { label: "대기", tone: "pending" },
+  SETUP: { label: "전환/준비 중", tone: "risk" },
+  STOPPED: { label: "정지", tone: "cancelled" },
+  ERROR: { label: "오류", tone: "shortage" },
+  MAINTENANCE: { label: "점검", tone: "risk" },
   WAITING: { label: "대기", tone: "pending" },
-  MAINTENANCE: { label: "유지보수", tone: "risk" },
-  STOPPED: { label: "지연", tone: "shortage" },
+  SCHEDULED: { label: "예정", tone: "pending" },
+  IN_PROGRESS: { label: "진행 중", tone: "normal" },
+  COMPLETED: { label: "완료", tone: "normal" },
+  DELAYED: { label: "지연", tone: "shortage" },
+  CANCELLED: { label: "취소", tone: "cancelled" },
 };
 
 export const lineStatusOptions = [
   { value: "all", label: "전체 상태" },
   { value: "RUNNING", label: "가동 중" },
-  { value: "WAITING", label: "대기" },
-  { value: "MAINTENANCE", label: "유지보수" },
-  { value: "STOPPED", label: "지연" },
+  { value: "IDLE", label: "대기" },
+  { value: "SETUP", label: "전환/준비 중" },
+  { value: "STOPPED", label: "정지" },
+  { value: "ERROR", label: "오류" },
+  { value: "MAINTENANCE", label: "점검" },
 ];
 
 export const pageSizeOptions = [

@@ -3,8 +3,10 @@
     <div
       class="panel-header d-flex justify-content-between align-items-center gap-3"
     >
-      <h2 class="panel-title mb-0">{{ title }}</h2>
-      <PanelMoreButton />
+      <button class="panel-title-button" type="button" @click="emit('navigate')">
+        <h2 class="panel-title mb-0">{{ title }}</h2>
+      </button>
+      <PanelMoreButton @click="emit('navigate')" />
     </div>
 
     <div class="gauge-grid">
@@ -20,6 +22,8 @@
 <script setup>
 import UtilizationGaugeCard from "./UtilizationGaugeCard.vue";
 import PanelMoreButton from "../common/PanelMoreButton.vue";
+
+const emit = defineEmits(["navigate"]);
 
 defineProps({
   title: {
@@ -55,6 +59,17 @@ defineProps({
   font-size: 16px;
   font-weight: 700;
   letter-spacing: -0.2px;
+}
+
+.panel-title-button {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
+}
+
+.panel-title-button:not(:disabled) {
+  cursor: pointer;
 }
 
 .gauge-grid {

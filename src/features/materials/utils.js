@@ -12,6 +12,29 @@ export function formatKg(value) {
   return `${new Intl.NumberFormat("ko-KR").format(value)} kg`;
 }
 
+export function formatMaterialQuantity(value, unit) {
+  const number = Number(value);
+  const formatted = Number.isFinite(number)
+    ? new Intl.NumberFormat("ko-KR", {
+        maximumFractionDigits: 4,
+      }).format(number)
+    : "-";
+
+  return unit ? `${formatted} ${unit}` : formatted;
+}
+
+const materialTypeLabels = {
+  ADDITIVE: "첨가제",
+  BASE_RESIN: "기본 수지",
+  COLORANT: "착색제",
+  PACKAGING: "포장재",
+  PROCESS_AID: "공정 보조제",
+};
+
+export function formatMaterialType(value) {
+  return materialTypeLabels[value] ?? value ?? "-";
+}
+
 export function getPercentage(material) {
   return (
     Number.parseInt(

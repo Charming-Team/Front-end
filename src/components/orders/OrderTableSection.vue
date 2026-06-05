@@ -18,13 +18,17 @@ defineProps({
   customerOptions: { type: Array, default: () => [] },
   productOptions: { type: Array, default: () => [] },
   statusMeta: { type: Object, required: true },
+  showAddButton: { type: Boolean, default: true },
   selectedStatus: { type: String, required: true },
   selectedCustomer: { type: String, required: true },
   selectedProduct: { type: String, required: true },
   startDate: { type: String, default: "" },
   endDate: { type: String, default: "" },
   currentPage: { type: Number, default: 1 },
+  pageCount: { type: Number, default: 1 },
   visiblePages: { type: Array, default: () => [] },
+  loading: { type: Boolean, default: false },
+  error: { type: String, default: "" },
 });
 
 const emit = defineEmits([
@@ -38,6 +42,7 @@ const emit = defineEmits([
   "update:pageSize",
   "search",
   "reset",
+  "retry",
   "go-first-page",
   "go-prev-page",
   "go-page",
@@ -50,6 +55,7 @@ const emit = defineEmits([
     <AppSectionHeader class="section-header-shell table-section-header" title="전체 주문 목록">
       <template #actions>
         <AppButton
+          v-if="showAddButton"
           variant="primary"
           size="sm"
           class="add-button"
@@ -122,26 +128,37 @@ const emit = defineEmits([
           </tr>
         </thead>
         <tbody>
-          <tr v-for="order in orders" :key="order.id">
-            <td>
-              <button type="button" class="order-link" @click="emit('open-detail', order)">
-                {{ order.id }}
-              </button>
-            </td>
-            <td>{{ order.customer }}</td>
-            <td>{{ order.product }}</td>
-            <td>{{ formatNumber(order.quantity) }}</td>
-            <td>{{ formatDateLabel(order.dueDate) }}</td>
-            <td>
-              <AppStatusBadge
-                :label="statusMeta[order.status].label"
-                :tone="statusMeta[order.status].tone"
-              />
+          <tr v-if="loading">
+            <td colspan="6" class="table-state">주문 목록을 불러오는 중입니다.</td>
+          </tr>
+          <tr v-else-if="error">
+            <td colspan="6" class="table-state table-state--error">
+              <span>{{ error }}</span>
+              <button type="button" @click="emit('retry')">다시 시도</button>
             </td>
           </tr>
-          <tr v-if="orders.length === 0">
-            <td colspan="7" class="empty-row">조건에 맞는 주문이 없습니다.</td>
+          <tr v-else-if="orders.length === 0">
+            <td colspan="6" class="table-state">조회된 주문이 없습니다.</td>
           </tr>
+          <template v-else>
+            <tr v-for="order in orders" :key="order.orderId ?? order.id">
+              <td>
+                <button type="button" class="order-link" @click="emit('open-detail', order)">
+                  {{ order.id }}
+                </button>
+              </td>
+              <td>{{ order.customer }}</td>
+              <td>{{ order.product }}</td>
+              <td>{{ formatNumber(order.quantity) }}</td>
+              <td>{{ formatDateLabel(order.dueDate) }}</td>
+              <td>
+                <AppStatusBadge
+                  :label="statusMeta[order.status]?.label ?? order.statusLabel ?? order.status"
+                  :tone="statusMeta[order.status]?.tone ?? 'pending'"
+                />
+              </td>
+            </tr>
+          </template>
         </tbody>
       </table>
     </div>
@@ -159,10 +176,22 @@ const emit = defineEmits([
       </div>
 
       <div class="pagination">
-        <button class="page-nav" type="button" aria-label="첫 페이지" @click="emit('go-first-page')">
+        <button
+          class="page-nav"
+          type="button"
+          aria-label="첫 페이지"
+          :disabled="loading || currentPage === 1"
+          @click="emit('go-first-page')"
+        >
           «
         </button>
-        <button class="page-nav" type="button" aria-label="이전 페이지" @click="emit('go-prev-page')">
+        <button
+          class="page-nav"
+          type="button"
+          aria-label="이전 페이지"
+          :disabled="loading || currentPage === 1"
+          @click="emit('go-prev-page')"
+        >
           ‹
         </button>
 
@@ -172,12 +201,19 @@ const emit = defineEmits([
           class="page-number"
           :class="{ 'page-number--active': currentPage === page }"
           type="button"
+          :disabled="loading"
           @click="emit('go-page', page)"
         >
           {{ page }}
         </button>
 
-        <button class="page-nav" type="button" aria-label="다음 페이지" @click="emit('go-next-page')">
+        <button
+          class="page-nav"
+          type="button"
+          aria-label="다음 페이지"
+          :disabled="loading || currentPage >= pageCount"
+          @click="emit('go-next-page')"
+        >
           ›
         </button>
       </div>
@@ -330,10 +366,24 @@ const emit = defineEmits([
   font-weight: 800;
 }
 
-.empty-row {
+.table-state {
+  height: 124px;
   padding: 32px 16px !important;
   color: #98a2b3 !important;
   text-align: center;
+}
+
+.table-state--error {
+  color: #d92d20 !important;
+}
+
+.table-state--error button {
+  margin-left: 10px;
+  border: 0;
+  background: transparent;
+  color: #185ec9;
+  font-weight: 800;
+  cursor: pointer;
 }
 
 .table-footer {
@@ -386,6 +436,12 @@ const emit = defineEmits([
   background: #185ec9;
   color: #ffffff;
   box-shadow: 0 6px 14px rgba(24, 94, 201, 0.18);
+}
+
+.page-nav:disabled,
+.page-number:disabled {
+  opacity: 0.45;
+  cursor: default;
 }
 
 .footer-select:deep(.relative) {
