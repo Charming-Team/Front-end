@@ -27,7 +27,7 @@ const pageInfo = ref({
   totalElements: 0,
   totalPages: 0,
   numberOfElements: 0,
-  number: 0,
+  page: 0,
   first: true,
   last: true,
   empty: true,
@@ -37,8 +37,12 @@ const deleting = ref(false)
 const error = ref('')
 const deleteTarget = ref(null)
 
+function getPageNumber(info) {
+  return info.page ?? info.number ?? 0
+}
+
 const pageSummary = computed(() => {
-  const currentPage = pageInfo.value.totalPages === 0 ? 0 : pageInfo.value.number + 1
+  const currentPage = pageInfo.value.totalPages === 0 ? 0 : getPageNumber(pageInfo.value) + 1
   return `${currentPage} / ${pageInfo.value.totalPages}`
 })
 
@@ -67,7 +71,7 @@ async function loadUsers(targetPage = page.value) {
 
     users.value = response.data.content
     pageInfo.value = response.data
-    page.value = response.data.number
+    page.value = getPageNumber(response.data)
   } catch (err) {
     error.value = err.message || '사용자 목록을 불러오지 못했습니다.'
   } finally {
