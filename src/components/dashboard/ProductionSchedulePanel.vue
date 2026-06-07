@@ -52,7 +52,7 @@
 
       <div class="gantt">
         <div v-for="line in ganttRows" :key="line.name" class="gantt-row">
-          <strong>{{ line.name }}</strong>
+          <strong :title="line.name">{{ line.name }}</strong>
           <div class="bar-track">
             <span
               v-for="(segment, index) in line.segments"
@@ -82,7 +82,7 @@
 </template>
 
 <script setup>
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import AppButton from "../common/AppButton.vue";
 
 const props = defineProps({
@@ -104,6 +104,7 @@ const props = defineProps({
   },
 });
 
+const emit = defineEmits(["week-change"]);
 const weekOffset = ref(0);
 const dayLabels = ["일", "월", "화", "수", "목", "금", "토"];
 
@@ -128,6 +129,13 @@ const getMonday = (date) => {
   return monday;
 };
 
+const formatIsoDate = (date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
 const baseMonday = computed(() => getMonday(new Date(props.baseWeekStart)));
 
 const currentMonday = computed(() =>
@@ -149,17 +157,35 @@ const currentScheduleDate = computed(() => {
 
 const moveWeek = (amount) => {
   weekOffset.value += amount;
+  emit("week-change", {
+    startDate: formatIsoDate(currentMonday.value),
+    endDate: formatIsoDate(addDays(currentMonday.value, 6)),
+  });
 };
 
 const goToday = () => {
   const todayMonday = getMonday(new Date());
   const diffDays = Math.round((todayMonday - baseMonday.value) / 86400000);
   weekOffset.value = Math.round(diffDays / 7);
+  emit("week-change", {
+    startDate: formatIsoDate(currentMonday.value),
+    endDate: formatIsoDate(addDays(currentMonday.value, 6)),
+  });
 };
+
+watch(
+  () => props.baseWeekStart,
+  () => {
+    weekOffset.value = 0;
+  },
+);
 </script>
 
 <style scoped>
 .dashboard-panel {
+  --schedule-label-width: 112px;
+  --schedule-row-gap: 22px;
+  --schedule-chart-x: calc(var(--schedule-label-width) + var(--schedule-row-gap));
   border: 1px solid var(--color-border);
   border-radius: 8px;
   background: var(--color-panel);
@@ -216,8 +242,8 @@ const goToday = () => {
 .timeline-labels {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  margin-left: 112px;
-  padding-right: 26px;
+  margin: 0 26px 0;
+  padding-left: var(--schedule-chart-x);
   color: var(--color-text-subtle);
   font-size: 11px;
   font-weight: 650;
@@ -232,7 +258,7 @@ const goToday = () => {
 .gantt::before {
   content: "";
   position: absolute;
-  left: 112px;
+  left: var(--schedule-chart-x);
   right: 0;
   top: 0;
   bottom: 0;
@@ -249,14 +275,18 @@ const goToday = () => {
 .gantt-row {
   position: relative;
   display: grid;
-  grid-template-columns: 90px minmax(0, 1fr);
+  grid-template-columns: var(--schedule-label-width) minmax(0, 1fr);
   align-items: center;
-  gap: 22px;
+  gap: var(--schedule-row-gap);
   min-height: 32px;
   border-bottom: 1px solid var(--color-border);
 }
 
 .gantt-row strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-size: 12px;
   font-weight: 700;
 }
@@ -270,6 +300,7 @@ const goToday = () => {
   position: absolute;
   top: 0;
   bottom: 0;
+  box-sizing: border-box;
 }
 
 .planned {
@@ -288,14 +319,23 @@ const goToday = () => {
   background: #e53935;
 }
 
-.empty {
+.completed {
+  background: #4f7dd7;
+}
+
+.inactive {
   background: repeating-linear-gradient(
     -45deg,
-    #b8c0cc 0,
-    #b8c0cc 3px,
-    #eef2f6 3px,
-    #eef2f6 8px
+    #98a2b3 0,
+    #98a2b3 3px,
+    #e4e7ec 3px,
+    #e4e7ec 8px
   );
+}
+
+.no-plan {
+  border: 1px solid #e7edf5;
+  background: #f7f9fc;
 }
 
 .legend {
@@ -322,6 +362,20 @@ const goToday = () => {
 
 .legend i.planned {
   background: #a9cdee;
+}
+
+.legend i.completed {
+  background: #4f7dd7;
+}
+
+.legend i.inactive {
+  background: repeating-linear-gradient(
+    -45deg,
+    #98a2b3 0,
+    #98a2b3 3px,
+    #e4e7ec 3px,
+    #e4e7ec 8px
+  );
 }
 
 @media (max-width: 900px) {

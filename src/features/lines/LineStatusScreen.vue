@@ -1,5 +1,6 @@
 <script setup>
 import { computed, onMounted, ref, watch } from "vue";
+import { useRoute } from "vue-router";
 import LineCompositionChart from "../../components/lines/LineCompositionChart.vue";
 import LineOperatingTable from "../../components/lines/LineOperatingTable.vue";
 import LineOrderDistributionSection from "../../components/lines/LineOrderDistributionSection.vue";
@@ -25,6 +26,7 @@ import {
 } from "./utils.js";
 
 const pageSize = ref("5");
+const route = useRoute();
 const currentPage = ref(1);
 const pageCount = ref(1);
 const totalCount = ref(0);
@@ -54,6 +56,15 @@ const lineOptions = computed(() => buildLineOptions(allLines.value.length ? allL
 const visiblePages = computed(() =>
   getVisiblePages(currentPage.value, pageCount.value)
 );
+
+function syncRouteLineFilter() {
+  const routeLineId = route.query.lineId;
+  const nextLineId = Array.isArray(routeLineId) ? routeLineId[0] : routeLineId;
+  const normalizedLineId = nextLineId ? String(nextLineId) : "all";
+
+  draftLine.value = normalizedLineId;
+  selectedLine.value = normalizedLineId;
+}
 
 const chartItems = computed(() => {
   const visibleLineIds = new Set(
@@ -199,7 +210,17 @@ watch(pageCount, (nextPageCount) => {
   }
 });
 
+watch(
+  () => route.query.lineId,
+  () => {
+    syncRouteLineFilter();
+    currentPage.value = 1;
+    loadLines();
+  }
+);
+
 onMounted(() => {
+  syncRouteLineFilter();
   loadLineOptionsAndMachines();
   loadLines();
   loadOrderDistributions();
