@@ -111,6 +111,14 @@ const router = createRouter({
       redirect: to => ({ path: '/lines', query: { ...to.query, lineId: to.params.id } }),
     },
     {
+      path: '/production-lines',
+      redirect: to => ({ path: '/lines', query: to.query }),
+    },
+    {
+      path: '/production-lines/:id',
+      redirect: to => ({ path: '/lines', query: { ...to.query, lineId: to.params.id } }),
+    },
+    {
       path: '/risk',
       component: () => import('./pages/risk/RiskAnalysisPage.vue'),
       meta: {

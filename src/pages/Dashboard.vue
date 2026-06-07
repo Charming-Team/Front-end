@@ -1,139 +1,139 @@
 <template>
-  <DashboardMetricGrid :metrics="metrics" />
+  <div class="dashboard-page">
+    <section v-if="loading" class="dashboard-state">대시보드 데이터를 불러오는 중입니다.</section>
 
-  <section class="dashboard-middle-grid mb-3">
-    <ProductionSchedulePanel
-      base-week-start="2024-05-20"
-      :gantt-rows="ganttRows"
-      :legend="legend"
-    />
-    <OrderStatusPanel :orders="orders" :average-rate="58" />
-  </section>
+    <section v-else-if="error" class="dashboard-state dashboard-state--error">
+      <span>{{ error }}</span>
+      <button type="button" @click="loadDashboard">다시 시도</button>
+    </section>
 
-  <UtilizationPanel :items="utilization" />
+    <template v-else>
+      <DashboardMetricGrid :metrics="metrics" />
+
+      <section class="dashboard-middle-grid mb-3">
+        <ProductionSchedulePanel
+          :base-week-start="baseWeekStart"
+          :gantt-rows="ganttRows"
+          :legend="legend"
+          @week-change="loadWeeklySchedule"
+        />
+        <OrderStatusPanel :orders="orders" :average-rate="averageRate" />
+      </section>
+
+      <UtilizationPanel :items="utilization" />
+    </template>
+  </div>
 </template>
 
 <script setup>
+import { onMounted, ref } from "vue";
 import DashboardMetricGrid from "../components/dashboard/DashboardMetricGrid.vue";
 import OrderStatusPanel from "../components/dashboard/OrderStatusPanel.vue";
 import ProductionSchedulePanel from "../components/dashboard/ProductionSchedulePanel.vue";
 import UtilizationPanel from "../components/dashboard/UtilizationPanel.vue";
+import {
+  fetchDashboardLineUtilization,
+  fetchDashboardOrderDeliveryStatus,
+  fetchDashboardSummary,
+  fetchDashboardWeeklySchedule,
+} from "../features/dashboard/api.js";
+import {
+  dashboardLegend,
+  mapLineUtilization,
+  mapOrderDeliveryStatus,
+  mapSummaryToMetrics,
+  mapWeeklySchedule,
+} from "../features/dashboard/mapper.js";
 
-const metrics = [
-  {
-    title: "지연 위험 주문",
-    value: "18",
-    unit: "건",
-    caption: "전체 주문 대비",
-    change: "8%",
-    tone: "danger",
-  },
-  {
-    title: "자재 부족 품목",
-    value: "2",
-    unit: "건",
-    caption: "전체 품목 대비",
-    change: "3%",
-    tone: "warning",
-  },
-  {
-    title: "주문별 달성률",
-    value: "98",
-    unit: "%",
-    caption: "목표 대비",
-    change: "98%",
-    tone: "success",
-  },
-  { title: "생산계획 절약비용", value: "37", unit: "일" },
-];
+const metrics = ref([]);
+const baseWeekStart = ref(new Date().toISOString().slice(0, 10));
+const ganttRows = ref([]);
+const legend = dashboardLegend;
+const orders = ref([]);
+const averageRate = ref(0);
+const utilization = ref([]);
+const activeLines = ref([]);
+const loading = ref(false);
+const error = ref("");
 
-const ganttRows = [
-  {
-    name: "Line A",
-    segments: [
-      { type: "running", left: 0, width: 29 },
-      { type: "change", left: 29, width: 8 },
-      { type: "running", left: 37, width: 26 },
-      { type: "planned", left: 63, width: 25 },
-    ],
-  },
-  {
-    name: "Line B",
-    segments: [
-      { type: "running", left: 0, width: 21 },
-      { type: "delay", left: 21, width: 12 },
-      { type: "running", left: 33, width: 25 },
-      { type: "empty", left: 58, width: 12 },
-      { type: "planned", left: 70, width: 18 },
-    ],
-  },
-  {
-    name: "Line C",
-    segments: [
-      { type: "running", left: 0, width: 34 },
-      { type: "change", left: 34, width: 9 },
-      { type: "running", left: 43, width: 20 },
-      { type: "planned", left: 63, width: 20 },
-    ],
-  },
-  {
-    name: "Line D",
-    segments: [
-      { type: "running", left: 0, width: 18 },
-      { type: "delay", left: 18, width: 16 },
-      { type: "change", left: 34, width: 10 },
-      { type: "empty", left: 44, width: 18 },
-      { type: "planned", left: 62, width: 16 },
-    ],
-  },
-  {
-    name: "Line E",
-    segments: [
-      { type: "running", left: 0, width: 28 },
-      { type: "change", left: 28, width: 8 },
-      { type: "running", left: 36, width: 24 },
-      { type: "planned", left: 60, width: 26 },
-    ],
-  },
-  {
-    name: "Line F",
-    segments: [
-      { type: "running", left: 0, width: 20 },
-      { type: "empty", left: 20, width: 14 },
-      { type: "delay", left: 34, width: 14 },
-      { type: "running", left: 48, width: 16 },
-      { type: "planned", left: 64, width: 20 },
-    ],
-  },
-];
+function applyWeeklySchedule(scheduleResponse) {
+  const schedule = mapWeeklySchedule(scheduleResponse, activeLines.value);
+  baseWeekStart.value = schedule.baseWeekStart;
+  ganttRows.value = schedule.rows;
+}
 
-const legend = [
-  { label: "생산 중", type: "running" },
-  { label: "예정", type: "planned" },
-  { label: "셋업", type: "change" },
-  { label: "지연", type: "delay" },
-  { label: "비가동", type: "empty" },
-];
+async function loadWeeklySchedule(range = {}) {
+  error.value = "";
 
-const orders = [
-  { id: "PO-240520-001", due: "05.22 (수)", progress: 72 },
-  { id: "PO-240520-002", due: "05.23 (목)", progress: 30, delayed: true },
-  { id: "PO-240520-003", due: "05.24 (금)", progress: 50 },
-  { id: "PO-240520-004", due: "05.25 (토)", progress: 90 },
-  { id: "PO-240520-005", due: "05.26 (일)", progress: 20, delayed: true },
-];
+  try {
+    applyWeeklySchedule(await fetchDashboardWeeklySchedule(range));
+  } catch (err) {
+    error.value = err.message || "주간 생산 스케줄을 불러오지 못했습니다.";
+  }
+}
 
-const utilization = [
-  { name: "Line A", value: 80 },
-  { name: "Line B", value: 55 },
-  { name: "Line C", value: 60 },
-  { name: "Line D", value: 36, low: true },
-  { name: "Line E", value: 72 },
-  { name: "Line F", value: 42, low: true },
-];
+async function loadDashboard() {
+  loading.value = true;
+  error.value = "";
+
+  try {
+    const [summaryResponse, scheduleResponse, orderResponse, utilizationResponse] =
+      await Promise.all([
+        fetchDashboardSummary(),
+        fetchDashboardWeeklySchedule(),
+        fetchDashboardOrderDeliveryStatus({ limit: 5 }),
+        fetchDashboardLineUtilization(),
+      ]);
+
+    metrics.value = mapSummaryToMetrics(summaryResponse);
+    activeLines.value = utilizationResponse?.lines ?? [];
+    applyWeeklySchedule(scheduleResponse);
+
+    const orderStatus = mapOrderDeliveryStatus(orderResponse);
+    orders.value = orderStatus.orders;
+    averageRate.value = orderStatus.averageRate;
+
+    utilization.value = mapLineUtilization(utilizationResponse);
+  } catch (err) {
+    error.value = err.message || "대시보드 데이터를 불러오지 못했습니다.";
+  } finally {
+    loading.value = false;
+  }
+}
+
+onMounted(loadDashboard);
 </script>
 
 <style scoped>
+.dashboard-page {
+  display: grid;
+  gap: 0;
+}
+
+.dashboard-state {
+  display: grid;
+  min-height: 240px;
+  place-items: center;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-panel);
+  color: var(--color-text-subtle);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.dashboard-state--error {
+  gap: 10px;
+  color: var(--color-danger-dark);
+}
+
+.dashboard-state button {
+  border: 0;
+  background: transparent;
+  color: var(--color-primary);
+  font-weight: 800;
+}
+
 .dashboard-middle-grid {
   display: grid;
   grid-template-columns: minmax(560px, 1.35fr) minmax(420px, 1fr);

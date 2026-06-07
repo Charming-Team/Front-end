@@ -1,5 +1,6 @@
 <script setup>
 import { computed, nextTick, ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import { getUserRole } from '../../../utils/storage.js'
 import logoSymbol from '../../../assets/logo_main.svg'
 import { requestChatAnswer } from '../api.js'
@@ -41,6 +42,7 @@ const loading = ref(false)
 const sessionId = ref(Date.now())
 const nextMessageId = ref(2)
 const messagesRef = ref(null)
+const router = useRouter()
 const messages = ref([
   {
     id: 1,
@@ -93,24 +95,71 @@ function isExternalUrl(url) {
   return /^https?:\/\//i.test(url)
 }
 
-function normalizeAssistantUrls(urls) {
-  if (!Array.isArray(urls)) return []
+function getInternalRoute(url) {
+  if (!url) return ''
 
-  return urls
+  try {
+    if (isExternalUrl(url)) {
+      const parsedUrl = new URL(url)
+      if (typeof window !== 'undefined' && parsedUrl.origin === window.location.origin) {
+        return `${parsedUrl.pathname}${parsedUrl.search}${parsedUrl.hash}`
+      }
+
+      return ''
+    }
+
+    const parsedUrl = new URL(url, 'http://s-map.local')
+    return `${parsedUrl.pathname}${parsedUrl.search}${parsedUrl.hash}`
+  } catch {
+    return url.startsWith('/') ? url : ''
+  }
+}
+
+function normalizeAssistantUrls(urls, sources = []) {
+  const candidates = [
+    ...(Array.isArray(urls) ? urls : []),
+    ...(Array.isArray(sources) ? sources : []),
+  ]
+  const usedUrls = new Set()
+
+  return candidates
     .filter(item => typeof item?.url === 'string' && item.url.trim())
     .map((item, index) => {
       const url = item.url.trim()
-      const label = typeof item.label === 'string' && item.label.trim() ? item.label.trim() : url
-      const type = typeof item.type === 'string' ? item.type.trim() : ''
+      const label = typeof item.label === 'string' && item.label.trim()
+        ? item.label.trim()
+        : typeof item.title === 'string' && item.title.trim()
+          ? item.title.trim()
+          : url
+      const type = typeof item.type === 'string' && item.type.trim()
+        ? item.type.trim()
+        : typeof item.sourceType === 'string'
+          ? item.sourceType.trim()
+          : ''
+      const internalRoute = getInternalRoute(url)
+      const external = isExternalUrl(url) && !internalRoute
 
       return {
         id: `${type || 'URL'}-${url}-${index}`,
         label,
         type,
         url,
-        external: isExternalUrl(url),
+        route: internalRoute,
+        external,
       }
     })
+    .filter(link => {
+      if (!link.route && !link.external) return false
+      const key = link.route || link.url
+      if (usedUrls.has(key)) return false
+      usedUrls.add(key)
+      return true
+    })
+}
+
+function openAssistantLink(link) {
+  if (!link?.route) return
+  router.push(link.route)
 }
 
 async function submitMessage(text = message.value) {
@@ -148,7 +197,7 @@ async function submitMessage(text = message.value) {
         role: 'assistant',
         text: buildAssistantText(answer),
         time: nowLabel(),
-        urls: normalizeAssistantUrls(answer?.urls),
+        urls: normalizeAssistantUrls(answer?.urls, answer?.sources),
       },
     ]
   } catch (err) {
@@ -211,10 +260,10 @@ watch(
                   <span class="app-chatbot-message__link-label">{{ link.label }}</span>
                   <span v-if="link.type" class="app-chatbot-message__link-type">{{ link.type }}</span>
                 </a>
-                <RouterLink v-else :to="link.url" class="app-chatbot-message__link">
+                <button v-else type="button" class="app-chatbot-message__link" @click="openAssistantLink(link)">
                   <span class="app-chatbot-message__link-label">{{ link.label }}</span>
                   <span v-if="link.type" class="app-chatbot-message__link-type">{{ link.type }}</span>
-                </RouterLink>
+                </button>
               </template>
             </div>
             <small>{{ item.time }}</small>

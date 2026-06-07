@@ -4,7 +4,7 @@
       class="panel-header d-flex justify-content-between align-items-center gap-3"
     >
       <h2 class="panel-title mb-0">{{ title }}</h2>
-      <PanelMoreButton />
+      <PanelMoreButton @click="goToLines" />
     </div>
 
     <div class="gauge-grid">
@@ -18,6 +18,7 @@
 </template>
 
 <script setup>
+import { useRouter } from "vue-router";
 import UtilizationGaugeCard from "./UtilizationGaugeCard.vue";
 import PanelMoreButton from "../common/PanelMoreButton.vue";
 
@@ -31,6 +32,12 @@ defineProps({
     default: () => [],
   },
 });
+
+const router = useRouter();
+
+function goToLines() {
+  router.push("/lines");
+}
 </script>
 
 <style scoped>

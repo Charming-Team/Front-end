@@ -5,7 +5,7 @@
         class="panel-header d-flex justify-content-between align-items-center gap-3"
       >
         <h2 class="panel-title mb-0">{{ title }}</h2>
-        <PanelMoreButton />
+        <PanelMoreButton @click="goToOrders" />
       </div>
 
       <div class="table-responsive order-table-wrap">
@@ -39,7 +39,7 @@
               class="badge status-badge"
               :class="order.delayed ? 'delayed' : 'normal'"
             >
-              {{ order.delayed ? "지연" : "진행 중" }}
+              {{ order.statusLabel || (order.delayed ? "지연" : "진행 중") }}
             </span>
           </div>
         </div>
@@ -47,7 +47,7 @@
 
       <div class="order-average p-2">
         <div class="d-flex align-items-center justify-content-between mb-2">
-          <span>전체 평균 가동률</span>
+          <span>전체 평균 진행률</span>
           <strong>{{ averageRate }}%</strong>
         </div>
         <div
@@ -65,6 +65,7 @@
 </template>
 
 <script setup>
+import { useRouter } from "vue-router";
 import PanelMoreButton from "../common/PanelMoreButton.vue";
 
 defineProps({
@@ -81,6 +82,12 @@ defineProps({
     default: 0,
   },
 });
+
+const router = useRouter();
+
+function goToOrders() {
+  router.push("/orders");
+}
 </script>
 
 <style scoped>
