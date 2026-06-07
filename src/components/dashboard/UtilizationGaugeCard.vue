@@ -18,7 +18,7 @@
         <div class="gauge-center">
           <strong>{{ line.value }}%</strong>
         </div>
-        <b class="gauge-status">{{ line.low ? "가동 저조" : "가동 중" }}</b>
+        <b class="gauge-status">{{ line.statusLabel || (line.low ? "가동 저조" : "가동 중") }}</b>
       </div>
     </div>
   </article>

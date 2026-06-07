@@ -41,7 +41,7 @@
               class="badge status-badge"
               :class="order.delayed ? 'delayed' : 'normal'"
             >
-              {{ order.delayed ? "지연" : "진행 중" }}
+              {{ order.statusLabel || (order.delayed ? "지연" : "진행 중") }}
             </span>
           </div>
         </div>
@@ -49,7 +49,7 @@
 
       <div class="order-average p-2">
         <div class="d-flex align-items-center justify-content-between mb-2">
-          <span>전체 평균 가동률</span>
+          <span>전체 평균 진행률</span>
           <strong>{{ averageRate }}%</strong>
         </div>
         <div
@@ -85,6 +85,7 @@ defineProps({
     default: 0,
   },
 });
+
 </script>
 
 <style scoped>
