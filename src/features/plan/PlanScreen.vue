@@ -1,6 +1,9 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
+import { RouterLink } from 'vue-router'
+import AppModal from '../../components/common/AppModal.vue'
 import PlanStatusBadge from '../../components/plan/PlanStatusBadge.vue'
+import { getUserRole } from '../../utils/storage.js'
 import PlanCalendar from './PlanCalendar.vue'
 
 const props = defineProps({
@@ -19,9 +22,16 @@ const {
 } = props.filters
 
 const NON_EDITABLE = ['COMPLETED', 'CANCELLED']
+const PLAN_WRITE_ROLES = ['ADMIN', 'EXECUTIVE', 'MANUFACTURING_MANAGER']
+
+const canManagePlans = computed(() =>
+  PLAN_WRITE_ROLES.includes(getUserRole())
+)
 
 const canEdit = computed(() =>
-  !!store.selectedPlan.value && !NON_EDITABLE.includes(store.selectedPlan.value.planStatus)
+  canManagePlans.value
+  && !!store.selectedPlan.value
+  && !NON_EDITABLE.includes(store.selectedPlan.value.planStatus)
 )
 const bulkUploadOpen = ref(false)
 const bulkUploadFileName = ref('')
@@ -54,6 +64,7 @@ function onSubmitUpdate() {
 }
 
 function openBulkUpload() {
+  if (!canManagePlans.value) return
   bulkUploadOpen.value = true
 }
 
@@ -65,6 +76,10 @@ function closeBulkUpload() {
 function onBulkUploadFileChange(event) {
   const file = event.target.files?.[0]
   bulkUploadFileName.value = file?.name ?? ''
+}
+
+function closeScheduleConflict() {
+  store.closeScheduleConflict()
 }
 </script>
 
@@ -84,6 +99,7 @@ function onBulkUploadFileChange(event) {
       :calendar-editing="store.calendarEditing.value"
       :calendar-saving="store.calendarSaving.value"
       :calendar-save-error="store.calendarSaveError.value ?? ''"
+      :can-manage-plans="canManagePlans"
       @retry="store.loadCalendarPlans()"
       @search="submitSearch"
       @status-change="applyStatusFilter"
@@ -95,6 +111,36 @@ function onBulkUploadFileChange(event) {
       @preview-plan-move="({ planId, deltaDays }) => store.previewPlanMove(planId, deltaDays)"
       @clear-plan-move-preview="store.clearPlanMovePreview()"
     />
+
+    <AppModal
+      v-if="store.scheduleConflict.value"
+      title="AI 분석이 필요합니다"
+      @close="closeScheduleConflict"
+    >
+      <div class="space-y-3 text-[14px] leading-6 text-slate-700">
+        <p class="font-semibold text-slate-900">
+          {{ store.scheduleConflict.value.message }}
+        </p>
+        <p>
+          선택한 시간대에 이미 다른 생산계획이 있어 일정 이동이 저장되지 않았습니다.
+          AI 분석 API가 준비되면 이 충돌 상황을 기준으로 대안을 생성할 수 있습니다.
+        </p>
+      </div>
+
+      <template #footer>
+        <div class="flex justify-end gap-2">
+          <AppButton variant="secondary" @click="closeScheduleConflict">닫기</AppButton>
+          <RouterLink
+            to="/ai/analysis"
+            class="inline-flex items-center justify-center rounded-[10px] bg-[var(--color-primary)] px-4 py-2 text-[14px] font-semibold text-white transition hover:brightness-110"
+            style="text-decoration: none;"
+            @click="closeScheduleConflict"
+          >
+            AI 분석으로 이동
+          </RouterLink>
+        </div>
+      </template>
+    </AppModal>
 
     <Transition name="fade">
       <div v-if="bulkUploadOpen" class="bulk-upload-backdrop" @click="closeBulkUpload" />
