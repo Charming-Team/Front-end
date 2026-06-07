@@ -1,7 +1,120 @@
 import { getToken } from '../../utils/storage.js'
+import { apiRequest } from '../../utils/api.js'
 import { MOCK_PLANS, MOCK_LINES, MOCK_UPDATE_HISTORY, NON_EDITABLE_STATUSES } from './mock.js'
 
 const sleep = ms => new Promise(r => setTimeout(r, ms))
+
+const LINE_NAME_BY_ID = {
+  1: 'ABS 주 생산 Line',
+  2: 'ABS 보조 생산 Line',
+  3: 'PP 범용 생산 Line',
+  4: 'PP 기능성 생산 Line',
+  5: 'PE 범용 생산 Line',
+  6: 'PE 특화 생산 Line',
+}
+
+function getLineName(plan) {
+  return plan.lineName || LINE_NAME_BY_ID[Number(plan.lineId)] || `라인 #${plan.lineId ?? '-'}`
+}
+
+function getProductName(plan, context = {}) {
+  const order = context.ordersById?.get(String(plan.orderId))
+  const product = context.productsById?.get(String(plan.productId))
+  return (
+    plan.productName ||
+    order?.productName ||
+    product?.productName ||
+    plan.productCode ||
+    order?.productCode ||
+    product?.productCode ||
+    `제품 #${plan.productId ?? '-'}`
+  )
+}
+
+function getOperatorName(plan, context = {}) {
+  const order = context.ordersById?.get(String(plan.orderId))
+  if (plan.operatorName) return plan.operatorName
+  if (order?.operatorNames) return order.operatorNames
+  if (plan.operatorId == null) return '미배정'
+  return `담당자 #${plan.operatorId}`
+}
+
+function toEstimatedDurationMin(value) {
+  if (value === null || value === undefined || value === '') return null
+  const hours = Number(value)
+  return Number.isFinite(hours) ? Math.round(hours * 60) : null
+}
+
+function normalizePlan(plan = {}, context = {}) {
+  return {
+    ...plan,
+    planId: Number(plan.planId),
+    orderId: plan.orderId,
+    productId: plan.productId,
+    productName: getProductName(plan, context),
+    lineId: plan.lineId,
+    lineName: plan.lineName || context.linesById?.get(String(plan.lineId))?.lineName || getLineName(plan),
+    operatorId: plan.operatorId,
+    operatorName: getOperatorName(plan, context),
+    plannedStartAt: plan.plannedStartAt,
+    plannedEndAt: plan.plannedEndAt,
+    estimatedDurationMin: plan.estimatedDurationMin ?? toEstimatedDurationMin(plan.estimatedDurationHr),
+    plannedQuantity: Number(plan.plannedQuantity ?? 0),
+    planSequence: Number(plan.planSequence ?? 0),
+    planStatus: plan.planStatus || 'SCHEDULED',
+    createdAt: plan.createdAt ?? null,
+    updatedAt: plan.updatedAt ?? null,
+    materials: plan.materials ?? [],
+  }
+}
+
+function createOrderContext(orders = []) {
+  const ordersById = new Map()
+  const productsById = new Map()
+
+  orders.forEach((order) => {
+    if (order?.orderId != null) ordersById.set(String(order.orderId), order)
+    if (order?.productId != null) productsById.set(String(order.productId), order)
+  })
+
+  return { ordersById, productsById }
+}
+
+async function fetchOrderContext() {
+  try {
+    const response = await apiRequest('/api/orders?page=0&size=1000')
+    const orders = Array.isArray(response?.content) ? response.content : []
+    return createOrderContext(orders)
+  } catch {
+    return createOrderContext()
+  }
+}
+
+async function fetchOrderDetailContext(orderId) {
+  if (orderId == null) return createOrderContext()
+
+  try {
+    const order = await apiRequest(`/api/orders/${encodeURIComponent(orderId)}`)
+    return createOrderContext([order])
+  } catch {
+    return createOrderContext()
+  }
+}
+
+function matchesPlanFilters(plan, { status = '', search = '' } = {}) {
+  if (status && plan.planStatus !== status) return false
+
+  const query = search.trim().toLowerCase()
+  if (!query) return true
+
+  return (
+    String(plan.planId).includes(query) ||
+    String(plan.orderId ?? '').includes(query) ||
+    plan.productName.toLowerCase().includes(query) ||
+    plan.lineName.toLowerCase().includes(query) ||
+    plan.operatorName.toLowerCase().includes(query)
+  )
+}
 
 function validatePlanPayload(payload) {
   const errors = {}
@@ -98,28 +211,13 @@ function applyPlanPayload(plan, payload, lineId, recalculationRequired) {
 }
 
 export async function fetchPlanList({ status = '', search = '', page = 1, pageSize = 15 } = {}) {
-  if (!getToken()) {
-    const err = new Error('인증이 필요합니다.')
-    err.status = 401
-    throw err
-  }
-
-  await sleep(400)
-
-  const q = search.trim().toLowerCase()
-  const filtered = MOCK_PLANS.filter(p => {
-    if (status && p.planStatus !== status) return false
-    if (q) {
-      return (
-        String(p.planId).includes(q) ||
-        String(p.orderId).includes(q) ||
-        p.productName.includes(q) ||
-        p.lineName.toLowerCase().includes(q) ||
-        p.operatorName.includes(q)
-      )
-    }
-    return true
-  })
+  const [plans, orderContext] = await Promise.all([
+    apiRequest('/api/plans'),
+    fetchOrderContext(),
+  ])
+  const filtered = (Array.isArray(plans) ? plans : [])
+    .map(plan => normalizePlan(plan, orderContext))
+    .filter(plan => matchesPlanFilters(plan, { status, search }))
 
   const total = filtered.length
   const data = filtered.slice((page - 1) * pageSize, page * pageSize)
@@ -127,104 +225,49 @@ export async function fetchPlanList({ status = '', search = '', page = 1, pageSi
 }
 
 export async function fetchAllPlans({ status = '', search = '' } = {}) {
-  if (!getToken()) {
-    const err = new Error('인증이 필요합니다.')
-    err.status = 401
-    throw err
-  }
-
-  await sleep(400)
-
-  const q = search.trim().toLowerCase()
-  const data = MOCK_PLANS.filter(p => {
-    if (status && p.planStatus !== status) return false
-    if (q) {
-      return (
-        String(p.planId).includes(q) ||
-        String(p.orderId).includes(q) ||
-        p.productName.includes(q) ||
-        p.lineName.toLowerCase().includes(q) ||
-        p.operatorName.includes(q)
-      )
-    }
-    return true
-  })
+  const [plans, orderContext] = await Promise.all([
+    apiRequest('/api/plans'),
+    fetchOrderContext(),
+  ])
+  const data = (Array.isArray(plans) ? plans : [])
+    .map(plan => normalizePlan(plan, orderContext))
+    .filter(plan => matchesPlanFilters(plan, { status, search }))
 
   return { data, total: data.length }
 }
 
 export async function fetchPlanDetail(planId) {
-  if (!getToken()) {
-    const err = new Error('인증이 필요합니다.')
-    err.status = 401
-    throw err
-  }
-
-  await sleep(200)
-
-  const plan = MOCK_PLANS.find(p => p.planId === planId)
-  if (!plan) {
-    const err = new Error('생산계획을 찾을 수 없습니다.')
-    err.status = 404
-    throw err
-  }
-
-  return { ...plan }
+  const plan = await apiRequest(`/api/plans/${encodeURIComponent(planId)}`)
+  const orderContext = await fetchOrderDetailContext(plan?.orderId)
+  return normalizePlan(plan, orderContext)
 }
 
 export async function fetchLines() {
-  if (!getToken()) {
-    const err = new Error('인증이 필요합니다.')
-    err.status = 401
-    throw err
+  const response = await apiRequest('/api/lines/operation-statuses?page=0&size=100')
+  const content = Array.isArray(response?.content) ? response.content : []
+
+  if (content.length === 0) {
+    return MOCK_LINES.map(line => ({ ...line }))
   }
-  await sleep(100)
-  return MOCK_LINES.map(l => ({ ...l }))
+
+  return content.map(line => ({
+    lineId: line.lineId,
+    lineName: line.lineName || LINE_NAME_BY_ID[Number(line.lineId)] || `라인 #${line.lineId ?? '-'}`,
+  }))
 }
 
 export async function updatePlan(planId, payload) {
-  if (!getToken()) {
-    const err = new Error('인증이 필요합니다.')
-    err.status = 401
-    throw err
-  }
+  return apiRequest(`/api/plans/${encodeURIComponent(planId)}`, {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  })
+}
 
-  await sleep(300)
-
-  const idx = MOCK_PLANS.findIndex(p => p.planId === planId)
-  if (idx === -1) {
-    const err = new Error('생산계획을 찾을 수 없습니다.')
-    err.status = 404
-    throw err
-  }
-
-  const plan = MOCK_PLANS[idx]
-
-  throwIfPlanLocked(plan)
-
-  throwIfInvalidPayload(payload)
-
-  // Schedule overlap check (same line, overlapping window, excluding self and final-state plans)
-  const lineId   = Number(payload.lineId)
-  const hasOverlap = hasScheduleOverlap(MOCK_PLANS, planId, lineId, payload.plannedStartAt, payload.plannedEndAt)
-  if (hasOverlap) {
-    const err = new Error('선택한 라인의 해당 시간대에 이미 다른 계획이 존재합니다.')
-    err.status = 409
-    throw err
-  }
-
-  // Determine whether recalculation is required
-  const recalculationRequired = getRecalculationRequired(plan, payload, lineId)
-
-  // Build audit diff
-  const changedFields = getChangedFields(plan, payload, lineId)
-
-  recordUpdateHistory(planId, changedFields, recalculationRequired)
-
-  // Apply update
-  MOCK_PLANS[idx] = applyPlanPayload(plan, payload, lineId, recalculationRequired)
-
-  return { plan: { ...MOCK_PLANS[idx] } }
+export async function movePlanSchedule(planId, payload) {
+  return apiRequest(`/api/plans/${encodeURIComponent(planId)}/schedule`, {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  })
 }
 
 export async function updatePlans(updates) {
