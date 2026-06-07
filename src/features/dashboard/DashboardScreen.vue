@@ -17,33 +17,40 @@
           :legend="legend"
           @week-change="loadWeeklySchedule"
         />
-        <OrderStatusPanel :orders="orders" :average-rate="averageRate" />
+        <OrderStatusPanel
+          :orders="orders"
+          :average-rate="averageRate"
+          @navigate="goToOrders"
+        />
       </section>
 
-      <UtilizationPanel :items="utilization" />
+      <UtilizationPanel :items="utilization" @navigate="goToLines" />
     </template>
   </div>
 </template>
 
 <script setup>
 import { onMounted, ref } from "vue";
-import DashboardMetricGrid from "../components/dashboard/DashboardMetricGrid.vue";
-import OrderStatusPanel from "../components/dashboard/OrderStatusPanel.vue";
-import ProductionSchedulePanel from "../components/dashboard/ProductionSchedulePanel.vue";
-import UtilizationPanel from "../components/dashboard/UtilizationPanel.vue";
+import { useRouter } from "vue-router";
+import DashboardMetricGrid from "../../components/dashboard/DashboardMetricGrid.vue";
+import OrderStatusPanel from "../../components/dashboard/OrderStatusPanel.vue";
+import ProductionSchedulePanel from "../../components/dashboard/ProductionSchedulePanel.vue";
+import UtilizationPanel from "../../components/dashboard/UtilizationPanel.vue";
 import {
   fetchDashboardLineUtilization,
   fetchDashboardOrderDeliveryStatus,
   fetchDashboardSummary,
   fetchDashboardWeeklySchedule,
-} from "../features/dashboard/api.js";
+} from "./api.js";
 import {
   dashboardLegend,
   mapLineUtilization,
   mapOrderDeliveryStatus,
   mapSummaryToMetrics,
   mapWeeklySchedule,
-} from "../features/dashboard/mapper.js";
+} from "./mapper.js";
+
+const router = useRouter();
 
 const metrics = ref([]);
 const baseWeekStart = ref(new Date().toISOString().slice(0, 10));
@@ -55,6 +62,14 @@ const utilization = ref([]);
 const activeLines = ref([]);
 const loading = ref(false);
 const error = ref("");
+
+function goToOrders() {
+  router.push("/orders");
+}
+
+function goToLines() {
+  router.push("/lines");
+}
 
 function applyWeeklySchedule(scheduleResponse) {
   const schedule = mapWeeklySchedule(scheduleResponse, activeLines.value);
