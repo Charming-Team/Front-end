@@ -20,6 +20,7 @@ const props = defineProps({
   calendarEditing: { type: Boolean, default: false },
   calendarSaving: { type: Boolean, default: false },
   calendarSaveError: { type: String, default: '' },
+  canManagePlans: { type: Boolean, default: false },
 })
 
 const emit = defineEmits([
@@ -59,68 +60,6 @@ function toAllDayEnd(iso) {
   return date
 }
 
-function startOfDay(date) {
-  const next = new Date(date)
-  next.setHours(0, 0, 0, 0)
-  return next
-}
-
-function addDays(date, amount) {
-  const next = new Date(date)
-  next.setDate(next.getDate() + amount)
-  return next
-}
-
-function startOfWeek(date) {
-  const next = startOfDay(date)
-  next.setDate(next.getDate() - next.getDay())
-  return next
-}
-
-function endOfWeek(date) {
-  return addDays(startOfWeek(date), 6)
-}
-
-function getVisibleDateRange() {
-  if (viewMode.value === 'week') {
-    return {
-      start: addDays(startOfDay(anchorDate.value), -3),
-      end: addDays(startOfDay(anchorDate.value), 3),
-    }
-  }
-
-  const monthStart = new Date(anchorDate.value.getFullYear(), anchorDate.value.getMonth(), 1)
-  const monthEnd = new Date(anchorDate.value.getFullYear(), anchorDate.value.getMonth() + 1, 0)
-  return {
-    start: startOfWeek(monthStart),
-    end: endOfWeek(monthEnd),
-  }
-}
-
-function getVisibleDates() {
-  const { start, end } = getVisibleDateRange()
-  const dates = []
-  for (let date = start; date <= end; date = addDays(date, 1)) {
-    dates.push(date)
-  }
-  return dates
-}
-
-function planCoversDate(plan, date) {
-  const day = startOfDay(date).getTime()
-  return (
-    startOfDay(plan.plannedStartAt).getTime() <= day &&
-    startOfDay(plan.plannedEndAt).getTime() >= day
-  )
-}
-
-function toDateKey(date) {
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  return `${year}-${month}-${day}`
-}
-
 function createPlanEvent(plan) {
   const theme = LINE_THEMES[plan.lineName] ?? {
     bg: '#EEF2F7', chip: '#E2E8F0', border: '#CBD5E1', text: '#475569',
@@ -142,40 +81,25 @@ function createPlanEvent(plan) {
       plan,
       lineName: plan.lineName,
       lineOrder: lineOrder === -1 ? 999 : lineOrder,
+      theme,
     },
   }
 }
 
-function createLinePlaceholderEvent(lineName, date) {
-  const lineOrder = orderedLineNames.value.indexOf(lineName)
-  return {
-    id: `line-placeholder-${viewMode.value}-${toDateKey(date)}-${lineName}`,
-    title: '',
-    start: date,
-    end: addDays(date, 1),
-    allDay: true,
-    editable: false,
-    backgroundColor: 'transparent',
-    borderColor: 'transparent',
-    textColor: 'transparent',
-    classNames: ['line-lane-placeholder'],
-    order: lineOrder === -1 ? 999 : lineOrder,
-    extendedProps: {
-      isLinePlaceholder: true,
-      lineName,
-      lineOrder: lineOrder === -1 ? 999 : lineOrder,
-    },
-  }
-}
+const fixedProductionLineNames = FIXED_LINE_ORDER.slice(0, 6)
 
 const orderedLineNames = computed(() => {
   const names = new Set()
   props.lines.forEach(line => { if (line?.lineName) names.add(line.lineName) })
   props.plans.forEach(plan => { if (plan?.lineName) names.add(plan.lineName) })
   const dynamicNames = Array.from(names)
-  const knownNames = FIXED_LINE_ORDER.filter(n => dynamicNames.includes(n))
-  const unknownNames = dynamicNames.filter(n => !FIXED_LINE_ORDER.includes(n)).sort(compareLineNames)
-  return [...knownNames, ...unknownNames]
+  const knownExtraNames = FIXED_LINE_ORDER
+    .slice(6)
+    .filter(n => dynamicNames.includes(n))
+  const unknownNames = dynamicNames
+    .filter(n => !FIXED_LINE_ORDER.includes(n))
+    .sort(compareLineNames)
+  return [...fixedProductionLineNames, ...knownExtraNames, ...unknownNames]
 })
 
 const legendItems = computed(() =>
@@ -187,8 +111,7 @@ const legendItems = computed(() =>
 )
 
 const calendarEvents = computed(() =>
-  {
-    const planEvents = props.plans
+  props.plans
     .slice()
     .sort((left, right) =>
       compareLineNames(left.lineName, right.lineName)
@@ -196,15 +119,6 @@ const calendarEvents = computed(() =>
       || (left.planSequence ?? 0) - (right.planSequence ?? 0)
     )
     .map(createPlanEvent)
-
-    const placeholderEvents = orderedLineNames.value.flatMap(lineName =>
-      getVisibleDates()
-        .filter(date => !props.plans.some(plan => plan.lineName === lineName && planCoversDate(plan, date)))
-        .map(date => createLinePlaceholderEvent(lineName, date))
-    )
-
-    return [...planEvents, ...placeholderEvents]
-  }
 )
 
 const previewCalendarEvents = computed(() =>
@@ -373,7 +287,7 @@ function setViewMode(mode) {
           <div class="flex items-center gap-2">
             <span v-if="calendarSaveError" class="text-[13px] font-semibold text-red-600">{{ calendarSaveError }}</span>
             <AppButton
-              v-if="!calendarEditing"
+              v-if="canManagePlans && !calendarEditing"
               variant="secondary"
               size="sm"
               @click="emit('open-bulk-upload')"
@@ -381,7 +295,7 @@ function setViewMode(mode) {
               일괄 등록
             </AppButton>
             <AppButton
-              v-if="!calendarEditing"
+              v-if="canManagePlans && !calendarEditing"
               variant="secondary"
               size="sm"
               @click="emit('enter-calendar-edit')"
@@ -389,7 +303,7 @@ function setViewMode(mode) {
               수정
             </AppButton>
             <AppButton
-              v-else
+              v-if="calendarEditing"
               variant="primary"
               size="sm"
               :disabled="calendarSaving"
@@ -405,6 +319,7 @@ function setViewMode(mode) {
           :anchor-date="anchorDate"
           :events="calendarEvents"
           :preview-events="previewCalendarEvents"
+          :line-rows="orderedLineNames"
           :editable="calendarEditing"
           @update-range-label="currentRangeLabel = $event"
           @select-plan="emit('select-plan', $event)"
@@ -418,6 +333,7 @@ function setViewMode(mode) {
           :anchor-date="anchorDate"
           :events="calendarEvents"
           :preview-events="previewCalendarEvents"
+          :line-rows="orderedLineNames"
           :editable="calendarEditing"
           :status-labels="PLAN_STATUS_LABELS"
           @update-range-label="currentRangeLabel = $event"
