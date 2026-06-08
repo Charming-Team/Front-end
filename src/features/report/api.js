@@ -1,12 +1,17 @@
-import { mockIssues, mockReports, mockReportDetail } from "./mock.js";
+import { apiRequest } from "../../utils/api.js";
+import { mockIssues, mockReportDetail } from "./mock.js";
 
 function delay(ms = 200) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-export async function fetchReports() {
-  await delay();
-  return [...mockReports];
+export async function fetchReports({ page = 0, size = 100 } = {}) {
+  const params = new URLSearchParams({
+    page: String(page),
+    size: String(size),
+  });
+  const response = await apiRequest(`/api/reports?${params.toString()}`);
+  return Array.isArray(response?.content) ? response.content : [];
 }
 
 export async function fetchRecentIssues() {
