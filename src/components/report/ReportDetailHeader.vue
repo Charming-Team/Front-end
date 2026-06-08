@@ -10,6 +10,14 @@ defineProps({
     type: Boolean,
     default: true,
   },
+  actionsDisabled: {
+    type: Boolean,
+    default: false,
+  },
+  executiveButtonLabel: {
+    type: String,
+    default: "비즈니스 보고서 생성",
+  },
 });
 
 const emit = defineEmits([
@@ -53,14 +61,16 @@ const emit = defineEmits([
           v-if="showExecutiveButton"
           variant="secondary"
           class="min-w-[150px]"
+          :disabled="actionsDisabled"
           @click="emit('create-executive')"
         >
-          비즈니스 보고서 생성
+          {{ executiveButtonLabel }}
         </AppButton>
 
         <AppButton
           variant="secondary"
           class="min-w-[110px]"
+          :disabled="actionsDisabled"
           @click="emit('export')"
         >
           내보내기
@@ -69,6 +79,7 @@ const emit = defineEmits([
         <AppButton
           variant="primary"
           class="min-w-[90px]"
+          :disabled="actionsDisabled"
           @click="emit('edit')"
         >
           수정
