@@ -68,6 +68,25 @@ function normalizePlan(plan = {}, context = {}) {
   }
 }
 
+function buildPlanQuery({ status = '', search = '', startAt = '', endAt = '', page = null, size = null } = {}) {
+  const params = new URLSearchParams()
+  if (status) params.set('status', status)
+  if (search?.trim()) params.set('search', search.trim())
+  if (startAt) params.set('startAt', startAt)
+  if (endAt) params.set('endAt', endAt)
+  if (page !== null && page !== undefined) params.set('page', String(page))
+  if (size !== null && size !== undefined) params.set('size', String(size))
+
+  const query = params.toString()
+  return `/api/plans${query ? `?${query}` : ''}`
+}
+
+function getPlanContent(response) {
+  if (Array.isArray(response)) return response
+  if (Array.isArray(response?.content)) return response.content
+  return []
+}
+
 function createOrderContext(orders = []) {
   const ordersById = new Map()
   const productsById = new Map()
@@ -212,10 +231,10 @@ function applyPlanPayload(plan, payload, lineId, recalculationRequired) {
 
 export async function fetchPlanList({ status = '', search = '', page = 1, pageSize = 15 } = {}) {
   const [plans, orderContext] = await Promise.all([
-    apiRequest('/api/plans'),
+    apiRequest(buildPlanQuery({ status, search, page: 0, size: 1000 })),
     fetchOrderContext(),
   ])
-  const filtered = (Array.isArray(plans) ? plans : [])
+  const filtered = getPlanContent(plans)
     .map(plan => normalizePlan(plan, orderContext))
     .filter(plan => matchesPlanFilters(plan, { status, search }))
 
@@ -224,12 +243,12 @@ export async function fetchPlanList({ status = '', search = '', page = 1, pageSi
   return { data, total, page, pageSize }
 }
 
-export async function fetchAllPlans({ status = '', search = '' } = {}) {
+export async function fetchAllPlans({ status = '', search = '', startAt = '', endAt = '' } = {}) {
   const [plans, orderContext] = await Promise.all([
-    apiRequest('/api/plans'),
+    apiRequest(buildPlanQuery({ status, search, startAt, endAt, page: 0, size: 1000 })),
     fetchOrderContext(),
   ])
-  const data = (Array.isArray(plans) ? plans : [])
+  const data = getPlanContent(plans)
     .map(plan => normalizePlan(plan, orderContext))
     .filter(plan => matchesPlanFilters(plan, { status, search }))
 
@@ -266,6 +285,20 @@ export async function updatePlan(planId, payload) {
 export async function movePlanSchedule(planId, payload) {
   return apiRequest(`/api/plans/${encodeURIComponent(planId)}/schedule`, {
     method: 'PATCH',
+    body: JSON.stringify(payload),
+  })
+}
+
+export async function generatePlanAiRecommendation(payload) {
+  return apiRequest('/api/plans/ai/generate', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+export async function saveSelectedPlanSimulation(payload) {
+  return apiRequest('/api/plans/simulations/selected', {
+    method: 'POST',
     body: JSON.stringify(payload),
   })
 }

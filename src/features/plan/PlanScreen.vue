@@ -1,6 +1,5 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
-import { RouterLink } from 'vue-router'
 import AppModal from '../../components/common/AppModal.vue'
 import PlanStatusBadge from '../../components/plan/PlanStatusBadge.vue'
 import { getUserRole } from '../../utils/storage.js'
@@ -81,6 +80,47 @@ function onBulkUploadFileChange(event) {
 function closeScheduleConflict() {
   store.closeScheduleConflict()
 }
+
+function formatNumber(value) {
+  const number = Number(value)
+  if (!Number.isFinite(number)) return '-'
+  return number.toLocaleString('ko-KR')
+}
+
+function formatDelayHours(value) {
+  const number = Number(value)
+  if (!Number.isFinite(number)) return '-'
+  return `${number.toLocaleString('ko-KR', { maximumFractionDigits: 1 })}시간`
+}
+
+function isDelayWorse(option) {
+  return Number(option?.delayChangeHr) < 0
+}
+
+function formatDelayChangeHours(option) {
+  const change = Number(option?.delayChangeHr)
+  if (!Number.isFinite(change)) return '-'
+  return formatDelayHours(Math.abs(change))
+}
+
+function formatRecommendationTitle(option) {
+  if (!option?.variantName) return 'AI 추천안'
+  if (option.variantName === 'Due-Date Optimal') return '납기 최적화 추천안'
+  if (option.variantName === 'Amount Optimal') return '금액 최적화 추천안'
+  return option.variantName
+}
+
+function getConflictPlanTitle(conflict) {
+  const plan = conflict?.movedPlan ?? conflict?.originalPlan
+  if (!plan) return '-'
+  return `${plan.productName ?? `계획 #${plan.planId}`} · ${plan.lineName ?? `라인 #${plan.lineId}`}`
+}
+
+function getConflictTargetSchedule(conflict) {
+  const plan = conflict?.movedPlan
+  if (!plan) return '-'
+  return `${formatDate(plan.plannedStartAt)} ~ ${formatDate(plan.plannedEndAt)}`
+}
 </script>
 
 <template>
@@ -117,27 +157,144 @@ function closeScheduleConflict() {
       title="AI 분석이 필요합니다"
       @close="closeScheduleConflict"
     >
-      <div class="space-y-3 text-[14px] leading-6 text-slate-700">
+      <div class="space-y-4 text-[14px] leading-6 text-slate-700">
         <p class="font-semibold text-slate-900">
           {{ store.scheduleConflict.value.message }}
         </p>
         <p>
           선택한 시간대에 이미 다른 생산계획이 있어 일정 이동이 저장되지 않았습니다.
-          AI 분석 API가 준비되면 이 충돌 상황을 기준으로 대안을 생성할 수 있습니다.
+          기존안을 유지하거나, AI 추천안을 생성한 뒤 선택한 대안을 실제 생산계획에 반영할 수 있습니다.
         </p>
+
+        <div class="rounded-[10px] border border-slate-200 bg-slate-50 p-3">
+          <div class="text-[12px] font-bold uppercase tracking-wide text-slate-500">이동 대상</div>
+          <div class="mt-1 font-bold text-slate-900">{{ getConflictPlanTitle(store.scheduleConflict.value) }}</div>
+          <div class="mt-1 text-[13px] text-slate-600">{{ getConflictTargetSchedule(store.scheduleConflict.value) }}</div>
+        </div>
+
+        <div
+          v-if="store.aiRecommendationLoading.value"
+          class="flex items-center gap-3 rounded-[10px] border border-blue-100 bg-blue-50 px-3 py-3 text-blue-800"
+        >
+          <div class="spinner h-4 w-4"></div>
+          <span class="font-semibold">AI 추천안을 생성하는 중입니다.</span>
+        </div>
+
+        <p
+          v-if="store.aiRecommendationError.value"
+          class="rounded-[10px] border border-red-100 bg-red-50 px-3 py-2 font-semibold text-red-600"
+        >
+          {{ store.aiRecommendationError.value }}
+        </p>
+
+        <div v-if="store.aiRecommendationOptions.value.length > 0" class="space-y-3">
+          <div class="rounded-[10px] border border-slate-200 bg-white p-3">
+            <div class="flex items-center justify-between gap-3">
+              <div>
+                <div class="font-extrabold text-slate-900">기존안</div>
+                <div class="mt-1 text-[13px] text-slate-500">충돌난 이동을 적용하지 않고 현재 캘린더 상태를 유지합니다.</div>
+              </div>
+              <span class="rounded-full bg-slate-100 px-3 py-1 text-[12px] font-bold text-slate-600">API 호출 없음</span>
+            </div>
+          </div>
+
+          <button
+            v-for="option in store.aiRecommendationOptions.value"
+            :key="option.variantCode"
+            type="button"
+            class="w-full rounded-[10px] border p-3 text-left transition"
+            :class="store.selectedAiVariantCode.value === option.variantCode
+              ? 'border-blue-500 bg-blue-50 shadow-sm'
+              : 'border-slate-200 bg-white hover:border-blue-200 hover:bg-slate-50'"
+            @click="store.selectAiRecommendation(option.variantCode)"
+          >
+            <div class="flex items-start justify-between gap-3">
+              <div>
+                <div class="font-extrabold text-slate-900">{{ formatRecommendationTitle(option) }}</div>
+                <div class="mt-1 text-[13px] font-semibold text-slate-500">
+                  {{ option.status }} · 계획 {{ formatNumber(option.plans.length) }}건
+                  <span v-if="option.unscheduledPlanIds.length > 0" class="text-red-600">
+                    · 미배정 {{ formatNumber(option.unscheduledPlanIds.length) }}건
+                  </span>
+                </div>
+              </div>
+              <span
+                class="rounded-full px-3 py-1 text-[12px] font-bold"
+                :class="option.unscheduledPlanIds.length > 0
+                  ? 'bg-red-100 text-red-700'
+                  : option.recommendationGrade === 'HIGH'
+                  ? 'bg-emerald-100 text-emerald-700'
+                  : option.recommendationGrade === 'LOW'
+                    ? 'bg-red-100 text-red-700'
+                    : 'bg-amber-100 text-amber-700'"
+              >
+                {{ option.unscheduledPlanIds.length > 0 ? '미배정' : option.recommendationGrade }}
+              </span>
+            </div>
+
+            <div class="mt-3 grid grid-cols-3 gap-2 text-center">
+              <div class="rounded-[8px] bg-white px-2 py-2">
+                <div class="text-[11px] font-bold text-slate-400">기존 지연</div>
+                <div class="mt-1 font-extrabold text-slate-900">{{ formatDelayHours(option.beforeDelayHr) }}</div>
+              </div>
+              <div class="rounded-[8px] bg-white px-2 py-2">
+                <div class="text-[11px] font-bold text-slate-400">추천 후</div>
+                <div class="mt-1 font-extrabold text-blue-700">{{ formatDelayHours(option.afterDelayHr) }}</div>
+              </div>
+              <div class="rounded-[8px] bg-white px-2 py-2">
+                <div class="text-[11px] font-bold text-slate-400">{{ isDelayWorse(option) ? '증가' : '감소' }}</div>
+                <div
+                  class="mt-1 font-extrabold"
+                  :class="isDelayWorse(option) ? 'text-red-600' : 'text-emerald-700'"
+                >
+                  {{ formatDelayChangeHours(option) }}
+                </div>
+              </div>
+            </div>
+
+            <p class="mt-3 text-[13px] font-semibold text-slate-700">
+              {{ option.summaryText }}
+            </p>
+            <ul v-if="option.reasons.length > 0" class="mt-2 list-disc space-y-1 pl-5 text-[13px] text-slate-600">
+              <li v-for="reason in option.reasons.slice(0, 2)" :key="reason">{{ reason }}</li>
+            </ul>
+            <p
+              v-if="option.unscheduledPlanIds.length > 0"
+              class="mt-3 rounded-[8px] border border-red-100 bg-red-50 px-3 py-2 text-[13px] font-bold text-red-700"
+            >
+              {{ option.unscheduledWarningText }}
+            </p>
+          </button>
+        </div>
       </div>
 
       <template #footer>
-        <div class="flex justify-end gap-2">
-          <AppButton variant="secondary" @click="closeScheduleConflict">닫기</AppButton>
-          <RouterLink
-            to="/ai/analysis"
-            class="inline-flex items-center justify-center rounded-[10px] bg-[var(--color-primary)] px-4 py-2 text-[14px] font-semibold text-white transition hover:brightness-110"
-            style="text-decoration: none;"
+        <div class="flex flex-wrap justify-end gap-2">
+          <AppButton
+            variant="secondary"
+            :disabled="store.aiRecommendationLoading.value || store.applyingAiRecommendation.value"
             @click="closeScheduleConflict"
           >
-            AI 분석으로 이동
-          </RouterLink>
+            기존안 유지
+          </AppButton>
+          <AppButton
+            v-if="store.aiRecommendationOptions.value.length === 0"
+            variant="primary"
+            :disabled="store.aiRecommendationLoading.value"
+            @click="store.generateScheduleAiRecommendation()"
+          >
+            {{ store.aiRecommendationLoading.value ? '분석 중...' : 'AI 분석하기' }}
+          </AppButton>
+          <AppButton
+            v-else
+            variant="primary"
+            :disabled="!store.selectedAiRecommendation.value
+              || store.applyingAiRecommendation.value
+              || store.selectedAiRecommendation.value.unscheduledPlanIds.length > 0"
+            @click="store.applySelectedAiRecommendation()"
+          >
+            {{ store.applyingAiRecommendation.value ? '반영 중...' : '선택 반영' }}
+          </AppButton>
         </div>
       </template>
     </AppModal>
