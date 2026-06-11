@@ -13,6 +13,7 @@ import ReportMailSendModal from "../../components/report/ReportMailSendModal.vue
 import ReportSummaryTable from "../../components/report/ReportSummaryTable.vue";
 import {
   createBusinessReport,
+  downloadReportPdf,
   fetchReportDetail,
   updateReport,
   waitForReportJobSuccess,
@@ -127,6 +128,32 @@ function closeExportModal() {
   isExportModalOpen.value = false;
 }
 
+function sanitizePdfFileName(value) {
+  const fallback = `report-${report.value?.id ?? "download"}.pdf`;
+  if (!value) return fallback;
+
+  const sanitized = value
+    .replace(/[\\/:*?"<>|]/g, "_")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if (!sanitized) return fallback;
+  return sanitized.toLowerCase().endsWith(".pdf") ? sanitized : `${sanitized}.pdf`;
+}
+
+function saveBlobAsFile(blob, filename) {
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement("a");
+
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+
+  window.URL.revokeObjectURL(url);
+}
+
 function openMailModal() {
   isExportModalOpen.value = false;
 
@@ -186,17 +213,27 @@ async function handleSaveReport(payload) {
 }
 
 async function handleDownloadPdf() {
+  if (!report.value?.id) return;
+
   isExportModalOpen.value = false;
   isProcessing.value = true;
   loadingTitle.value = "PDF를 생성하고 있습니다";
   loadingDescription.value = "보고서를 PDF 파일로 변환하는 중입니다.";
 
   try {
-    await new Promise((resolve) => setTimeout(resolve, 1200));
+    const response = await downloadReportPdf(report.value.id);
+    const filename = sanitizePdfFileName(response.filename || report.value.title);
+    saveBlobAsFile(response.blob, filename);
 
     showToast(
       "PDF 다운로드가 완료되었습니다",
-      "보고서 PDF 파일이 생성되었습니다."
+      `${filename} 파일이 생성되었습니다.`
+    );
+  } catch (error) {
+    showToast(
+      "PDF 다운로드에 실패했습니다",
+      error.message || "잠시 후 다시 시도해 주세요.",
+      "error"
     );
   } finally {
     isProcessing.value = false;

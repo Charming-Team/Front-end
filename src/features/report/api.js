@@ -1,4 +1,4 @@
-import { apiRequest } from "../../utils/api.js";
+import { apiFileRequest, apiRequest } from "../../utils/api.js";
 import { REPORT_TYPES } from "./constants.js";
 import { mockIssues } from "./mock.js";
 
@@ -47,6 +47,10 @@ export async function updateReport(reportId, payload) {
     method: "PATCH",
     body: JSON.stringify(payload),
   });
+}
+
+export async function downloadReportPdf(reportId) {
+  return apiFileRequest(`/api/reports/${encodeURIComponent(reportId)}/pdf`);
 }
 
 export async function createBusinessReport(reportId) {
