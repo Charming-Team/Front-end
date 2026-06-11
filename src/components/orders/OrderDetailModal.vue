@@ -91,7 +91,7 @@ const secondaryRows = computed(() => [
 
       <div class="summary-meta">
         <div v-if="order.priority" class="meta-chip">
-          <span class="meta-chip__label">우선순위</span>
+          <span class="meta-chip__label">생산 순서</span>
           <span class="priority-chip">{{ order.priority }}</span>
         </div>
         <p class="summary-text">{{ summaryText }}</p>
