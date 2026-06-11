@@ -15,6 +15,7 @@ import {
   createBusinessReport,
   downloadReportPdf,
   fetchReportDetail,
+  sendReportPdfMail,
   updateReport,
   waitForReportJobSuccess,
 } from "../../features/report/api.js";
@@ -175,6 +176,29 @@ ${report.value.title}를 공유드립니다.
   isMailModalOpen.value = true;
 }
 
+function handleAddMailRecipient(email) {
+  const normalizedEmail = email.trim().toLowerCase();
+  const existingRecipient = mailRecipients.value.find(
+    (recipient) => recipient.email.toLowerCase() === normalizedEmail
+  );
+
+  if (existingRecipient) {
+    if (!selectedRecipientIds.value.includes(existingRecipient.id)) {
+      selectedRecipientIds.value = [...selectedRecipientIds.value, existingRecipient.id];
+    }
+    return;
+  }
+
+  const recipient = {
+    id: `custom-${normalizedEmail}`,
+    name: "직접 입력",
+    email: normalizedEmail,
+  };
+
+  mailRecipients.value = [...mailRecipients.value, recipient];
+  selectedRecipientIds.value = [...selectedRecipientIds.value, recipient.id];
+}
+
 function closeMailModal() {
   if (isProcessing.value) return;
   isMailModalOpen.value = false;
@@ -241,25 +265,38 @@ async function handleDownloadPdf() {
 }
 
 async function handleSendMail() {
+  if (!report.value?.id) return;
+
   isMailModalOpen.value = false;
   isProcessing.value = true;
   loadingTitle.value = "메일을 발송하고 있습니다";
-  loadingDescription.value = "선택한 수신자에게 보고서 메일을 발송하는 중입니다.";
+  loadingDescription.value = "보고서 PDF를 생성해 선택한 수신자에게 발송하는 중입니다.";
 
   try {
-    await new Promise((resolve) => setTimeout(resolve, 1200));
-
     const selectedEmails = mailRecipients.value
       .filter((recipient) => selectedRecipientIds.value.includes(recipient.id))
       .map((recipient) => recipient.email);
 
-    console.log("메일 발송 대상:", selectedEmails);
-    console.log("메일 제목:", mailSubject.value);
-    console.log("메일 내용:", mailBody.value);
+    const response = await sendReportPdfMail(report.value.id, {
+      recipients: selectedEmails,
+      subject: mailSubject.value,
+      message: mailBody.value,
+    });
+
+    const sentCount = response.recipients?.length ?? selectedEmails.length;
+    const attachmentFileName = response.attachmentFileName;
 
     showToast(
       "메일 발송이 완료되었습니다",
-      `${selectedEmails.length}명에게 보고서 메일을 발송했습니다.`
+      attachmentFileName
+        ? `${sentCount}명에게 ${attachmentFileName} 파일을 발송했습니다.`
+        : `${sentCount}명에게 보고서 PDF를 발송했습니다.`
+    );
+  } catch (error) {
+    showToast(
+      "메일 발송에 실패했습니다",
+      error.message || "잠시 후 다시 시도해 주세요.",
+      "error"
     );
   } finally {
     isProcessing.value = false;
@@ -361,6 +398,7 @@ watch(
       @update:selected-recipient-ids="selectedRecipientIds = $event"
       @update:subject="mailSubject = $event"
       @update:body="mailBody = $event"
+      @add-recipient="handleAddMailRecipient"
       @close="closeMailModal"
       @send="handleSendMail"
     />

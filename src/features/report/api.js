@@ -53,6 +53,17 @@ export async function downloadReportPdf(reportId) {
   return apiFileRequest(`/api/reports/${encodeURIComponent(reportId)}/pdf`);
 }
 
+export async function sendReportPdfMail(reportId, payload) {
+  return apiRequest(`/api/reports/${encodeURIComponent(reportId)}/mail`, {
+    method: "POST",
+    body: JSON.stringify({
+      recipients: payload.recipients,
+      subject: payload.subject,
+      message: payload.message,
+    }),
+  });
+}
+
 export async function createBusinessReport(reportId) {
   return apiRequest("/api/reports/business", {
     method: "POST",
