@@ -18,9 +18,19 @@ const option = computed(() =>
 const alternative = computed(() => option.value?.alternative ?? {})
 const simulationMetrics = computed(() => alternative.value.simulation_metrics ?? alternative.value.simulationMetrics ?? {})
 const computedDeltas = computed(() => alternative.value.computed_deltas ?? alternative.value.computedDeltas ?? {})
-const baseline = computed(() => session.value.response?.simulation_response?.baseline ?? {})
+const simulationResponse = computed(() =>
+  session.value.response?.simulation_response ?? session.value.response?.simulationResponse ?? {}
+)
+const baseline = computed(() => simulationResponse.value.baseline ?? {})
 const baselineMetrics = computed(() =>
-  baseline.value.current_state_summary ?? baseline.value.simulation_metrics ?? {}
+  baseline.value.current_state_summary
+  ?? baseline.value.currentStateSummary
+  ?? baseline.value.simulation_metrics
+  ?? baseline.value.simulationMetrics
+  ?? {}
+)
+const baselinePlanValueAnalysis = computed(() =>
+  baseline.value.plan_value_analysis ?? baseline.value.planValueAnalysis ?? {}
 )
 const comparisonRows = computed(() =>
   alternative.value.simulation_comparison_table ?? alternative.value.simulationComparisonTable ?? []
@@ -38,6 +48,19 @@ const aiEvaluation = computed(() => alternative.value.ai_evaluation ?? alternati
 const aiRecommendation = computed(() =>
   aiEvaluation.value.ai_recommendation ?? aiEvaluation.value.aiRecommendation ?? {}
 )
+const alternativePlanValueAnalysis = computed(() =>
+  alternative.value.plan_value_analysis ?? alternative.value.planValueAnalysis ?? {}
+)
+const totalTardinessMinuteKeys = ['total_tardiness_minutes', 'totalTardinessMinutes']
+const delayedOrderDaysKeys = ['expected_delay_days', 'expectedDelayDays', 'delayed_orders_days', 'delayedOrdersDays']
+const delayRiskOrderCountKeys = [
+  'delay_risk_order_count',
+  'delayRiskOrderCount',
+  'expected_delayed_orders',
+  'expectedDelayedOrders',
+  'delayed_orders_days',
+  'delayedOrdersDays',
+]
 const reviewState = computed(() =>
   option.value?.reviewState ?? { level: 'RECOMMENDED', label: '반영 가능', message: '' }
 )
@@ -141,6 +164,147 @@ function metricValue(metrics, keys) {
   return pick(metrics, keys)
 }
 
+function delayedOrderDays(metrics) {
+  const totalTardinessMinutes = toNumber(metricValue(metrics, totalTardinessMinuteKeys))
+  if (totalTardinessMinutes !== null) return totalTardinessMinutes / 1440
+
+  return metricValue(metrics, delayedOrderDaysKeys)
+}
+
+function delayedOrderDaysChange() {
+  const baselineDays = toNumber(delayedOrderDays(baselineMetrics.value))
+  const alternativeDays = toNumber(delayedOrderDays(simulationMetrics.value))
+  if (baselineDays === null || alternativeDays === null) return null
+  return alternativeDays - baselineDays
+}
+
+function delayRiskOrderCount(metrics) {
+  return metricValue(metrics, delayRiskOrderCountKeys)
+}
+
+function delayRiskOrderChange() {
+  const baselineCount = toNumber(delayRiskOrderCount(baselineMetrics.value))
+  const alternativeCount = toNumber(delayRiskOrderCount(simulationMetrics.value))
+  if (baselineCount === null || alternativeCount === null) return null
+  return alternativeCount - baselineCount
+}
+
+function isDelayedScheduleRow(row = {}) {
+  const delayedFlag = pick(row, ['is_delayed', 'isDelayed', 'delayed', 'late'])
+  if (delayedFlag === true || delayedFlag === 'true') return true
+
+  const dayDelay = toNumber(pick(row, [
+    'after_delay_days',
+    'afterDelayDays',
+    'delivery_delay_days',
+    'deliveryDelayDays',
+    'expected_delay_days',
+    'expectedDelayDays',
+    'delay_days',
+    'delayDays',
+    'tardiness_days',
+    'tardinessDays',
+  ]))
+  if (dayDelay !== null && dayDelay > 0) return true
+
+  const minuteDelay = toNumber(pick(row, [
+    'after_delay_minutes',
+    'afterDelayMinutes',
+    'delivery_delay_minutes',
+    'deliveryDelayMinutes',
+    'expected_delay_minutes',
+    'expectedDelayMinutes',
+    'delay_minutes',
+    'delayMinutes',
+    'tardiness_minutes',
+    'tardinessMinutes',
+  ]))
+  if (minuteDelay !== null && minuteDelay > 0) return true
+
+  const status = String(pick(row, [
+    'after_delay_status',
+    'afterDelayStatus',
+    'delay_status',
+    'delayStatus',
+    'delay_status_change',
+    'delayStatusChange',
+  ], '')).trim()
+  if (!status) return false
+
+  const normalizedStatus = status.toUpperCase().replace(/[\s-]+/g, '_')
+  const fulfilledStatuses = new Set([
+    'SAME',
+    'RESOLVED',
+    'IMPROVED',
+    'ON_TIME',
+    'ONTIME',
+    'NORMAL',
+    'NO_DELAY',
+    'NOT_DELAYED',
+    'NONE',
+  ])
+  if (fulfilledStatuses.has(normalizedStatus)) return false
+
+  return normalizedStatus.includes('DELAY')
+    || normalizedStatus.includes('LATE')
+    || normalizedStatus.includes('OVERDUE')
+    || status.includes('지연')
+}
+
+function scheduleDeliveryFulfillmentRate(rows) {
+  if (!Array.isArray(rows) || rows.length === 0) return null
+  const delayedCount = rows.filter(isDelayedScheduleRow).length
+  return Math.round(((rows.length - delayedCount) / rows.length) * 10000) / 100
+}
+
+function deliveryFulfillmentRate(metrics, schedule = null) {
+  const scheduleRate = scheduleDeliveryFulfillmentRate(schedule)
+  if (scheduleRate !== null) return scheduleRate
+
+  const total = toNumber(metricValue(metrics, ['total_quantity_or_orders', 'totalQuantityOrOrders']))
+  const delayed = toNumber(metricValue(metrics, ['delayed_quantity_or_orders', 'delayedQuantityOrOrders']))
+  if (total !== null && delayed !== null && total > 0) {
+    return Math.round(((Math.max(total - delayed, 0) / total) * 100) * 100) / 100
+  }
+
+  const explicit = toNumber(metricValue(metrics, ['delivery_fulfillment_rate_percent', 'deliveryFulfillmentRatePercent']))
+  if (explicit !== null) return explicit
+
+  const riskOrderCount = toNumber(delayRiskOrderCount(metrics))
+  const delayDays = toNumber(delayedOrderDays(metrics))
+  if (riskOrderCount === 0 && delayDays === 0) return 100
+  return null
+}
+
+function baselineDeliveryFulfillmentRate() {
+  return deliveryFulfillmentRate(baselineMetrics.value)
+}
+
+function alternativeDeliveryFulfillmentRate() {
+  return deliveryFulfillmentRate(simulationMetrics.value, scheduleRows.value)
+}
+
+function deliveryFulfillmentRateChange() {
+  const baselineRate = toNumber(baselineDeliveryFulfillmentRate())
+  const alternativeRate = toNumber(alternativeDeliveryFulfillmentRate())
+  if (baselineRate === null || alternativeRate === null) return null
+  return alternativeRate - baselineRate
+}
+
+function contractPenaltyValue(planValueAnalysis) {
+  const contractTotal = toNumber(metricValue(planValueAnalysis, ['contract_total', 'contractTotal']))
+  const expectedPenaltyTotal = toNumber(metricValue(planValueAnalysis, ['expected_penalty_total', 'expectedPenaltyTotal']))
+  if (contractTotal === null || expectedPenaltyTotal === null) return null
+  return contractTotal - expectedPenaltyTotal
+}
+
+function contractPenaltyValueDelta() {
+  const baselineValue = contractPenaltyValue(baselinePlanValueAnalysis.value)
+  const alternativeValue = contractPenaltyValue(alternativePlanValueAnalysis.value)
+  if (baselineValue === null || alternativeValue === null) return null
+  return alternativeValue - baselineValue
+}
+
 function formatChange(value, suffix = '') {
   const number = toNumber(value)
   if (number === null) return '-'
@@ -148,11 +312,11 @@ function formatChange(value, suffix = '') {
   return `${sign}${formatNumber(number)}${suffix}`
 }
 
-function formatAmountSaving(value) {
+function formatAmountChange(value) {
   const number = toNumber(value)
   if (number === null) return '-'
   if (number === 0) return '변화 없음'
-  return `${formatCurrency(Math.abs(number))} ${number > 0 ? '절감' : '증가'}`
+  return `${formatCurrency(Math.abs(number))} ${number > 0 ? '증가' : '감소'}`
 }
 
 function getDeltaClass(value, positiveIsGood = true) {
@@ -297,22 +461,22 @@ function selectThisOption() {
                 <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 3v3M17 3v3M4 9h16M5 6h14a1 1 0 0 1 1 1v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a1 1 0 0 1 1-1z"/></svg>
               </div>
               <div>
-                <div class="text-[11px] font-semibold text-slate-500">예상 지연</div>
+                <div class="text-[11px] font-semibold text-slate-500">납기 지연일</div>
                 <div class="text-[17px] font-extrabold text-slate-900">
-                  {{ formatDays(metricValue(baselineMetrics, ['expected_delay_days', 'expectedDelayDays'])) }}
+                  {{ formatDays(delayedOrderDays(baselineMetrics)) }}
                   <span
                     :class="getMetricDirectionClass(
-                      metricValue(baselineMetrics, ['expected_delay_days', 'expectedDelayDays']),
-                      metricValue(simulationMetrics, ['expected_delay_days', 'expectedDelayDays']),
+                      delayedOrderDays(baselineMetrics),
+                      delayedOrderDays(simulationMetrics),
                       true
                     )"
-                  >→ {{ formatDays(metricValue(simulationMetrics, ['expected_delay_days', 'expectedDelayDays'])) }}</span>
+                  >→ {{ formatDays(delayedOrderDays(simulationMetrics)) }}</span>
                 </div>
                 <div
                   class="text-[11px] font-bold"
-                  :class="getDeltaClass(metricValue(computedDeltas, ['expected_delay_days_reduction', 'expectedDelayDaysReduction']))"
+                  :class="getDeltaClass(delayedOrderDaysChange(), false)"
                 >
-                  {{ formatChange(metricValue(computedDeltas, ['expected_delay_days_reduction', 'expectedDelayDaysReduction']), '일') }}
+                  {{ formatChange(delayedOrderDaysChange(), '일') }}
                 </div>
               </div>
             </div>
@@ -324,20 +488,20 @@ function selectThisOption() {
               <div>
                 <div class="text-[11px] font-semibold text-slate-500">지연 위험 주문</div>
                 <div class="text-[17px] font-extrabold text-slate-900">
-                  {{ formatNumber(metricValue(baselineMetrics, ['delay_risk_order_count', 'delayRiskOrderCount']), 0) }}건
+                  {{ formatNumber(delayRiskOrderCount(baselineMetrics), 0) }}건
                   <span
                     :class="getMetricDirectionClass(
-                      metricValue(baselineMetrics, ['delay_risk_order_count', 'delayRiskOrderCount']),
-                      metricValue(simulationMetrics, ['delay_risk_order_count', 'delayRiskOrderCount']),
+                      delayRiskOrderCount(baselineMetrics),
+                      delayRiskOrderCount(simulationMetrics),
                       true
                     )"
-                  >→ {{ formatNumber(metricValue(simulationMetrics, ['delay_risk_order_count', 'delayRiskOrderCount']), 0) }}건</span>
+                  >→ {{ formatNumber(delayRiskOrderCount(simulationMetrics), 0) }}건</span>
                 </div>
                 <div
                   class="text-[11px] font-bold"
-                  :class="getDeltaClass(metricValue(computedDeltas, ['delay_risk_order_reduction', 'delayRiskOrderReduction']))"
+                  :class="getDeltaClass(delayRiskOrderChange(), false)"
                 >
-                  {{ formatChange(metricValue(computedDeltas, ['delay_risk_order_reduction', 'delayRiskOrderReduction']), '건') }}
+                  {{ formatChange(delayRiskOrderChange(), '건') }}
                 </div>
               </div>
             </div>
@@ -349,20 +513,20 @@ function selectThisOption() {
               <div>
                 <div class="text-[11px] font-semibold text-slate-500">납기 충족률</div>
                 <div class="text-[17px] font-extrabold text-slate-900">
-                  {{ formatPercent(metricValue(baselineMetrics, ['delivery_fulfillment_rate_percent', 'deliveryFulfillmentRatePercent'])) }}
+                  {{ formatPercent(baselineDeliveryFulfillmentRate()) }}
                   <span
                     :class="getMetricDirectionClass(
-                      metricValue(baselineMetrics, ['delivery_fulfillment_rate_percent', 'deliveryFulfillmentRatePercent']),
-                      metricValue(simulationMetrics, ['delivery_fulfillment_rate_percent', 'deliveryFulfillmentRatePercent']),
+                      baselineDeliveryFulfillmentRate(),
+                      alternativeDeliveryFulfillmentRate(),
                       false
                     )"
-                  >→ {{ formatPercent(metricValue(simulationMetrics, ['delivery_fulfillment_rate_percent', 'deliveryFulfillmentRatePercent'])) }}</span>
+                  >→ {{ formatPercent(alternativeDeliveryFulfillmentRate()) }}</span>
                 </div>
                 <div
                   class="text-[11px] font-bold"
-                  :class="getDeltaClass(metricValue(computedDeltas, ['delivery_fulfillment_rate_delta_percent_points', 'deliveryFulfillmentRateDeltaPercentPoints']))"
+                  :class="getDeltaClass(deliveryFulfillmentRateChange())"
                 >
-                  {{ formatChange(metricValue(computedDeltas, ['delivery_fulfillment_rate_delta_percent_points', 'deliveryFulfillmentRateDeltaPercentPoints']), '%p') }}
+                  {{ formatChange(deliveryFulfillmentRateChange(), '%p') }}
                 </div>
               </div>
             </div>
@@ -374,20 +538,20 @@ function selectThisOption() {
               <div>
                 <div class="text-[11px] font-semibold text-slate-500">위험 비용</div>
                 <div class="text-[17px] font-extrabold text-slate-900">
-                  {{ formatCurrency(metricValue(baselineMetrics, ['total_risk_cost', 'totalRiskCost'])) }}
+                  {{ formatCurrency(contractPenaltyValue(baselinePlanValueAnalysis)) }}
                   <span
                     :class="getMetricDirectionClass(
-                      metricValue(baselineMetrics, ['total_risk_cost', 'totalRiskCost']),
-                      metricValue(simulationMetrics, ['total_risk_cost', 'totalRiskCost']),
-                      true
+                      contractPenaltyValue(baselinePlanValueAnalysis),
+                      contractPenaltyValue(alternativePlanValueAnalysis),
+                      false
                     )"
-                  >→ {{ formatCurrency(metricValue(simulationMetrics, ['total_risk_cost', 'totalRiskCost'])) }}</span>
+                  >→ {{ formatCurrency(contractPenaltyValue(alternativePlanValueAnalysis)) }}</span>
                 </div>
                 <div
                   class="text-[11px] font-bold"
-                  :class="getDeltaClass(metricValue(computedDeltas, ['risk_cost_saving_amount', 'riskCostSavingAmount']))"
+                  :class="getDeltaClass(contractPenaltyValueDelta())"
                 >
-                  {{ formatAmountSaving(metricValue(computedDeltas, ['risk_cost_saving_amount', 'riskCostSavingAmount'])) }}
+                  {{ formatAmountChange(contractPenaltyValueDelta()) }}
                 </div>
               </div>
             </div>
@@ -471,13 +635,13 @@ function selectThisOption() {
             <p class="mb-4 text-[12px] font-medium text-slate-500">현재 DB 생산계획을 기준으로 산출된 baseline 시뮬레이션 결과입니다.</p>
             <div class="mb-4 flex flex-wrap gap-2">
               <span class="rounded-[6px] bg-red-100 px-3 py-1.5 text-[12px] font-bold text-red-700">
-                예상 지연 <strong>{{ formatDays(metricValue(baselineMetrics, ['expected_delay_days', 'expectedDelayDays'])) }}</strong>
+                납기 지연일 <strong>{{ formatDays(delayedOrderDays(baselineMetrics)) }}</strong>
               </span>
               <span class="rounded-[6px] bg-amber-100 px-3 py-1.5 text-[12px] font-bold text-amber-700">
                 납기 미달 <strong>{{ formatPercent(metricValue(baselineMetrics, ['delivery_miss_rate_percent', 'deliveryMissRatePercent'])) }}</strong>
               </span>
               <span class="rounded-[6px] bg-red-100 px-3 py-1.5 text-[12px] font-bold text-red-700">
-                지연 위험 주문 <strong>{{ formatNumber(metricValue(baselineMetrics, ['delay_risk_order_count', 'delayRiskOrderCount']), 0) }}건</strong>
+                지연 위험 주문 <strong>{{ formatNumber(delayRiskOrderCount(baselineMetrics), 0) }}건</strong>
               </span>
               <span class="rounded-[6px] bg-emerald-100 px-3 py-1.5 text-[12px] font-bold text-emerald-700">
                 평균 가동률 <strong>{{ formatPercent(metricValue(baselineMetrics, ['avg_line_utilization_percent', 'avgLineUtilizationPercent'])) }}</strong>

@@ -16,9 +16,16 @@ const COLOR_MAP = {
 
 const options = computed(() => session.value.options ?? [])
 const diagnosticMessage = computed(() => session.value.diagnosticMessage ?? '')
-const baseline = computed(() => session.value.response?.simulation_response?.baseline ?? {})
+const simulationResponse = computed(() =>
+  session.value.response?.simulation_response ?? session.value.response?.simulationResponse ?? {}
+)
+const baseline = computed(() => simulationResponse.value.baseline ?? {})
 const baselineMetrics = computed(() =>
-  baseline.value.current_state_summary ?? baseline.value.simulation_metrics ?? {}
+  baseline.value.current_state_summary
+  ?? baseline.value.currentStateSummary
+  ?? baseline.value.simulation_metrics
+  ?? baseline.value.simulationMetrics
+  ?? {}
 )
 const AI_EVALUATION_FALLBACK_TEXT = 'AI 평가 문구를 생성하지 못했습니다. 정량 지표를 기준으로 확인해주세요.'
 
@@ -87,9 +94,9 @@ function getPlanStatusText(option = {}) {
 
 function getOptionSteps(option = {}) {
   const alternative = option.alternative ?? {}
-  const metrics = alternative.simulation_metrics ?? {}
-  const conditions = alternative.application_conditions ?? {}
-  const changes = alternative.selected_plan_change_schedule ?? []
+  const metrics = alternative.simulation_metrics ?? alternative.simulationMetrics ?? {}
+  const conditions = alternative.application_conditions ?? alternative.applicationConditions ?? {}
+  const changes = alternative.selected_plan_change_schedule ?? alternative.selectedPlanChangeSchedule ?? []
   const reasons = Array.isArray(option.reasons) ? option.reasons : []
 
   const steps = [
@@ -156,7 +163,14 @@ function iconPath(icon) {
           <div>
             <span class="text-[15px] font-bold text-emerald-800">AI 생산계획 대안이 생성되었습니다.</span>
             <p class="mt-0.5 text-[12px] font-semibold text-slate-500">
-              현재 계획 기준 지연 위험 {{ formatNumber(pick(baselineMetrics, ['delay_risk_order_count', 'delayRiskOrderCount'], 0), 0) }}건을 기준으로 비교합니다.
+              현재 계획 기준 지연 위험 {{ formatNumber(pick(baselineMetrics, [
+                'delay_risk_order_count',
+                'delayRiskOrderCount',
+                'expected_delayed_orders',
+                'expectedDelayedOrders',
+                'delayed_orders_days',
+                'delayedOrdersDays',
+              ], 0), 0) }}건을 기준으로 비교합니다.
             </p>
           </div>
         </div>
