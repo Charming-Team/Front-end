@@ -16,6 +16,7 @@ import {
   fetchReports,
   waitForReportJobSuccess,
 } from "../../features/report/api.js";
+import { REPORT_TYPES } from "../../features/report/constants.js";
 import {
   mapIssueForView,
   mapReportForView,
@@ -48,6 +49,7 @@ const pageSize = 10;
 
 const isCreateModalOpen = ref(false);
 const isCreating = ref(false);
+const creatingReportType = ref("");
 const toast = ref({
   show: false,
   title: "",
@@ -124,9 +126,11 @@ function showToast(title, message = "", type = "success") {
 async function handleCreateReport() {
   isCreateModalOpen.value = false;
   isCreating.value = true;
+  creatingReportType.value = REPORT_TYPES.ON_DEMAND;
 
   try {
     const jobStart = await createReport({
+      reportType: REPORT_TYPES.ON_DEMAND,
       startDate: startDate.value,
       endDate: endDate.value,
     });
@@ -142,6 +146,34 @@ async function handleCreateReport() {
     );
   } finally {
     isCreating.value = false;
+    creatingReportType.value = "";
+  }
+}
+
+async function handleCreateMonthlyReport() {
+  const period = getDefaultReportPeriod();
+  isCreating.value = true;
+  creatingReportType.value = REPORT_TYPES.MONTHLY;
+
+  try {
+    const jobStart = await createReport({
+      reportType: REPORT_TYPES.MONTHLY,
+      startDate: period.startDate,
+      endDate: period.endDate,
+    });
+    const completedJob = await waitForReportJobSuccess(jobStart.reportJobId);
+
+    await loadReportPageData();
+    router.push(`/reports/${completedJob.resultReportId}`);
+  } catch (error) {
+    showToast(
+      "월간 보고서 생성에 실패했습니다",
+      error.message || "잠시 후 다시 시도해 주세요.",
+      "error"
+    );
+  } finally {
+    isCreating.value = false;
+    creatingReportType.value = "";
   }
 }
 
@@ -192,7 +224,7 @@ onMounted(() => {
 
 <template>
   <div class="grid gap-[14px]">
-    <div class="grid grid-cols-[minmax(0,1fr)_180px] items-center gap-[14px] max-md:grid-cols-1">
+    <div class="grid grid-cols-[minmax(0,1fr)_180px_180px] items-center gap-[14px] max-md:grid-cols-1">
       <AppSearchField
         v-model="searchQuery"
         placeholder="보고서 유형, 제목, 작성자 (리스트에서 볼 수 있는 값만 검색 가능)"
@@ -206,7 +238,24 @@ onMounted(() => {
         :disabled="isCreating"
         @click="openCreateModal"
       >
-        {{ isCreating ? "생성 중..." : "보고서 생성하기" }}
+        {{
+          creatingReportType === REPORT_TYPES.ON_DEMAND
+            ? "생성 중..."
+            : "기간 보고서 생성"
+        }}
+      </AppButton>
+
+      <AppButton
+        variant="secondary"
+        class="h-11 text-[15px] font-extrabold max-md:w-full"
+        :disabled="isCreating"
+        @click="handleCreateMonthlyReport"
+      >
+        {{
+          creatingReportType === REPORT_TYPES.MONTHLY
+            ? "생성 중..."
+            : "월간 보고서 생성"
+        }}
       </AppButton>
     </div>
 

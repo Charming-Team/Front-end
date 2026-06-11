@@ -1,4 +1,5 @@
 import { apiRequest } from "../../utils/api.js";
+import { REPORT_TYPES } from "./constants.js";
 import { mockIssues } from "./mock.js";
 
 const REPORT_JOB_POLL_INTERVAL_MS = 1500;
@@ -26,7 +27,7 @@ export async function createReport(payload) {
   return apiRequest("/api/reports/generate", {
     method: "POST",
     body: JSON.stringify({
-      reportType: payload.reportType ?? "MONTHLY",
+      reportType: payload.reportType ?? REPORT_TYPES.ON_DEMAND,
       period: {
         startDate: payload.startDate,
         endDate: payload.endDate,
