@@ -42,6 +42,13 @@ export async function fetchReportDetail(reportId) {
   return apiRequest(`/api/reports/${encodeURIComponent(reportId)}`);
 }
 
+export async function updateReport(reportId, payload) {
+  return apiRequest(`/api/reports/${encodeURIComponent(reportId)}`, {
+    method: "PATCH",
+    body: JSON.stringify(payload),
+  });
+}
+
 export async function createBusinessReport(reportId) {
   return apiRequest("/api/reports/business", {
     method: "POST",

@@ -7,12 +7,14 @@ import AppLoadingOverlay from "../../components/common/AppLoadingOverlay.vue";
 import AppToast from "../../components/common/AppToast.vue";
 import ReportAnalysisContent from "../../components/report/ReportAnalysisContent.vue";
 import ReportDetailHeader from "../../components/report/ReportDetailHeader.vue";
+import ReportEditModal from "../../components/report/ReportEditModal.vue";
 import ReportExportModal from "../../components/report/ReportExportModal.vue";
 import ReportMailSendModal from "../../components/report/ReportMailSendModal.vue";
 import ReportSummaryTable from "../../components/report/ReportSummaryTable.vue";
 import {
   createBusinessReport,
   fetchReportDetail,
+  updateReport,
   waitForReportJobSuccess,
 } from "../../features/report/api.js";
 import { mapReportDetailForView } from "../../features/report/mapper.js";
@@ -25,6 +27,7 @@ const detailLoading = ref(false);
 const detailError = ref("");
 
 const isExportModalOpen = ref(false);
+const isEditModalOpen = ref(false);
 const isMailModalOpen = ref(false);
 const isProcessing = ref(false);
 
@@ -151,7 +154,35 @@ function closeMailModal() {
 }
 
 function handleEdit() {
-  console.log("보고서 수정");
+  isEditModalOpen.value = true;
+}
+
+function closeEditModal() {
+  if (isProcessing.value) return;
+  isEditModalOpen.value = false;
+}
+
+async function handleSaveReport(payload) {
+  if (!report.value?.id) return;
+
+  isProcessing.value = true;
+  loadingTitle.value = "보고서를 저장하고 있습니다";
+  loadingDescription.value = "수정한 보고서 내용을 저장하는 중입니다.";
+
+  try {
+    const response = await updateReport(report.value.id, payload);
+    report.value = mapReportDetailForView(response);
+    isEditModalOpen.value = false;
+    showToast("보고서가 수정되었습니다");
+  } catch (error) {
+    showToast(
+      "보고서 수정에 실패했습니다",
+      error.message || "잠시 후 다시 시도해 주세요.",
+      "error"
+    );
+  } finally {
+    isProcessing.value = false;
+  }
 }
 
 async function handleDownloadPdf() {
@@ -273,6 +304,14 @@ watch(
       @close="closeExportModal"
       @download-pdf="handleDownloadPdf"
       @open-mail="openMailModal"
+    />
+
+    <ReportEditModal
+      v-if="isEditModalOpen"
+      :report="report"
+      :loading="isProcessing"
+      @close="closeEditModal"
+      @save="handleSaveReport"
     />
 
     <ReportMailSendModal
