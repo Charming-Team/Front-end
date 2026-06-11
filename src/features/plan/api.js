@@ -296,6 +296,13 @@ export async function generatePlanAiRecommendation(payload) {
   })
 }
 
+export async function generateMonthlyPlanAiAnalysis(payload) {
+  return apiRequest('/api/plans/ai/monthly-analysis', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
 export async function saveSelectedPlanSimulation(payload) {
   return apiRequest('/api/plans/simulations/selected', {
     method: 'POST',

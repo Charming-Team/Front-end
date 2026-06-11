@@ -20,15 +20,22 @@ function loadRoutedPlanDetail(value) {
   if (planId) store.loadPlanDetail(planId)
 }
 
+function loadRoutedAiRecommendation(value) {
+  const variantCode = Array.isArray(value) ? value[0] : value
+  if (variantCode) store.restoreAiRecommendationFromSession(variantCode)
+}
+
 onMounted(async () => {
   await Promise.all([
     store.loadCalendarPlans(),
     store.loadLines(),
   ])
   loadRoutedPlanDetail(route.query.planId)
+  loadRoutedAiRecommendation(route.query.aiVariant)
 })
 
 watch(() => route.query.planId, loadRoutedPlanDetail)
+watch(() => route.query.aiVariant, loadRoutedAiRecommendation)
 </script>
 
 <template>

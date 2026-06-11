@@ -1,332 +1,578 @@
-<!--
-  [Screen] AI 분석 결과 — 대응안 상세 비교 화면
-  역할: route.query.id(1~4)로 선택된 대응안의 적용 조건·시뮬레이션 결과·현재 상태 비교·
-        리스크 해석·변경 일정을 순차적으로 표시합니다.
-  API 연동 시: SIM_ROWS·CMP_ROWS·SCHEDULE_ROWS 등 정적 데이터를 API 응답으로 교체할 예정입니다.
--->
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { loadAiSimulationSession } from './simulationSession.js'
 
 const route = useRoute()
 const router = useRouter()
+const session = ref(loadAiSimulationSession())
 
-const PLANS = {
-  1: { icon: 'gear', title: '공정 라인 추가 방안', desc: '가용 가능한 추가 생산라인을 투입하여 지연 주문의 생산량을 분산하고 납기 지연 위험을 줄이는 방안입니다.', recommended: true },
-  2: { icon: 'clock', title: '공정 시간 증가 방안', desc: '공급 부족 공정을 중심으로 가동 시간을 늘려 생산량을 확보하는 방안입니다.', recommended: false },
-  3: { icon: 'box', title: '자재 사용 증가 방안', desc: '추가 자재 확보 및 재고 최적화로 생산 차질을 예방하는 방안입니다.', recommended: false },
-  4: { icon: 'shield', title: '현재 상태 유지', desc: '현재 계획을 유지하며 변동 리스크를 최소화합니다.', recommended: false },
-}
-
-const planId = computed(() => Number(route.query.id) || 1)
-const plan = computed(() => PLANS[planId.value] ?? PLANS[1])
-
-function iconPath(icon) {
-  switch (icon) {
-    case 'gear':   return 'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z'
-    case 'clock':  return 'M12 7v5l3 3M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z'
-    case 'box':    return 'm12 3 7 4v10l-7 4-7-4V7l7-4zm0 0v18m7-14-7 4-7-4'
-    case 'shield': return 'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z'
-    default:       return ''
+const options = computed(() => session.value.options ?? [])
+const selectedVariantCode = computed(() => {
+  const raw = Array.isArray(route.query.variant) ? route.query.variant[0] : route.query.variant
+  return raw || session.value.selectedVariantCode || options.value[0]?.variantCode || ''
+})
+const option = computed(() =>
+  options.value.find(item => item.variantCode === selectedVariantCode.value) ?? options.value[0] ?? null
+)
+const alternative = computed(() => option.value?.alternative ?? {})
+const simulationMetrics = computed(() => alternative.value.simulation_metrics ?? alternative.value.simulationMetrics ?? {})
+const computedDeltas = computed(() => alternative.value.computed_deltas ?? alternative.value.computedDeltas ?? {})
+const baseline = computed(() => session.value.response?.simulation_response?.baseline ?? {})
+const baselineMetrics = computed(() =>
+  baseline.value.current_state_summary ?? baseline.value.simulation_metrics ?? {}
+)
+const comparisonRows = computed(() =>
+  alternative.value.simulation_comparison_table ?? alternative.value.simulationComparisonTable ?? []
+)
+const conditions = computed(() =>
+  alternative.value.application_conditions ?? alternative.value.applicationConditions ?? {}
+)
+const scheduleRows = computed(() =>
+  alternative.value.selected_plan_change_schedule ?? alternative.value.selectedPlanChangeSchedule ?? []
+)
+const importantEvents = computed(() =>
+  alternative.value.important_events ?? alternative.value.importantEvents ?? []
+)
+const aiEvaluation = computed(() => alternative.value.ai_evaluation ?? alternative.value.aiEvaluation ?? {})
+const aiRecommendation = computed(() =>
+  aiEvaluation.value.ai_recommendation ?? aiEvaluation.value.aiRecommendation ?? {}
+)
+const reviewState = computed(() =>
+  option.value?.reviewState ?? { level: 'RECOMMENDED', label: '반영 가능', message: '' }
+)
+const canApplyOption = computed(() =>
+  !['BLOCKED', 'NOT_RECOMMENDED', 'CAUTION'].includes(reviewState.value.level)
+)
+const applicationBlockMessage = computed(() =>
+  reviewState.value.message || '이 대응안은 바로 반영할 수 없습니다.'
+)
+const riskInterpretation = computed(() =>
+  aiEvaluation.value.risk_interpretation?.text
+  ?? aiEvaluation.value.riskInterpretation?.text
+  ?? 'AI 리스크 해석 데이터가 없습니다.'
+)
+const AI_EVALUATION_FALLBACK_TEXT = 'AI 평가 문구를 생성하지 못했습니다. 정량 지표를 기준으로 확인해주세요.'
+const summaryText = computed(() => {
+  if (!canApplyOption.value) {
+    return applicationBlockMessage.value
   }
+
+  const text = aiRecommendation.value.summary_text
+    ?? aiRecommendation.value.summaryText
+    ?? option.value?.summaryText
+    ?? ''
+  return isDisplayableAiText(text)
+    ? text
+    : '정량 지표와 변경 일정 기준으로 대응안을 확인해주세요.'
+})
+const recommendationReasons = computed(() => {
+  if (!canApplyOption.value) return []
+
+  const reasons = aiRecommendation.value.reasons ?? option.value?.reasons ?? []
+  return Array.isArray(reasons) ? reasons.filter(isDisplayableAiText) : []
+})
+
+function pick(source, keys, fallback = null) {
+  for (const key of keys) {
+    const value = source?.[key]
+    if (value !== null && value !== undefined && value !== '') return value
+  }
+  return fallback
 }
 
-const SIM_ROWS = [
-  { label: '예상 지연',      before: '2.0일', after: '0일',   change: '-100%',  positive: true  },
-  { label: '공급 부족 물량', before: '800kg', after: '0kg',   change: '-100%',  positive: true  },
-  { label: '납기 충족률',    before: '72%',   after: '100%',  change: '+28p',   positive: true  },
-  { label: '라인 가동률',    before: '78%',   after: '85%',   change: '+7%p',   positive: true  },
-  { label: '추가 운영비',    before: '-',     after: '+5.6%', change: '+5.6%',  positive: false },
-]
+function toNumber(value) {
+  if (value === null || value === undefined || value === '') return null
+  const number = Number(value)
+  return Number.isFinite(number) ? number : null
+}
 
-const CMP_ROWS = [
-  { label: '예상 지연일',      current: '2일',   applied: '0일',       change: '▼ 2일',    tone: 'green' },
-  { label: '납기 충족률',      current: '72%',   applied: '100%',      change: '▲ 28%p',   tone: 'green' },
-  { label: '공급 부족 물량',   current: '800kg', applied: '0kg',       change: '▼ 800kg',  tone: 'green' },
-  { label: '지연 위험 주문수', current: '200건', applied: '0건',       change: '▼ 200건',  tone: 'green' },
-  { label: '라인 가동률',      current: '81%',   applied: '98%',       change: '▲ 17%p',   tone: 'green' },
-  { label: '추가 운영비',      current: '없음',  applied: '180만원',   change: '▲ 5.6%p',  tone: 'amber' },
-  { label: '추천도',           current: '-',     applied: '매우 높음', change: '-',         tone: 'none'  },
-]
+function formatNumber(value, digits = 1) {
+  const number = toNumber(value)
+  if (number === null) return '-'
+  return number.toLocaleString('ko-KR', { maximumFractionDigits: digits })
+}
 
-const SCHEDULE_ROWS = [
-  { id: 'ORD-198', lineChange: 'LINE A → C', before: '2026/05/22 ~ 05/30', after: '2026/05/30 ~ 06/06' },
-  { id: 'ORD-199', lineChange: '-',           before: '2026/05/17 ~ 06/03', after: '2026/05/21 ~ 05/29' },
-  { id: 'ORD-200', lineChange: 'LINE B → A', before: '2026/05/09 ~ 05/22', after: '2026/05/13 ~ 05/18' },
-  { id: 'ORD-201', lineChange: '-',           before: '2026/05/17 ~ 06/03', after: '-' },
-]
+function formatPercent(value) {
+  const number = toNumber(value)
+  if (number === null) return '-'
+  return `${formatNumber(number)}%`
+}
 
-const changeBadgeClass = {
-  green: 'bg-emerald-100 text-emerald-700',
-  amber: 'bg-amber-100 text-amber-700',
-  none:  '',
+function formatDays(value) {
+  const number = toNumber(value)
+  if (number === null) return '-'
+  return `${formatNumber(number, 2)}일`
+}
+
+function formatCurrency(value) {
+  const number = toNumber(value)
+  if (number === null) return '-'
+  if (Math.abs(number) >= 10000) return `${formatNumber(number / 10000, 1)}만원`
+  return `${formatNumber(number, 0)}원`
+}
+
+function formatDateTime(value) {
+  if (!value) return '-'
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return String(value)
+  return date.toLocaleString('ko-KR', {
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  })
+}
+
+function formatVariantTitle(target = option.value) {
+  if (!target) return 'AI 대안'
+  if (target.variantName === 'Due-Date Optimal') return '납기 최적화 대안'
+  if (target.variantName === 'Amount Optimal') return '금액 최적화 대안'
+  return target.variantName || target.variantCode || 'AI 대안'
+}
+
+function isDisplayableAiText(value = '') {
+  if (!value || value === AI_EVALUATION_FALLBACK_TEXT) return false
+  return !/LLM output contains|not present in evidence|PlanningValidationError|Evaluation draft JSON schema is invalid|Final evaluation JSON schema is invalid|validation error for|Input should be|pydantic\.dev/i.test(String(value))
+}
+
+function metricValue(metrics, keys) {
+  return pick(metrics, keys)
+}
+
+function formatChange(value, suffix = '') {
+  const number = toNumber(value)
+  if (number === null) return '-'
+  const sign = number > 0 ? '+' : ''
+  return `${sign}${formatNumber(number)}${suffix}`
+}
+
+function formatAmountSaving(value) {
+  const number = toNumber(value)
+  if (number === null) return '-'
+  if (number === 0) return '변화 없음'
+  return `${formatCurrency(Math.abs(number))} ${number > 0 ? '절감' : '증가'}`
+}
+
+function getDeltaClass(value, positiveIsGood = true) {
+  const number = toNumber(value)
+  if (number === null || number === 0) return 'text-slate-600'
+  const improved = positiveIsGood ? number > 0 : number < 0
+  return improved ? 'text-emerald-600' : 'text-red-600'
+}
+
+function formatTableValue(row, key) {
+  const value = key === 'baseline_value'
+    ? (row?.baseline_value ?? row?.baselineValue)
+    : key === 'alternative_value'
+      ? (row?.alternative_value ?? row?.alternativeValue)
+      : row?.[key]
+  const unit = row?.unit
+  if (value === null || value === undefined || value === '') return '-'
+  if (unit === 'percent_point' || unit === 'percent') return `${formatNumber(value)}%`
+  if (unit === 'orders') return `${formatNumber(value, 0)}건`
+  if (unit === 'minutes') return `${formatNumber(Number(value) / 1440, 2)}일`
+  if (unit === 'days') return `${formatNumber(value, 2)}일`
+  return formatNumber(value)
+}
+
+function getRowChangeClass(row) {
+  const delta = toNumber(row?.delta)
+  if (delta === null || delta === 0) return 'text-slate-500'
+  return delta > 0 ? 'text-emerald-600' : 'text-red-600'
+}
+
+function getMetricDirectionClass(beforeValue, afterValue, lowerIsBetter = true) {
+  const before = toNumber(beforeValue)
+  const after = toNumber(afterValue)
+  if (before === null || after === null || before === after) return 'text-slate-600'
+  const improved = lowerIsBetter ? after < before : after > before
+  return improved ? 'text-emerald-600' : 'text-red-600'
+}
+
+function getReviewBadgeClass() {
+  if (reviewState.value.level === 'BLOCKED') return 'bg-red-100 text-red-700'
+  if (reviewState.value.level === 'NOT_RECOMMENDED') return 'bg-orange-100 text-orange-700'
+  if (reviewState.value.level === 'CAUTION') return 'bg-amber-100 text-amber-700'
+  return 'bg-emerald-100 text-emerald-700'
+}
+
+function getName(item, nameKeys, idKeys) {
+  const name = pick(item, nameKeys)
+  if (name) return name
+  const id = pick(item, idKeys)
+  return id == null ? '-' : `#${id}`
+}
+
+function joinNames(items, nameKeys, idKeys) {
+  if (!Array.isArray(items) || items.length === 0) return '-'
+  const names = items.slice(0, 4).map(item => getName(item, nameKeys, idKeys))
+  const suffix = items.length > names.length ? ` 외 ${items.length - names.length}건` : ''
+  return `${names.join(', ')}${suffix}`
+}
+
+function periodText(period = {}) {
+  const start = pick(period, ['start', 'planned_start_at', 'plannedStartAt'])
+  const end = pick(period, ['end', 'planned_end_at', 'plannedEndAt'])
+  if (!start && !end) return '-'
+  return `${formatDateTime(start)} ~ ${formatDateTime(end)}`
+}
+
+function selectThisOption() {
+  if (!option.value?.variantCode) {
+    router.push('/plan')
+    return
+  }
+
+  if (!canApplyOption.value) return
+
+  router.push({
+    path: '/plan',
+    query: { aiVariant: option.value.variantCode },
+  })
 }
 </script>
 
 <template>
   <div class="flex flex-col gap-4">
-
-    <!-- Back link -->
-    <div>
-      <AppButton variant="subtle" size="sm" @click="router.push('/ai/result')">
-        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M19 12H5M12 5l-7 7 7 7"/>
-        </svg>
-        대응안 목록으로 돌아가기
-      </AppButton>
-    </div>
-
-    <!-- Plan header card -->
-    <AppCard>
-      <div class="px-5 py-5 sm:px-6">
-        <div class="flex items-start justify-between gap-4">
-          <div class="flex items-center gap-4">
-            <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-emerald-100">
-              <svg class="h-6 w-6 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                <path :d="iconPath(plan.icon)" />
-              </svg>
-            </div>
-            <div>
-              <h2 class="text-[18px] font-extrabold tracking-[-0.02em] text-slate-900">{{ plan.title }}</h2>
-              <p class="mt-1 text-[13px] font-medium text-slate-500">{{ plan.desc }}</p>
-            </div>
-          </div>
-          <span v-if="plan.recommended" class="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-emerald-100 px-3 py-1 text-[13px] font-bold text-emerald-700">
-            <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 2l2.09 6.26L20 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l5.91-1.01z"/>
-            </svg>
-            권장 대응안
-          </span>
-        </div>
-
-        <!-- 4 Metric chips -->
-        <div class="mt-5 grid grid-cols-4 gap-3">
-          <div class="flex items-center gap-3 rounded-[10px] border border-slate-100 bg-slate-50 px-4 py-3">
-            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-100">
-              <svg class="h-5 w-5 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/>
-              </svg>
-            </div>
-            <div>
-              <div class="text-[11px] font-semibold text-slate-500">예상 지연</div>
-              <div class="text-[17px] font-extrabold text-slate-900">2.0일 <span class="text-emerald-600">→ 0일</span></div>
-              <div class="text-[11px] font-bold text-emerald-600">-2.0일 개선</div>
-            </div>
-          </div>
-          <div class="flex items-center gap-3 rounded-[10px] border border-slate-100 bg-slate-50 px-4 py-3">
-            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-100">
-              <svg class="h-5 w-5 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="m12 3 7 4v10l-7 4-7-4V7l7-4zm0 0v18m7-14-7 4-7-4"/>
-              </svg>
-            </div>
-            <div>
-              <div class="text-[11px] font-semibold text-slate-500">공급 부족 물량</div>
-              <div class="text-[17px] font-extrabold text-slate-900">800kg <span class="text-emerald-600">→ 0kg</span></div>
-              <div class="text-[11px] font-bold text-emerald-600">800kg 개선</div>
-            </div>
-          </div>
-          <div class="flex items-center gap-3 rounded-[10px] border border-slate-100 bg-slate-50 px-4 py-3">
-            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-orange-100">
-              <svg class="h-5 w-5 text-orange-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
-              </svg>
-            </div>
-            <div>
-              <div class="text-[11px] font-semibold text-slate-500">납기 충족률</div>
-              <div class="text-[17px] font-extrabold text-slate-900">72% <span class="text-emerald-600">→ 100%</span></div>
-              <div class="text-[11px] font-bold text-emerald-600">+28%p 개선</div>
-            </div>
-          </div>
-          <div class="flex items-center gap-3 rounded-[10px] border border-slate-100 bg-slate-50 px-4 py-3">
-            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-violet-100">
-              <svg class="h-5 w-5 text-violet-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 15h.01"/>
-              </svg>
-            </div>
-            <div>
-              <div class="text-[11px] font-semibold text-slate-500">추가 운영비</div>
-              <div class="text-[17px] font-extrabold text-amber-600">+5.6%</div>
-              <div class="text-[11px] font-bold text-slate-400">비용 증가</div>
-            </div>
-          </div>
+    <AppCard v-if="!option">
+      <div class="px-6 py-8 text-center">
+        <h2 class="text-[18px] font-extrabold text-slate-900">상세 시뮬레이션 결과가 없습니다.</h2>
+        <p class="mt-2 text-[13px] font-semibold text-slate-500">
+          생산계획 화면에서 AI 분석을 먼저 실행해주세요.
+        </p>
+        <div class="mt-5">
+          <AppButton variant="primary" @click="router.push('/plan')">생산계획으로 돌아가기</AppButton>
         </div>
       </div>
     </AppCard>
 
-    <!-- Section 1: 적용 조건 + 시뮬레이션 결과 비교 -->
-    <div class="grid grid-cols-2 gap-4">
-      <AppCard>
-        <div class="px-5 py-5">
-          <h3 class="mb-4 text-[15px] font-extrabold text-slate-900">적용 조건</h3>
-          <ul class="flex flex-col gap-3">
-            <li
-              v-for="(row, i) in [
-                { label: '추가 투입 가능 라인', value: 'Line C' },
-                { label: '대상 제품', value: '제품 A, B' },
-                { label: '적용 기간', value: '2025.05.20 ~ 2025.06.20' },
-                { label: '기존 스케줄 중복', value: '없음' },
-                { label: '필요 자원', value: '인력 2명, 설비 1대' },
-              ]"
-              :key="i"
-              class="flex items-center gap-2"
-            >
-              <svg class="h-4 w-4 shrink-0 text-emerald-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>
-              </svg>
-              <span class="text-[13px] font-semibold text-slate-700">{{ row.label }}</span>
-              <span class="ml-auto text-[13px] font-semibold text-slate-500">{{ row.value }}</span>
-            </li>
-          </ul>
-        </div>
-      </AppCard>
+    <template v-else>
+      <div>
+        <AppButton variant="subtle" size="sm" @click="router.push('/ai/result')">
+          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 12H5M12 5l-7 7 7 7"/>
+          </svg>
+          대응안 목록으로 돌아가기
+        </AppButton>
+      </div>
 
       <AppCard>
-        <div class="px-5 py-5">
-          <h3 class="mb-4 text-[15px] font-extrabold text-slate-900">시뮬레이션 결과 비교</h3>
-          <table class="w-full text-[13px]">
-            <thead>
-              <tr class="border-b border-slate-100">
-                <th class="pb-2 text-left font-semibold text-slate-500">항목</th>
-                <th class="pb-2 text-center font-semibold text-slate-500">기준 계획</th>
-                <th class="pb-2 text-center font-semibold text-slate-500">대응안 적용 후</th>
-                <th class="pb-2 text-center font-semibold text-slate-500">변화율</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="row in SIM_ROWS" :key="row.label" class="border-b border-slate-50">
-                <td class="py-2.5 font-medium text-slate-700">{{ row.label }}</td>
-                <td class="py-2.5 text-center font-medium text-slate-600">{{ row.before }}</td>
-                <td class="py-2.5 text-center font-semibold text-slate-900">{{ row.after }}</td>
-                <td class="py-2.5 text-center font-bold" :class="row.positive ? 'text-emerald-600' : 'text-amber-600'">{{ row.change }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </AppCard>
-    </div>
-
-    <!-- Section 2: 현재 상태 유지 시 + 대응안과 현재 상태 비교표 -->
-    <div class="grid grid-cols-2 gap-4">
-      <AppCard>
-        <div class="px-5 py-5">
-          <h3 class="mb-1 text-[15px] font-extrabold text-slate-900">현재 상태 유지 시</h3>
-          <p class="mb-4 text-[12px] font-medium text-slate-500">현재 생산계획과 자재 상황을 그대로 유지하는 기준 시뮬레이션 결과입니다.</p>
-          <p class="mb-2 text-[13px] font-bold text-slate-700">예상 결과</p>
-          <div class="mb-4 flex flex-wrap gap-2">
-            <span class="rounded-[6px] bg-red-100 px-3 py-1.5 text-[12px] font-bold text-red-700">예상 지연 <strong>2.0일</strong></span>
-            <span class="rounded-[6px] bg-amber-100 px-3 py-1.5 text-[12px] font-bold text-amber-700">납기 미충족 <strong>28%</strong></span>
-            <span class="rounded-[6px] bg-red-100 px-3 py-1.5 text-[12px] font-bold text-red-700">공급 부족 물량 <strong>800kg</strong></span>
-            <span class="rounded-[6px] bg-emerald-100 px-3 py-1.5 text-[12px] font-bold text-emerald-700">추가 운영비 <strong>없음</strong></span>
-          </div>
-          <p class="mb-1 text-[13px] font-bold text-slate-700">리스크 분석</p>
-          <p class="text-[12px] font-medium leading-5 text-slate-500">추가 조치를 하지 않을 경우 주요 주문의 납기 지연이 지속되며, 후속 주문에도 연쇄적인 영향이 발생할 가능성이 있습니다.</p>
-        </div>
-      </AppCard>
-
-      <AppCard>
-        <div class="px-5 py-5">
-          <h3 class="mb-4 text-[15px] font-extrabold text-slate-900">대응안과 현재 상태 비교표</h3>
-          <table class="w-full text-[12px]">
-            <thead>
-              <tr class="border-b border-slate-100">
-                <th class="pb-2 text-left font-semibold text-slate-500">비교 항목</th>
-                <th class="pb-2 text-center font-semibold text-slate-500">현재 상태 유지</th>
-                <th class="pb-2 text-center font-semibold text-slate-500">공정 라인 추가 시</th>
-                <th class="pb-2 text-center font-semibold text-slate-500">예상 변화</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="row in CMP_ROWS" :key="row.label" class="border-b border-slate-50">
-                <td class="py-2 font-medium text-slate-700">{{ row.label }}</td>
-                <td class="py-2 text-center font-medium text-slate-600">{{ row.current }}</td>
-                <td class="py-2 text-center font-semibold text-slate-900">{{ row.applied }}</td>
-                <td class="py-2 text-center">
-                  <span
-                    v-if="row.tone !== 'none'"
-                    class="inline-block rounded-[4px] px-2 py-0.5 text-[11px] font-bold"
-                    :class="changeBadgeClass[row.tone]"
-                  >{{ row.change }}</span>
-                  <span v-else class="text-slate-400">{{ row.change }}</span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </AppCard>
-    </div>
-
-    <!-- Section 3: 리스크 해석 + 선택 대응안 변경 일정 -->
-    <div class="grid grid-cols-2 gap-4">
-      <AppCard>
-        <div class="px-5 py-5">
-          <h3 class="mb-3 text-[15px] font-extrabold text-slate-900">리스크 해석</h3>
-          <p class="mb-4 text-[13px] font-medium leading-6 text-slate-600">
-            추가 조치를 하지 않을 경우 주요 주문의 납기 지연이 지속되며,<br>
-            후속 주문에도 연쇄적인 영향이 발생할 가능성이 있습니다.
-          </p>
-          <div class="rounded-[10px] border border-blue-100 bg-blue-50 px-4 py-3">
-            <div class="mb-1.5 flex items-center gap-2">
-              <svg class="h-4 w-4 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/>
-              </svg>
-              <span class="text-[13px] font-bold text-blue-800">AI 제안</span>
+        <div class="px-5 py-5 sm:px-6">
+          <div class="flex items-start justify-between gap-4">
+            <div class="flex items-center gap-4">
+              <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-emerald-100">
+                <svg class="h-6 w-6 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M6 20V10m6 10V4m6 16v-7" />
+                </svg>
+              </div>
+              <div>
+                <h2 class="text-[18px] font-extrabold tracking-[-0.02em] text-slate-900">{{ formatVariantTitle() }}</h2>
+                <p class="mt-1 text-[13px] font-medium text-slate-500">
+                  {{ summaryText }}
+                </p>
+              </div>
             </div>
-            <p class="text-[12px] font-medium leading-5 text-blue-700">
-              해당 대응안을 적용하면 납기 지연과 공급 부족 문제가 모두 해소되며,<br>
-              전반적인 생산 안정성이 크게 향상될 것으로 예상됩니다.
-            </p>
+            <span
+              class="inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1 text-[13px] font-bold"
+              :class="getReviewBadgeClass()"
+            >
+              {{ reviewState.label }}
+            </span>
+          </div>
+          <p
+            v-if="!canApplyOption"
+            class="mt-4 rounded-[10px] border px-4 py-3 text-[13px] font-bold"
+            :class="reviewState.level === 'BLOCKED'
+              ? 'border-red-100 bg-red-50 text-red-700'
+              : 'border-amber-100 bg-amber-50 text-amber-700'"
+          >
+            {{ applicationBlockMessage }}
+          </p>
+
+          <div class="mt-5 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+            <div class="flex items-center gap-3 rounded-[10px] border border-slate-100 bg-slate-50 px-4 py-3">
+              <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-600">
+                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 3v3M17 3v3M4 9h16M5 6h14a1 1 0 0 1 1 1v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a1 1 0 0 1 1-1z"/></svg>
+              </div>
+              <div>
+                <div class="text-[11px] font-semibold text-slate-500">예상 지연</div>
+                <div class="text-[17px] font-extrabold text-slate-900">
+                  {{ formatDays(metricValue(baselineMetrics, ['expected_delay_days', 'expectedDelayDays'])) }}
+                  <span
+                    :class="getMetricDirectionClass(
+                      metricValue(baselineMetrics, ['expected_delay_days', 'expectedDelayDays']),
+                      metricValue(simulationMetrics, ['expected_delay_days', 'expectedDelayDays']),
+                      true
+                    )"
+                  >→ {{ formatDays(metricValue(simulationMetrics, ['expected_delay_days', 'expectedDelayDays'])) }}</span>
+                </div>
+                <div
+                  class="text-[11px] font-bold"
+                  :class="getDeltaClass(metricValue(computedDeltas, ['expected_delay_days_reduction', 'expectedDelayDaysReduction']))"
+                >
+                  {{ formatChange(metricValue(computedDeltas, ['expected_delay_days_reduction', 'expectedDelayDaysReduction']), '일') }}
+                </div>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-3 rounded-[10px] border border-slate-100 bg-slate-50 px-4 py-3">
+              <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3 7 4v10l-7 4-7-4V7l7-4zm0 0v18m7-14-7 4-7-4"/></svg>
+              </div>
+              <div>
+                <div class="text-[11px] font-semibold text-slate-500">지연 위험 주문</div>
+                <div class="text-[17px] font-extrabold text-slate-900">
+                  {{ formatNumber(metricValue(baselineMetrics, ['delay_risk_order_count', 'delayRiskOrderCount']), 0) }}건
+                  <span
+                    :class="getMetricDirectionClass(
+                      metricValue(baselineMetrics, ['delay_risk_order_count', 'delayRiskOrderCount']),
+                      metricValue(simulationMetrics, ['delay_risk_order_count', 'delayRiskOrderCount']),
+                      true
+                    )"
+                  >→ {{ formatNumber(metricValue(simulationMetrics, ['delay_risk_order_count', 'delayRiskOrderCount']), 0) }}건</span>
+                </div>
+                <div
+                  class="text-[11px] font-bold"
+                  :class="getDeltaClass(metricValue(computedDeltas, ['delay_risk_order_reduction', 'delayRiskOrderReduction']))"
+                >
+                  {{ formatChange(metricValue(computedDeltas, ['delay_risk_order_reduction', 'delayRiskOrderReduction']), '건') }}
+                </div>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-3 rounded-[10px] border border-slate-100 bg-slate-50 px-4 py-3">
+              <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-orange-100 text-orange-500">
+                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+              </div>
+              <div>
+                <div class="text-[11px] font-semibold text-slate-500">납기 충족률</div>
+                <div class="text-[17px] font-extrabold text-slate-900">
+                  {{ formatPercent(metricValue(baselineMetrics, ['delivery_fulfillment_rate_percent', 'deliveryFulfillmentRatePercent'])) }}
+                  <span
+                    :class="getMetricDirectionClass(
+                      metricValue(baselineMetrics, ['delivery_fulfillment_rate_percent', 'deliveryFulfillmentRatePercent']),
+                      metricValue(simulationMetrics, ['delivery_fulfillment_rate_percent', 'deliveryFulfillmentRatePercent']),
+                      false
+                    )"
+                  >→ {{ formatPercent(metricValue(simulationMetrics, ['delivery_fulfillment_rate_percent', 'deliveryFulfillmentRatePercent'])) }}</span>
+                </div>
+                <div
+                  class="text-[11px] font-bold"
+                  :class="getDeltaClass(metricValue(computedDeltas, ['delivery_fulfillment_rate_delta_percent_points', 'deliveryFulfillmentRateDeltaPercentPoints']))"
+                >
+                  {{ formatChange(metricValue(computedDeltas, ['delivery_fulfillment_rate_delta_percent_points', 'deliveryFulfillmentRateDeltaPercentPoints']), '%p') }}
+                </div>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-3 rounded-[10px] border border-slate-100 bg-slate-50 px-4 py-3">
+              <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-violet-100 text-violet-600">
+                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+              </div>
+              <div>
+                <div class="text-[11px] font-semibold text-slate-500">위험 비용</div>
+                <div class="text-[17px] font-extrabold text-slate-900">
+                  {{ formatCurrency(metricValue(baselineMetrics, ['total_risk_cost', 'totalRiskCost'])) }}
+                  <span
+                    :class="getMetricDirectionClass(
+                      metricValue(baselineMetrics, ['total_risk_cost', 'totalRiskCost']),
+                      metricValue(simulationMetrics, ['total_risk_cost', 'totalRiskCost']),
+                      true
+                    )"
+                  >→ {{ formatCurrency(metricValue(simulationMetrics, ['total_risk_cost', 'totalRiskCost'])) }}</span>
+                </div>
+                <div
+                  class="text-[11px] font-bold"
+                  :class="getDeltaClass(metricValue(computedDeltas, ['risk_cost_saving_amount', 'riskCostSavingAmount']))"
+                >
+                  {{ formatAmountSaving(metricValue(computedDeltas, ['risk_cost_saving_amount', 'riskCostSavingAmount'])) }}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </AppCard>
+
+      <div class="grid grid-cols-1 gap-4 xl:grid-cols-2">
+        <AppCard>
+          <div class="px-5 py-5">
+            <h3 class="mb-4 text-[15px] font-extrabold text-slate-900">적용 조건</h3>
+            <ul class="flex flex-col gap-3">
+              <li class="flex items-start gap-2">
+                <span class="mt-0.5 h-4 w-4 rounded-full border-4 border-emerald-200 bg-emerald-500"></span>
+                <span class="text-[13px] font-semibold text-slate-700">적용 라인</span>
+                <span class="ml-auto max-w-[65%] text-right text-[13px] font-semibold text-slate-500">
+                  {{ joinNames(conditions.available_lines, ['line_name', 'lineName', 'line_code', 'lineCode'], ['line_id', 'lineId']) }}
+                </span>
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="mt-0.5 h-4 w-4 rounded-full border-4 border-emerald-200 bg-emerald-500"></span>
+                <span class="text-[13px] font-semibold text-slate-700">대상 제품</span>
+                <span class="ml-auto max-w-[65%] text-right text-[13px] font-semibold text-slate-500">
+                  {{ joinNames(conditions.target_products, ['product_name', 'productName', 'product_code', 'productCode'], ['product_id', 'productId']) }}
+                </span>
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="mt-0.5 h-4 w-4 rounded-full border-4 border-emerald-200 bg-emerald-500"></span>
+                <span class="text-[13px] font-semibold text-slate-700">적용 기간</span>
+                <span class="ml-auto max-w-[65%] text-right text-[13px] font-semibold text-slate-500">
+                  {{ periodText(conditions.applicable_period ?? conditions.applicablePeriod) }}
+                </span>
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="mt-0.5 h-4 w-4 rounded-full border-4 border-emerald-200 bg-emerald-500"></span>
+                <span class="text-[13px] font-semibold text-slate-700">변경 일정</span>
+                <span class="ml-auto text-[13px] font-semibold text-slate-500">{{ formatNumber(scheduleRows.length, 0) }}건</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="mt-0.5 h-4 w-4 rounded-full border-4 border-emerald-200 bg-emerald-500"></span>
+                <span class="text-[13px] font-semibold text-slate-700">변경되지 않은 겹침 계획</span>
+                <span class="ml-auto text-[13px] font-semibold text-slate-500">
+                  {{ formatNumber((conditions.unchanged_overlapping_orders ?? conditions.unchangedOverlappingOrders ?? []).length, 0) }}건
+                </span>
+              </li>
+            </ul>
+          </div>
+        </AppCard>
+
+        <AppCard>
+          <div class="px-5 py-5">
+            <h3 class="mb-4 text-[15px] font-extrabold text-slate-900">시뮬레이션 결과 비교</h3>
+            <table class="w-full text-[13px]">
+              <thead>
+                <tr class="border-b border-slate-100">
+                  <th class="pb-2 text-left font-semibold text-slate-500">항목</th>
+                  <th class="pb-2 text-center font-semibold text-slate-500">기준 계획</th>
+                  <th class="pb-2 text-center font-semibold text-slate-500">대응안 적용 후</th>
+                  <th class="pb-2 text-center font-semibold text-slate-500">변화</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="row in comparisonRows" :key="row.metric_code ?? row.metricCode" class="border-b border-slate-50">
+                  <td class="py-2.5 font-medium text-slate-700">{{ row.metric_name ?? row.metricName }}</td>
+                  <td class="py-2.5 text-center font-medium text-slate-600">{{ formatTableValue(row, 'baseline_value') }}</td>
+                  <td class="py-2.5 text-center font-semibold text-slate-900">{{ formatTableValue(row, 'alternative_value') }}</td>
+                  <td class="py-2.5 text-center font-bold" :class="getRowChangeClass(row)">
+                    {{ row.change_text ?? row.changeText ?? formatTableValue(row, 'delta') }}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </AppCard>
+      </div>
+
+      <div class="grid grid-cols-1 gap-4 xl:grid-cols-2">
+        <AppCard>
+          <div class="px-5 py-5">
+            <h3 class="mb-1 text-[15px] font-extrabold text-slate-900">현재 상태 유지 시</h3>
+            <p class="mb-4 text-[12px] font-medium text-slate-500">현재 DB 생산계획을 기준으로 산출된 baseline 시뮬레이션 결과입니다.</p>
+            <div class="mb-4 flex flex-wrap gap-2">
+              <span class="rounded-[6px] bg-red-100 px-3 py-1.5 text-[12px] font-bold text-red-700">
+                예상 지연 <strong>{{ formatDays(metricValue(baselineMetrics, ['expected_delay_days', 'expectedDelayDays'])) }}</strong>
+              </span>
+              <span class="rounded-[6px] bg-amber-100 px-3 py-1.5 text-[12px] font-bold text-amber-700">
+                납기 미달 <strong>{{ formatPercent(metricValue(baselineMetrics, ['delivery_miss_rate_percent', 'deliveryMissRatePercent'])) }}</strong>
+              </span>
+              <span class="rounded-[6px] bg-red-100 px-3 py-1.5 text-[12px] font-bold text-red-700">
+                지연 위험 주문 <strong>{{ formatNumber(metricValue(baselineMetrics, ['delay_risk_order_count', 'delayRiskOrderCount']), 0) }}건</strong>
+              </span>
+              <span class="rounded-[6px] bg-emerald-100 px-3 py-1.5 text-[12px] font-bold text-emerald-700">
+                평균 가동률 <strong>{{ formatPercent(metricValue(baselineMetrics, ['avg_line_utilization_percent', 'avgLineUtilizationPercent'])) }}</strong>
+              </span>
+            </div>
+            <p class="mb-1 text-[13px] font-bold text-slate-700">리스크 분석</p>
+            <p class="text-[12px] font-medium leading-5 text-slate-500">{{ riskInterpretation }}</p>
+          </div>
+        </AppCard>
+
+        <AppCard>
+          <div class="px-5 py-5">
+            <h3 class="mb-4 text-[15px] font-extrabold text-slate-900">주요 이벤트</h3>
+            <div v-if="importantEvents.length === 0" class="rounded-[10px] bg-slate-50 px-4 py-5 text-center text-[13px] font-semibold text-slate-500">
+              주요 이벤트가 없습니다.
+            </div>
+            <ul v-else class="space-y-2">
+              <li
+                v-for="(event, index) in importantEvents.slice(0, 5)"
+                :key="index"
+                class="rounded-[10px] border border-slate-100 bg-slate-50 px-3 py-2"
+              >
+                <div class="text-[13px] font-bold text-slate-800">
+                  {{ event.event ?? event.title ?? event.event_type ?? '이벤트' }}
+                </div>
+                <div class="mt-1 text-[12px] font-medium text-slate-500">
+                  발생 {{ formatNumber(event.occurrence_count ?? event.count ?? 0, 0) }}회 · {{ event.source ?? '-' }}
+                </div>
+              </li>
+            </ul>
+          </div>
+        </AppCard>
+      </div>
 
       <AppCard>
         <div class="px-5 py-5">
           <h3 class="mb-4 text-[15px] font-extrabold text-slate-900">선택 대응안 변경 일정</h3>
-          <table class="w-full text-[12px]">
-            <thead>
-              <tr class="border-b border-slate-100">
-                <th class="pb-2 text-left font-semibold text-slate-500">주문 ID</th>
-                <th class="pb-2 text-left font-semibold text-slate-500">생산 라인 변화</th>
-                <th class="pb-2 text-left font-semibold text-slate-500">변경 전 생산 스케줄</th>
-                <th class="pb-2 text-left font-semibold text-slate-500">변경 후 생산 스케줄</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="row in SCHEDULE_ROWS" :key="row.id" class="border-b border-slate-50">
-                <td class="py-2.5 font-semibold text-slate-800">{{ row.id }}</td>
-                <td class="py-2.5 font-medium text-slate-600">{{ row.lineChange }}</td>
-                <td class="py-2.5 font-medium text-slate-500">{{ row.before }}</td>
-                <td class="py-2.5 font-medium" :class="row.after === '-' ? 'text-slate-400' : 'text-slate-800'">{{ row.after }}</td>
-              </tr>
-            </tbody>
-          </table>
+          <div class="overflow-x-auto">
+            <table class="w-full min-w-[860px] text-[12px]">
+              <thead>
+                <tr class="border-b border-slate-100">
+                  <th class="pb-2 text-left font-semibold text-slate-500">주문 ID</th>
+                  <th class="pb-2 text-left font-semibold text-slate-500">계획 ID</th>
+                  <th class="pb-2 text-left font-semibold text-slate-500">생산 라인 변화</th>
+                  <th class="pb-2 text-left font-semibold text-slate-500">변경 전 생산 스케줄</th>
+                  <th class="pb-2 text-left font-semibold text-slate-500">변경 후 생산 스케줄</th>
+                  <th class="pb-2 text-left font-semibold text-slate-500">지연 상태</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(row, index) in scheduleRows" :key="`${row.plan_id ?? row.planId}-${index}`" class="border-b border-slate-50">
+                  <td class="py-2.5 font-semibold text-slate-800">{{ row.order_id ?? row.orderId ?? '-' }}</td>
+                  <td class="py-2.5 font-medium text-slate-600">{{ row.plan_id ?? row.planId ?? '-' }}</td>
+                  <td class="py-2.5 font-medium text-slate-600">{{ row.line_change ?? row.lineChange ?? '-' }}</td>
+                  <td class="py-2.5 font-medium text-slate-500">{{ row.before_schedule ?? row.beforeSchedule ?? '-' }}</td>
+                  <td class="py-2.5 font-medium text-slate-800">{{ row.after_schedule ?? row.afterSchedule ?? '-' }}</td>
+                  <td class="py-2.5 font-bold text-slate-700">{{ row.delay_status_change ?? row.delayStatusChange ?? '-' }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </AppCard>
-    </div>
 
-    <!-- AI 종합 평가 (최하단) -->
-    <AppCard>
-      <div class="flex items-center justify-between px-5 py-4">
-        <div class="flex items-start gap-3">
-          <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-100">
-            <svg class="h-5 w-5 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/>
-            </svg>
+      <AppCard>
+        <div class="flex flex-col gap-4 px-5 py-4 xl:flex-row xl:items-center xl:justify-between">
+          <div class="flex items-start gap-3">
+            <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-100">
+              <svg class="h-5 w-5 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/>
+              </svg>
+            </div>
+            <div>
+              <p class="text-[13px] font-bold text-slate-900">AI 종합 평가</p>
+              <p class="mt-0.5 text-[12px] font-medium leading-5 text-slate-500">
+                {{ summaryText }}
+              </p>
+              <ul v-if="recommendationReasons.length > 0" class="mt-2 list-disc space-y-1 pl-5 text-[12px] font-medium text-slate-500">
+                <li v-for="reason in recommendationReasons.slice(0, 3)" :key="reason">{{ reason }}</li>
+              </ul>
+            </div>
           </div>
-          <div>
-            <p class="text-[13px] font-bold text-slate-900">AI 종합 평가</p>
-            <p class="mt-0.5 text-[12px] font-medium text-slate-500">
-              추가 라인 투입 시 납기 지연이 해소되고, 납기 충족률이 28%p 개선됩니다.<br>
-              추가 비용 증가폭이 크지 않아 전반적으로 효과적인 대응안으로 평가됩니다.
-            </p>
+          <div class="flex shrink-0 items-center gap-2">
+            <AppButton variant="secondary" size="md" @click="router.push('/ai/result')">다른 대응안 비교하기</AppButton>
+            <AppButton
+              variant="primary"
+              size="md"
+              :disabled="!canApplyOption"
+              @click="selectThisOption"
+            >
+              {{ canApplyOption ? '이 대응안 선택하기' : '반영할 수 없음' }}
+            </AppButton>
           </div>
         </div>
-        <div class="ml-6 flex shrink-0 items-center gap-2">
-          <AppButton variant="secondary" size="md" @click="router.push('/ai/result')">다른 대응안 비교하기</AppButton>
-          <AppButton variant="primary" size="md" @click="router.push('/plan')">이 대응안 적용하기</AppButton>
-        </div>
-      </div>
-    </AppCard>
-
+      </AppCard>
+    </template>
   </div>
 </template>

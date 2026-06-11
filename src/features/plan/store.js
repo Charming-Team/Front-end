@@ -7,10 +7,17 @@ import {
   fetchPlanUpdateHistory,
   fetchAllPlans,
   generatePlanAiRecommendation,
+  generateMonthlyPlanAiAnalysis,
   saveSelectedPlanSimulation,
 } from './api.js'
+import {
+  loadAiSimulationSession,
+  saveAiSimulationSession,
+  updateAiSimulationSession,
+} from '../ai/simulationSession.js'
 
 const BLOCKED_MOVE_STATUSES = ['COMPLETED', 'CANCELLED']
+const AI_EVALUATION_FALLBACK_TEXT = 'AI 평가 문구를 생성하지 못했습니다. 정량 지표를 기준으로 확인해주세요.'
 
 function toDatetimeLocal(iso) {
   if (!iso) return ''
@@ -47,32 +54,22 @@ function shiftDate(isoStr, deltaDays) {
   return formatKstIso(date)
 }
 
-function getKstParts(value) {
-  const date = new Date(value)
-  const kstDate = new Date(date.getTime() + 9 * 60 * 60 * 1000)
-  return {
-    year: kstDate.getUTCFullYear(),
-    monthIndex: kstDate.getUTCMonth(),
+function getPlanningWindow(...plans) {
+  const timestamps = plans
+    .flatMap(plan => [plan?.plannedStartAt, plan?.plannedEndAt])
+    .map(value => new Date(value).getTime())
+    .filter(Number.isFinite)
+  if (timestamps.length === 0) {
+    const now = new Date()
+    return {
+      planningStart: formatKstIso(now),
+      planningEnd: formatKstIso(now),
+    }
   }
-}
-
-function formatKstMonthStart(year, monthIndex) {
-  const normalized = new Date(Date.UTC(year, monthIndex, 1))
-  const pad = n => String(n).padStart(2, '0')
-  return `${normalized.getUTCFullYear()}-${pad(normalized.getUTCMonth() + 1)}-01T00:00:00+09:00`
-}
-
-function getPlanningWindow(plan) {
-  const startParts = getKstParts(plan.plannedStartAt)
-  const endParts = getKstParts(plan.plannedEndAt)
-  const startIndex = startParts.year * 12 + startParts.monthIndex
-  const endIndex = endParts.year * 12 + endParts.monthIndex
-  const windowStartIndex = Math.min(startIndex, endIndex)
-  const windowEndIndex = Math.max(startIndex, endIndex) + 1
 
   return {
-    planningStart: formatKstMonthStart(Math.floor(windowStartIndex / 12), windowStartIndex % 12),
-    planningEnd: formatKstMonthStart(Math.floor(windowEndIndex / 12), windowEndIndex % 12),
+    planningStart: formatKstIso(new Date(Math.min(...timestamps))),
+    planningEnd: formatKstIso(new Date(Math.max(...timestamps))),
   }
 }
 
@@ -330,6 +327,47 @@ function getUnscheduledWarningText(option = {}) {
   return `미배정 생산계획 ${ids.length}건이 있어 바로 반영할 수 없습니다. 대상: ${preview}${suffix}`
 }
 
+function isInternalAiMessage(message = '') {
+  return /LLM output contains|not present in evidence|PlanningValidationError|Evaluation draft JSON schema is invalid|Final evaluation JSON schema is invalid|validation error for|Input should be|pydantic\.dev/i.test(String(message))
+}
+
+function sanitizeAiText(message, fallback = AI_EVALUATION_FALLBACK_TEXT) {
+  if (!message || message === AI_EVALUATION_FALLBACK_TEXT || isInternalAiMessage(message)) return fallback
+  return message
+}
+
+function getOptionReviewState({ unscheduledPlanIds, calculatedReduction }) {
+  if (unscheduledPlanIds.length > 0) {
+    return {
+      level: 'BLOCKED',
+      label: '반영 불가',
+      message: getUnscheduledWarningText({ unscheduledPlanIds }),
+    }
+  }
+
+  if (calculatedReduction < 0) {
+    return {
+      level: 'NOT_RECOMMENDED',
+      label: '반영 비추천',
+      message: '기존 계획보다 지연 시간이 증가해 바로 반영을 권장하지 않습니다.',
+    }
+  }
+
+  if (calculatedReduction === 0) {
+    return {
+      level: 'CAUTION',
+      label: '개선 없음',
+      message: '기존 계획 대비 지연 개선이 확인되지 않았습니다.',
+    }
+  }
+
+  return {
+    level: 'RECOMMENDED',
+    label: '반영 가능',
+    message: '',
+  }
+}
+
 function normalizeAiRecommendations(response) {
   const planningResponse = pick(response, ['planning_response', 'planningResponse'], {})
   const simulationResponse = pick(response, ['simulation_response', 'simulationResponse'], {})
@@ -353,6 +391,14 @@ function normalizeAiRecommendations(response) {
       : roundHours(beforeDelayHr - afterDelayHr)
     const delayReductionHr = Math.max(calculatedReduction, 0)
     const unscheduledPlanIds = normalizeUnscheduledPlanIds(candidate)
+    const reviewState = getOptionReviewState({ unscheduledPlanIds, calculatedReduction })
+    const summaryText = sanitizeAiText(
+      pick(aiRecommendation, ['summary_text', 'summaryText'], ''),
+      ''
+    )
+    const reasons = asArray(pick(aiRecommendation, ['reasons'], []))
+      .map(reason => sanitizeAiText(reason, ''))
+      .filter((reason, index, array) => reason && array.indexOf(reason) === index)
 
     return {
       variantCode,
@@ -361,9 +407,10 @@ function normalizeAiRecommendations(response) {
       plans: asArray(pick(candidate, ['plans'], [])),
       unscheduledPlanIds,
       unscheduledWarningText: getUnscheduledWarningText({ unscheduledPlanIds }),
+      reviewState,
       alternative,
-      summaryText: pick(aiRecommendation, ['summary_text', 'summaryText'], 'AI 추천안을 생성했습니다.'),
-      reasons: asArray(pick(aiRecommendation, ['reasons'], [])),
+      summaryText,
+      reasons,
       beforeDelayHr,
       afterDelayHr,
       delayChangeHr: calculatedReduction,
@@ -378,6 +425,49 @@ function normalizeAiRecommendations(response) {
       costChangeAmount: pick(computedDeltas, ['risk_cost_saving_amount', 'riskCostSavingAmount']),
     }
   })
+}
+
+function filterSchedulableAiRecommendations(options = []) {
+  return options.filter(option => option.unscheduledPlanIds.length === 0)
+}
+
+function resolveAiRecommendationDisplayOptions(options = []) {
+  const schedulableOptions = filterSchedulableAiRecommendations(options)
+  if (schedulableOptions.length > 0) {
+    return {
+      options: schedulableOptions,
+      diagnosticMessage: '',
+    }
+  }
+
+  const unscheduledIds = [
+    ...new Set(
+      options
+        .flatMap(option => option.unscheduledPlanIds)
+        .filter(value => value !== null && value !== undefined)
+    ),
+  ]
+  const preview = unscheduledIds.slice(0, 8).join(', ')
+  const suffix = unscheduledIds.length > 8 ? ` 외 ${unscheduledIds.length - 8}건` : ''
+
+  return {
+    options,
+    diagnosticMessage: options.length === 0
+      ? ''
+      : `반영 가능한 대안은 없어서 미배정 대안을 진단용으로 표시합니다. 미배정 대상: ${preview}${suffix}`,
+  }
+}
+
+function serializeScheduleConflict(conflict = {}) {
+  if (!conflict) return null
+
+  return {
+    planId: conflict.planId ?? null,
+    message: conflict.message ?? '',
+    originalPlan: conflict.originalPlan ?? null,
+    movedPlan: conflict.movedPlan ?? null,
+    payload: conflict.payload ?? null,
+  }
 }
 
 function buildSelectedSimulationPayload(option, planIdToPlan = new Map(), allPlans = []) {
@@ -412,7 +502,7 @@ function buildSelectedSimulationPayload(option, planIdToPlan = new Map(), allPla
   const plans = assignConflictFreePlanSequences(selectedPlans, allPlans)
 
   return {
-    simulationName: option.variantName || 'AI 생산계획 추천안',
+    simulationName: option.variantName || 'AI 생산계획 대안',
     planVariantCode: option.variantCode,
     actionResult,
     beforeTotalDelayHr: option.beforeDelayHr,
@@ -456,7 +546,7 @@ function validateSelectedSimulationPayload(payload) {
 
   const first = overlaps[0]
   throw new Error(
-    `AI 추천안 내부에 같은 라인 일정 겹침이 있습니다. 라인 ${first.lineId}: `
+    `AI 대안 내부에 같은 라인 일정 겹침이 있습니다. 라인 ${first.lineId}: `
     + `${formatPlanConflictLabel(first.left)} / ${formatPlanConflictLabel(first.right)}`
   )
 }
@@ -699,7 +789,7 @@ export function usePlanStore() {
       calendarDraftPlans.value = previousDraftPlans
 
       if (e.code === '409-601') {
-        const planningWindow = getPlanningWindow(movedPlan)
+        const planningWindow = getPlanningWindow(plan, movedPlan)
         scheduleConflict.value = {
           planId,
           message: e.message ?? '해당 라인에 중복된 생산계획이 있습니다. AI 분석이 필요합니다.',
@@ -770,6 +860,7 @@ export function usePlanStore() {
 
   function selectAiRecommendation(variantCode) {
     selectedAiVariantCode.value = variantCode
+    updateAiSimulationSession({ selectedVariantCode: variantCode })
   }
 
   function getPlanIdToPlanMap(extraPlans = []) {
@@ -802,20 +893,87 @@ export function usePlanStore() {
 
     try {
       const response = await generatePlanAiRecommendation(conflict.payload)
-      const options = normalizeAiRecommendations(response)
+      const { options, diagnosticMessage } = resolveAiRecommendationDisplayOptions(
+        normalizeAiRecommendations(response)
+      )
       if (options.length === 0) {
-        throw new Error('AI 추천안이 없습니다.')
+        throw new Error('AI 대안이 없습니다.')
       }
 
       aiRecommendationOptions.value = options
       selectedAiVariantCode.value = (
         options.find(option => option.unscheduledPlanIds.length === 0) ?? options[0]
       ).variantCode
+      saveAiSimulationSession({
+        response,
+        options,
+        conflict: serializeScheduleConflict(conflict),
+        selectedVariantCode: selectedAiVariantCode.value,
+        diagnosticMessage,
+      })
+      return true
     } catch (e) {
-      aiRecommendationError.value = e.message ?? 'AI 추천안을 생성하지 못했습니다.'
+      aiRecommendationError.value = e.message ?? 'AI 대안을 생성하지 못했습니다.'
+      return false
     } finally {
       aiRecommendationLoading.value = false
     }
+  }
+
+  async function generateMonthlyAiRecommendation(payload) {
+    aiRecommendationLoading.value = true
+    aiRecommendationError.value = null
+    aiRecommendationOptions.value = []
+    selectedAiVariantCode.value = ''
+    scheduleConflict.value = null
+
+    try {
+      const response = await generateMonthlyPlanAiAnalysis(payload)
+      const { options, diagnosticMessage } = resolveAiRecommendationDisplayOptions(
+        normalizeAiRecommendations(response)
+      )
+      if (options.length === 0) {
+        throw new Error('AI 대안이 없습니다.')
+      }
+
+      aiRecommendationOptions.value = options
+      selectedAiVariantCode.value = (
+        options.find(option => option.unscheduledPlanIds.length === 0) ?? options[0]
+      ).variantCode
+      saveAiSimulationSession({
+        response,
+        options,
+        conflict: null,
+        selectedVariantCode: selectedAiVariantCode.value,
+        diagnosticMessage,
+      })
+      return true
+    } catch (e) {
+      aiRecommendationError.value = e.message ?? '월간 AI 분석을 생성하지 못했습니다.'
+      return false
+    } finally {
+      aiRecommendationLoading.value = false
+    }
+  }
+
+  function restoreAiRecommendationFromSession(variantCode = '') {
+    const session = loadAiSimulationSession()
+    if (!session.options.length) return false
+
+    aiRecommendationOptions.value = session.options
+    selectedAiVariantCode.value = variantCode || session.selectedVariantCode || session.options[0]?.variantCode || ''
+    aiRecommendationError.value = null
+    aiRecommendationLoading.value = false
+    applyingAiRecommendation.value = false
+
+    if (session.conflict?.payload) {
+      scheduleConflict.value = {
+        ...session.conflict,
+        message: session.conflict.message || 'AI 대안 상세를 확인한 뒤 선택한 대안을 반영할 수 있습니다.',
+      }
+    }
+
+    return true
   }
 
   async function applySelectedAiRecommendation() {
@@ -825,7 +983,13 @@ export function usePlanStore() {
 
     if (option.unscheduledPlanIds?.length > 0) {
       aiRecommendationError.value = option.unscheduledWarningText
-        || '미배정 생산계획이 있는 추천안은 바로 반영할 수 없습니다.'
+        || '미배정 생산계획이 있는 대안은 바로 반영할 수 없습니다.'
+      return
+    }
+
+    if (option.reviewState?.level === 'NOT_RECOMMENDED' || option.reviewState?.level === 'CAUTION') {
+      aiRecommendationError.value = option.reviewState.message
+        || '기존 계획 대비 개선이 확인되지 않아 바로 반영할 수 없습니다.'
       return
     }
 
@@ -870,7 +1034,7 @@ export function usePlanStore() {
           payload: selectedSimulationPayload,
         })
       }
-      aiRecommendationError.value = e.message ?? 'AI 추천안 반영에 실패했습니다.'
+      aiRecommendationError.value = e.message ?? 'AI 대안 반영에 실패했습니다.'
     } finally {
       applyingAiRecommendation.value = false
     }
@@ -885,7 +1049,9 @@ export function usePlanStore() {
     filters,
     loadCalendarPlans, applyFilters,
     enterCalendarEditMode, movePlan, previewPlanMove, clearPlanMovePreview, completeCalendarEdit,
-    closeScheduleConflict, generateScheduleAiRecommendation, selectAiRecommendation, applySelectedAiRecommendation,
+    closeScheduleConflict, generateScheduleAiRecommendation, generateMonthlyAiRecommendation,
+    selectAiRecommendation, applySelectedAiRecommendation,
+    restoreAiRecommendationFromSession,
     // detail
     selectedPlan, detailLoading, detailError,
     loadPlanDetail, clearSelectedPlan,

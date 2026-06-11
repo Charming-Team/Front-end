@@ -1,5 +1,6 @@
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import AppModal from '../../components/common/AppModal.vue'
 import PlanStatusBadge from '../../components/plan/PlanStatusBadge.vue'
 import { getUserRole } from '../../utils/storage.js'
@@ -11,6 +12,7 @@ const props = defineProps({
 })
 
 const store = props.store
+const router = useRouter()
 const {
   statusOptions,
   status,
@@ -32,9 +34,6 @@ const canEdit = computed(() =>
   && !!store.selectedPlan.value
   && !NON_EDITABLE.includes(store.selectedPlan.value.planStatus)
 )
-const bulkUploadOpen = ref(false)
-const bulkUploadFileName = ref('')
-
 watch(() => store.selectedPlan.value?.planId, id => {
   if (id != null) store.loadUpdateHistory(id)
 })
@@ -62,21 +61,6 @@ function onSubmitUpdate() {
   store.submitUpdate()
 }
 
-function openBulkUpload() {
-  if (!canManagePlans.value) return
-  bulkUploadOpen.value = true
-}
-
-function closeBulkUpload() {
-  bulkUploadOpen.value = false
-  bulkUploadFileName.value = ''
-}
-
-function onBulkUploadFileChange(event) {
-  const file = event.target.files?.[0]
-  bulkUploadFileName.value = file?.name ?? ''
-}
-
 function closeScheduleConflict() {
   store.closeScheduleConflict()
 }
@@ -97,6 +81,38 @@ function isDelayWorse(option) {
   return Number(option?.delayChangeHr) < 0
 }
 
+function canApplyAiOption(option) {
+  return !['BLOCKED', 'NOT_RECOMMENDED', 'CAUTION'].includes(option?.reviewState?.level)
+}
+
+function getReviewLabel(option) {
+  return option?.reviewState?.label || (option?.unscheduledPlanIds?.length > 0 ? '반영 불가' : option?.recommendationGrade)
+}
+
+function getReviewBadgeClass(option) {
+  const level = option?.reviewState?.level
+  if (level === 'BLOCKED') return 'bg-red-100 text-red-700'
+  if (level === 'NOT_RECOMMENDED') return 'bg-orange-100 text-orange-700'
+  if (level === 'CAUTION') return 'bg-amber-100 text-amber-700'
+  if (option?.recommendationGrade === 'HIGH') return 'bg-emerald-100 text-emerald-700'
+  return 'bg-amber-100 text-amber-700'
+}
+
+function isDisplayableAiText(value = '') {
+  if (!value || value === 'AI 평가 문구를 생성하지 못했습니다. 정량 지표를 기준으로 확인해주세요.') return false
+  return !/LLM output contains|not present in evidence|PlanningValidationError|Evaluation draft JSON schema is invalid|Final evaluation JSON schema is invalid|validation error for|Input should be|pydantic\.dev/i.test(String(value))
+}
+
+function getOptionSummaryText(option) {
+  return isDisplayableAiText(option?.summaryText)
+    ? option.summaryText
+    : '정량 지표와 변경 일정 기준으로 대응안을 확인해주세요.'
+}
+
+function getOptionReasons(option) {
+  return Array.isArray(option?.reasons) ? option.reasons.filter(isDisplayableAiText) : []
+}
+
 function formatDelayChangeHours(option) {
   const change = Number(option?.delayChangeHr)
   if (!Number.isFinite(change)) return '-'
@@ -104,9 +120,9 @@ function formatDelayChangeHours(option) {
 }
 
 function formatRecommendationTitle(option) {
-  if (!option?.variantName) return 'AI 추천안'
-  if (option.variantName === 'Due-Date Optimal') return '납기 최적화 추천안'
-  if (option.variantName === 'Amount Optimal') return '금액 최적화 추천안'
+  if (!option?.variantName) return 'AI 대안'
+  if (option.variantName === 'Due-Date Optimal') return '납기 최적화 대안'
+  if (option.variantName === 'Amount Optimal') return '금액 최적화 대안'
   return option.variantName
 }
 
@@ -120,6 +136,25 @@ function getConflictTargetSchedule(conflict) {
   const plan = conflict?.movedPlan
   if (!plan) return '-'
   return `${formatDate(plan.plannedStartAt)} ~ ${formatDate(plan.plannedEndAt)}`
+}
+
+function openAiRecommendationDetail(option) {
+  if (!option?.variantCode) return
+  store.selectAiRecommendation(option.variantCode)
+  router.push({
+    path: '/ai/detail',
+    query: { variant: option.variantCode },
+  })
+}
+
+async function runAiRecommendationAnalysis() {
+  const generated = await store.generateScheduleAiRecommendation()
+  if (generated) router.push('/ai/result')
+}
+
+async function runMonthlyAiAnalysis(payload) {
+  const generated = await store.generateMonthlyAiRecommendation(payload)
+  if (generated) router.push('/ai/result')
 }
 </script>
 
@@ -140,17 +175,25 @@ function getConflictTargetSchedule(conflict) {
       :calendar-saving="store.calendarSaving.value"
       :calendar-save-error="store.calendarSaveError.value ?? ''"
       :can-manage-plans="canManagePlans"
+      :ai-analysis-loading="store.aiRecommendationLoading.value"
       @retry="store.loadCalendarPlans()"
       @search="submitSearch"
       @status-change="applyStatusFilter"
       @select-plan="plan => store.loadPlanDetail(plan.planId)"
       @enter-calendar-edit="store.enterCalendarEditMode()"
       @complete-calendar-edit="store.completeCalendarEdit()"
-      @open-bulk-upload="openBulkUpload"
+      @run-monthly-ai-analysis="runMonthlyAiAnalysis"
       @move-plan="({ planId, deltaDays, revert }) => store.movePlan(planId, deltaDays, revert)"
       @preview-plan-move="({ planId, deltaDays }) => store.previewPlanMove(planId, deltaDays)"
       @clear-plan-move-preview="store.clearPlanMovePreview()"
     />
+
+    <div
+      v-if="!store.scheduleConflict.value && store.aiRecommendationError.value"
+      class="mt-3 rounded-[10px] border border-red-100 bg-red-50 px-4 py-3 text-[13px] font-semibold text-red-700"
+    >
+      {{ store.aiRecommendationError.value }}
+    </div>
 
     <AppModal
       v-if="store.scheduleConflict.value"
@@ -163,7 +206,7 @@ function getConflictTargetSchedule(conflict) {
         </p>
         <p>
           선택한 시간대에 이미 다른 생산계획이 있어 일정 이동이 저장되지 않았습니다.
-          기존안을 유지하거나, AI 추천안을 생성한 뒤 선택한 대안을 실제 생산계획에 반영할 수 있습니다.
+          기존안을 유지하거나, AI 대안을 생성한 뒤 선택한 대안을 실제 생산계획에 반영할 수 있습니다.
         </p>
 
         <div class="rounded-[10px] border border-slate-200 bg-slate-50 p-3">
@@ -177,7 +220,7 @@ function getConflictTargetSchedule(conflict) {
           class="flex items-center gap-3 rounded-[10px] border border-blue-100 bg-blue-50 px-3 py-3 text-blue-800"
         >
           <div class="spinner h-4 w-4"></div>
-          <span class="font-semibold">AI 추천안을 생성하는 중입니다.</span>
+          <span class="font-semibold">AI 대안을 생성하는 중입니다.</span>
         </div>
 
         <p
@@ -198,15 +241,17 @@ function getConflictTargetSchedule(conflict) {
             </div>
           </div>
 
-          <button
+          <div
             v-for="option in store.aiRecommendationOptions.value"
             :key="option.variantCode"
-            type="button"
+            role="button"
+            tabindex="0"
             class="w-full rounded-[10px] border p-3 text-left transition"
             :class="store.selectedAiVariantCode.value === option.variantCode
               ? 'border-blue-500 bg-blue-50 shadow-sm'
               : 'border-slate-200 bg-white hover:border-blue-200 hover:bg-slate-50'"
             @click="store.selectAiRecommendation(option.variantCode)"
+            @keydown.enter.prevent="store.selectAiRecommendation(option.variantCode)"
           >
             <div class="flex items-start justify-between gap-3">
               <div>
@@ -220,15 +265,9 @@ function getConflictTargetSchedule(conflict) {
               </div>
               <span
                 class="rounded-full px-3 py-1 text-[12px] font-bold"
-                :class="option.unscheduledPlanIds.length > 0
-                  ? 'bg-red-100 text-red-700'
-                  : option.recommendationGrade === 'HIGH'
-                  ? 'bg-emerald-100 text-emerald-700'
-                  : option.recommendationGrade === 'LOW'
-                    ? 'bg-red-100 text-red-700'
-                    : 'bg-amber-100 text-amber-700'"
+                :class="getReviewBadgeClass(option)"
               >
-                {{ option.unscheduledPlanIds.length > 0 ? '미배정' : option.recommendationGrade }}
+                {{ getReviewLabel(option) }}
               </span>
             </div>
 
@@ -238,7 +277,7 @@ function getConflictTargetSchedule(conflict) {
                 <div class="mt-1 font-extrabold text-slate-900">{{ formatDelayHours(option.beforeDelayHr) }}</div>
               </div>
               <div class="rounded-[8px] bg-white px-2 py-2">
-                <div class="text-[11px] font-bold text-slate-400">추천 후</div>
+                <div class="text-[11px] font-bold text-slate-400">대안 후</div>
                 <div class="mt-1 font-extrabold text-blue-700">{{ formatDelayHours(option.afterDelayHr) }}</div>
               </div>
               <div class="rounded-[8px] bg-white px-2 py-2">
@@ -253,18 +292,30 @@ function getConflictTargetSchedule(conflict) {
             </div>
 
             <p class="mt-3 text-[13px] font-semibold text-slate-700">
-              {{ option.summaryText }}
+              {{ getOptionSummaryText(option) }}
             </p>
-            <ul v-if="option.reasons.length > 0" class="mt-2 list-disc space-y-1 pl-5 text-[13px] text-slate-600">
-              <li v-for="reason in option.reasons.slice(0, 2)" :key="reason">{{ reason }}</li>
+            <ul v-if="getOptionReasons(option).length > 0" class="mt-2 list-disc space-y-1 pl-5 text-[13px] text-slate-600">
+              <li v-for="reason in getOptionReasons(option).slice(0, 2)" :key="reason">{{ reason }}</li>
             </ul>
             <p
-              v-if="option.unscheduledPlanIds.length > 0"
-              class="mt-3 rounded-[8px] border border-red-100 bg-red-50 px-3 py-2 text-[13px] font-bold text-red-700"
+              v-if="option.reviewState?.message"
+              class="mt-3 rounded-[8px] border px-3 py-2 text-[13px] font-bold"
+              :class="option.reviewState.level === 'BLOCKED'
+                ? 'border-red-100 bg-red-50 text-red-700'
+                : 'border-amber-100 bg-amber-50 text-amber-700'"
             >
-              {{ option.unscheduledWarningText }}
+              {{ option.reviewState.message }}
             </p>
-          </button>
+            <div class="mt-3 flex justify-end">
+              <AppButton
+                variant="secondary"
+                size="sm"
+                @click.stop="openAiRecommendationDetail(option)"
+              >
+                자세히 보기
+              </AppButton>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -281,7 +332,7 @@ function getConflictTargetSchedule(conflict) {
             v-if="store.aiRecommendationOptions.value.length === 0"
             variant="primary"
             :disabled="store.aiRecommendationLoading.value"
-            @click="store.generateScheduleAiRecommendation()"
+            @click="runAiRecommendationAnalysis"
           >
             {{ store.aiRecommendationLoading.value ? '분석 중...' : 'AI 분석하기' }}
           </AppButton>
@@ -290,7 +341,7 @@ function getConflictTargetSchedule(conflict) {
             variant="primary"
             :disabled="!store.selectedAiRecommendation.value
               || store.applyingAiRecommendation.value
-              || store.selectedAiRecommendation.value.unscheduledPlanIds.length > 0"
+              || !canApplyAiOption(store.selectedAiRecommendation.value)"
             @click="store.applySelectedAiRecommendation()"
           >
             {{ store.applyingAiRecommendation.value ? '반영 중...' : '선택 반영' }}
@@ -298,61 +349,6 @@ function getConflictTargetSchedule(conflict) {
         </div>
       </template>
     </AppModal>
-
-    <Transition name="fade">
-      <div v-if="bulkUploadOpen" class="bulk-upload-backdrop" @click="closeBulkUpload" />
-    </Transition>
-
-    <Transition name="bulk-upload">
-      <div
-        v-if="bulkUploadOpen"
-        class="bulk-upload-panel"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="bulk-upload-title"
-      >
-        <AppCard>
-          <div class="bulk-upload-header">
-            <div>
-              <h2 id="bulk-upload-title">생산계획 일괄 등록</h2>
-              <p>파일을 선택하면 일괄 등록 준비가 완료됩니다.</p>
-            </div>
-            <button class="close-btn" type="button" aria-label="닫기" @click="closeBulkUpload">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
-                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-              </svg>
-            </button>
-          </div>
-
-          <div class="bulk-upload-body">
-            <label class="bulk-upload-dropzone" for="plan-bulk-upload-file">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M12 16V4"/>
-                <path d="M7 9l5-5 5 5"/>
-                <path d="M20 16.5V19a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2.5"/>
-              </svg>
-              <span class="bulk-upload-main-text">파일 선택</span>
-              <span class="bulk-upload-sub-text">CSV, XLS, XLSX 파일을 업로드할 수 있습니다.</span>
-              <input
-                id="plan-bulk-upload-file"
-                type="file"
-                accept=".csv,.xls,.xlsx"
-                @change="onBulkUploadFileChange"
-              />
-            </label>
-
-            <div v-if="bulkUploadFileName" class="bulk-upload-selected">
-              선택된 파일: <strong>{{ bulkUploadFileName }}</strong>
-            </div>
-
-            <div class="bulk-upload-actions">
-              <AppButton variant="secondary" @click="closeBulkUpload">닫기</AppButton>
-              <AppButton variant="primary" :disabled="!bulkUploadFileName">업로드</AppButton>
-            </div>
-          </div>
-        </AppCard>
-      </div>
-    </Transition>
 
     <Transition name="drawer">
       <aside v-if="store.selectedPlan.value || store.detailLoading.value" class="detail-drawer">
