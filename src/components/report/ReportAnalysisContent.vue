@@ -14,7 +14,7 @@ defineProps({
     </h2>
 
     <div class="grid gap-7 text-[15px] font-semibold leading-8 text-[#31527c]">
-      <p>
+      <p v-if="analysis.overview">
         {{ analysis.overview }}
       </p>
 
@@ -36,7 +36,7 @@ defineProps({
         </ul>
       </div>
 
-      <div>
+      <div v-if="analysis.recommendation">
         <h3 class="mb-2 text-[16px] font-black text-[#0f3a70]">
           종합 의견 및 제안
         </h3>

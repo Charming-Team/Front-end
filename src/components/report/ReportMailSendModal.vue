@@ -28,6 +28,7 @@ const props = defineProps({
 
 const emit = defineEmits([
   "close",
+  "add-recipient",
   "update:selectedRecipientIds",
   "update:subject",
   "update:body",
@@ -50,6 +51,16 @@ const filteredRecipients = computed(() => {
 
 const selectedCount = computed(() => props.selectedRecipientIds.length);
 
+const canAddEmail = computed(() => {
+  const email = searchKeyword.value.trim().toLowerCase();
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  return (
+    emailPattern.test(email) &&
+    !props.recipients.some((recipient) => recipient.email.toLowerCase() === email)
+  );
+});
+
 const canSend = computed(() => {
   return (
     selectedCount.value > 0 &&
@@ -69,6 +80,13 @@ function toggleRecipient(id) {
     : [...props.selectedRecipientIds, id];
 
   emit("update:selectedRecipientIds", next);
+}
+
+function addEmailRecipient() {
+  if (!canAddEmail.value) return;
+
+  emit("add-recipient", searchKeyword.value.trim().toLowerCase());
+  searchKeyword.value = "";
 }
 </script>
 
@@ -95,6 +113,15 @@ function toggleRecipient(id) {
           />
           <span class="text-xl text-[#173967]">⌕</span>
         </div>
+
+        <button
+          v-if="canAddEmail"
+          type="button"
+          class="w-fit rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-[13px] font-black text-[#0b4ea2] transition hover:border-[#0b4ea2] hover:bg-blue-100"
+          @click="addEmailRecipient"
+        >
+          {{ searchKeyword.trim().toLowerCase() }} 추가
+        </button>
 
         <div class="mt-2 flex items-center justify-between">
           <span class="text-[14px] font-black text-[#0f3a70]">
@@ -176,8 +203,8 @@ function toggleRecipient(id) {
 
       <div class="rounded-xl border border-blue-100 bg-blue-50 px-4 py-3">
         <p class="text-[13px] font-semibold leading-5 text-[#31527c]">
-          선택한 이메일 주소로 보고서 링크가 발송됩니다.
-          수신자는 로그인 후 보고서를 열람할 수 있습니다.
+          선택한 이메일 주소로 보고서 PDF 파일이 첨부 발송됩니다.
+          최신 저장 버전 기준으로 PDF가 생성됩니다.
         </p>
       </div>
     </div>

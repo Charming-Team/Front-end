@@ -87,11 +87,11 @@ function onProductionStartDateInput(event) {
       </label>
       <label>
         <span>생산 담당자</span>
-        <input v-model="form.productionManager" type="text" placeholder="윤정원" />
+        <input v-model="form.productionManager" type="text" placeholder="신작업" />
       </label>
       <label>
         <span>고객사 담당자</span>
-        <input v-model="form.customerManager" type="text" placeholder="배난수" />
+        <input v-model="form.customerManager" type="text" placeholder="박고객" />
       </label>
       <label>
         <span>계약 금액</span>

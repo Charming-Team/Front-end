@@ -1,8 +1,9 @@
 <script setup>
 import { computed, onMounted, ref, watch } from "vue";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import OrderAddModal from "../../components/orders/OrderAddModal.vue";
 import OrderDetailModal from "../../components/orders/OrderDetailModal.vue";
+import OrderPostSaveModal from "../../components/orders/OrderPostSaveModal.vue";
 import OrderSearchCard from "../../components/orders/OrderSearchCard.vue";
 import OrderTableSection from "../../components/orders/OrderTableSection.vue";
 import { getUserRole } from "../../utils/storage.js";
@@ -29,6 +30,7 @@ import {
 } from "./utils.js";
 
 const route = useRoute();
+const router = useRouter();
 const orders = ref([]);
 const pageSize = ref("10");
 const currentPage = ref(1);
@@ -52,10 +54,12 @@ const selectedStartDate = ref("");
 const selectedEndDate = ref("");
 
 const isAddModalOpen = ref(false);
+const isPostSaveModalOpen = ref(false);
 const addForm = ref(createDefaultOrderForm());
 const nextOrderNo = ref("");
 const addLoading = ref(false);
 const addError = ref("");
+const lastCreatedOrder = ref(null);
 const selectedOrder = ref(null);
 const detailLoading = ref(false);
 const detailError = ref("");
@@ -166,6 +170,7 @@ function resetFilters() {
 }
 
 async function openAddModal() {
+  isPostSaveModalOpen.value = false;
   addForm.value = createDefaultOrderForm();
   nextOrderNo.value = "";
   addError.value = "";
@@ -188,6 +193,37 @@ function closeAddModal() {
   isAddModalOpen.value = false;
 }
 
+function closePostSaveModal() {
+  isPostSaveModalOpen.value = false;
+}
+
+function buildRiskReviewQuery() {
+  const createdOrder = lastCreatedOrder.value ?? {};
+  const orderId = createdOrder.orderId || createdOrder.id || createdOrder.orderNo || nextOrderNo.value;
+  const query = {
+    source: "order-create",
+  };
+
+  if (orderId) {
+    query.orderId = String(orderId);
+  }
+
+  return query;
+}
+
+async function handleAddMoreAfterSave() {
+  closePostSaveModal();
+  await openAddModal();
+}
+
+async function proceedToAiScheduleReview() {
+  closePostSaveModal();
+  await router.push({
+    path: "/risk",
+    query: buildRiskReviewQuery(),
+  });
+}
+
 async function saveOrder(form) {
   const validationMessage = validateOrderForm(form);
   if (validationMessage) {
@@ -199,10 +235,14 @@ async function saveOrder(form) {
   addError.value = "";
 
   try {
-    await createOrder(buildOrderCreatePayload(form));
+    const createdOrder = await createOrder(buildOrderCreatePayload(form));
+    lastCreatedOrder.value = createdOrder ?? {
+      orderNo: form.orderNo || nextOrderNo.value,
+    };
     isAddModalOpen.value = false;
     currentPage.value = 1;
     await loadOrders();
+    isPostSaveModalOpen.value = true;
   } catch (err) {
     addError.value = err.message || "주문 등록에 실패했습니다.";
   } finally {
@@ -363,6 +403,12 @@ onMounted(async () => {
       :error="detailError"
       @retry="retryDetail"
       @close="closeDetailModal"
+    />
+
+    <OrderPostSaveModal
+      v-if="isPostSaveModalOpen"
+      @add-more="handleAddMoreAfterSave"
+      @proceed="proceedToAiScheduleReview"
     />
   </div>
 </template>
