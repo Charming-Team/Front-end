@@ -20,7 +20,7 @@ const TASK_CARDS = [
   { title: '자재 재고 확인',    description: '재고 가용량 및 수급 일정 검토',    tone: 'blue',   icon: 'cube'     },
   { title: '라인 부하 계산',    description: '라인별 부하 및 가동률 분석',       tone: 'violet', icon: 'pulse'    },
   { title: '납기 우선순위 평가', description: '납기 조건 및 우선순위 평가',       tone: 'amber',  icon: 'calendar' },
-  { title: '생산량 최적화',     description: '생산량 및 자원 최적 배분',         tone: 'rose',   icon: 'chart'    },
+  { title: '금액 최적화',       description: '비용 및 자원 최적 배분',           tone: 'rose',   icon: 'chart'    },
 ]
 
 const toneClassMap = {

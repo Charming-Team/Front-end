@@ -1,6 +1,5 @@
 <script setup>
 import { computed, ref } from 'vue'
-import { RouterLink } from 'vue-router'
 import PlanFilterBar from '../../components/plan/PlanFilterBar.vue'
 import MonthPlanCalendar from '../../components/calendar/MonthPlanCalendar.vue'
 import WeekPlanCalendar from '../../components/calendar/WeekPlanCalendar.vue'
@@ -21,6 +20,7 @@ const props = defineProps({
   calendarSaving: { type: Boolean, default: false },
   calendarSaveError: { type: String, default: '' },
   canManagePlans: { type: Boolean, default: false },
+  aiAnalysisLoading: { type: Boolean, default: false },
 })
 
 const emit = defineEmits([
@@ -35,7 +35,7 @@ const emit = defineEmits([
   'clear-plan-move-preview',
   'enter-calendar-edit',
   'complete-calendar-edit',
-  'open-bulk-upload',
+  'run-monthly-ai-analysis',
 ])
 
 const viewMode = ref('month')
@@ -156,6 +156,28 @@ function goToday() {
 function setViewMode(mode) {
   viewMode.value = mode
 }
+
+function pad(value) {
+  return String(value).padStart(2, '0')
+}
+
+function formatKstMonthBoundary(year, monthIndex) {
+  const normalized = new Date(Date.UTC(year, monthIndex, 1))
+  return `${normalized.getUTCFullYear()}-${pad(normalized.getUTCMonth() + 1)}-01T00:00:00+09:00`
+}
+
+function getMonthlyAnalysisWindow() {
+  const year = anchorDate.value.getFullYear()
+  const monthIndex = anchorDate.value.getMonth()
+  return {
+    planningStart: formatKstMonthBoundary(year, monthIndex),
+    planningEnd: formatKstMonthBoundary(year, monthIndex + 1),
+  }
+}
+
+function runMonthlyAiAnalysis() {
+  emit('run-monthly-ai-analysis', getMonthlyAnalysisWindow())
+}
 </script>
 
 <template>
@@ -206,10 +228,13 @@ function setViewMode(mode) {
             </button>
           </div>
 
-          <RouterLink
-            to="/ai/analysis"
+          <button
+            type="button"
             class="inline-flex items-center gap-0.5 rounded-[10px] bg-[var(--color-primary)] px-4 py-2 text-[14px] font-semibold text-white transition hover:brightness-110"
+            :class="{ 'cursor-wait opacity-70': aiAnalysisLoading }"
+            :disabled="aiAnalysisLoading"
             style="text-decoration: none;"
+            @click="runMonthlyAiAnalysis"
           >
             <svg
               class="h-3.5 w-3.5"
@@ -224,8 +249,8 @@ function setViewMode(mode) {
               <path d="M12 2l1.5 4.5L18 8l-4.5 1.5L12 14l-1.5-4.5L6 8l4.5-1.5z"/>
               <path d="M19 14l.75 2.25L22 17l-2.25.75L19 20l-.75-2.25L16 17l2.25-.75z"/>
             </svg>
-            AI 분석 시작
-          </RouterLink>
+            {{ aiAnalysisLoading ? '분석 중...' : 'AI 분석 시작' }}
+          </button>
         </div>
       </div>
 
@@ -286,14 +311,6 @@ function setViewMode(mode) {
 
           <div class="flex items-center gap-2">
             <span v-if="calendarSaveError" class="text-[13px] font-semibold text-red-600">{{ calendarSaveError }}</span>
-            <AppButton
-              v-if="canManagePlans && !calendarEditing"
-              variant="secondary"
-              size="sm"
-              @click="emit('open-bulk-upload')"
-            >
-              일괄 등록
-            </AppButton>
             <AppButton
               v-if="canManagePlans && !calendarEditing"
               variant="secondary"

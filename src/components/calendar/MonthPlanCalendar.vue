@@ -28,9 +28,13 @@ const draggingEvent = ref(null)
 const lastPreviewKey = ref('')
 const BLOCKED_MOVE_STATUSES = ['COMPLETED', 'CANCELLED']
 const DAY_IN_MS = 86_400_000
+const DAY_MINUTES = 1_440
+const MIN_SEGMENT_WIDTH = 28
+const CELL_HORIZONTAL_PADDING = 6
 const LANE_HEIGHT = 40
 const BAR_HEIGHT = 28
 const BAR_TOP_OFFSET = (LANE_HEIGHT - BAR_HEIGHT) / 2
+const DAY_NUMBER_HEIGHT = 30
 
 const laneCount = computed(() => {
   const maxEventLineOrder = [...props.events, ...props.previewEvents].reduce((max, event) => {
@@ -44,6 +48,7 @@ const calendarStyle = computed(() => ({
   '--plan-lane-count': String(laneCount.value),
   '--plan-lane-height': `${LANE_HEIGHT}px`,
   '--plan-bar-height': `${BAR_HEIGHT}px`,
+  '--plan-day-number-height': `${DAY_NUMBER_HEIGHT}px`,
 }))
 
 function getMonthLabel(date) {
@@ -56,6 +61,54 @@ function startOfDay(date) {
   return next
 }
 
+function addDays(date, amount) {
+  const next = new Date(date)
+  next.setDate(next.getDate() + amount)
+  return next
+}
+
+function getDateFromCell(cell) {
+  return new Date(`${cell.dataset.date}T00:00:00`)
+}
+
+function minutesFromDayStart(date, dayStart) {
+  const minutes = (date - dayStart) / 60_000
+  return Math.min(DAY_MINUTES, Math.max(0, minutes))
+}
+
+function getSegmentBounds(plan, first, last) {
+  const planStart = new Date(plan.plannedStartAt)
+  const planEnd = new Date(plan.plannedEndAt)
+  if (Number.isNaN(planStart.getTime()) || Number.isNaN(planEnd.getTime())) return null
+
+  const firstDayStart = getDateFromCell(first.cell)
+  const lastDayStart = getDateFromCell(last.cell)
+  const segmentStart = new Date(Math.max(planStart.getTime(), firstDayStart.getTime()))
+  const segmentEnd = new Date(Math.min(planEnd.getTime(), addDays(lastDayStart, 1).getTime()))
+  if (segmentEnd <= segmentStart) return null
+
+  const firstInnerWidth = Math.max(0, first.rect.width - (CELL_HORIZONTAL_PADDING * 2))
+  const lastInnerWidth = Math.max(0, last.rect.width - (CELL_HORIZONTAL_PADDING * 2))
+  const startRatio = minutesFromDayStart(segmentStart, firstDayStart) / DAY_MINUTES
+  const endRatio = minutesFromDayStart(segmentEnd, lastDayStart) / DAY_MINUTES
+  const minLeft = first.rect.left + CELL_HORIZONTAL_PADDING
+  const maxRight = last.rect.right - CELL_HORIZONTAL_PADDING
+  let left = minLeft + (firstInnerWidth * startRatio)
+  let right = last.rect.left + CELL_HORIZONTAL_PADDING + (lastInnerWidth * endRatio)
+
+  if (right - left < MIN_SEGMENT_WIDTH) {
+    const center = (left + right) / 2
+    left = Math.max(minLeft, center - (MIN_SEGMENT_WIDTH / 2))
+    right = Math.min(maxRight, left + MIN_SEGMENT_WIDTH)
+    left = Math.max(minLeft, right - MIN_SEGMENT_WIDTH)
+  }
+
+  return {
+    left,
+    width: Math.max(1, right - left),
+  }
+}
+
 function formatDateKey(date) {
   const year = date.getFullYear()
   const month = String(date.getMonth() + 1).padStart(2, '0')
@@ -65,7 +118,12 @@ function formatDateKey(date) {
 
 function eachPlanDate(plan) {
   const dates = []
-  for (let date = startOfDay(plan.plannedStartAt); date <= startOfDay(plan.plannedEndAt); date.setDate(date.getDate() + 1)) {
+  const planStart = new Date(plan.plannedStartAt)
+  const planEnd = new Date(plan.plannedEndAt)
+  if (Number.isNaN(planStart.getTime()) || Number.isNaN(planEnd.getTime())) return dates
+
+  const effectiveEnd = planEnd > planStart ? new Date(planEnd.getTime() - 1) : planStart
+  for (let date = startOfDay(planStart); date <= startOfDay(effectiveEnd); date.setDate(date.getDate() + 1)) {
     dates.push(new Date(date))
   }
   return dates
@@ -208,12 +266,14 @@ function buildFixedSegments() {
         const last = items[items.length - 1]
         const eventsArea = first.cell.querySelector('.fc-daygrid-day-events')?.getBoundingClientRect() ?? first.rect
         const theme = getEventTheme(event)
+        const bounds = getSegmentBounds(plan, first, last)
+        if (!bounds) return
         segments.push({
           id: `${isPreview ? 'preview' : 'plan'}-${event.id}-${Math.round(row.top)}`,
           title: event.title,
-          left: first.rect.left - rootRect.left + 6,
+          left: bounds.left - rootRect.left,
           top: eventsArea.top - rootRect.top + (lineOrder * LANE_HEIGHT) + BAR_TOP_OFFSET,
-          width: last.rect.right - first.rect.left - 12,
+          width: bounds.width,
           height: BAR_HEIGHT,
           backgroundColor: event.backgroundColor || theme.bg,
           borderColor: event.borderColor || theme.border,
@@ -372,6 +432,7 @@ onBeforeUnmount(() => {
 .month-plan-calendar :deep(.fc-daygrid-day-events) {
   box-sizing: content-box;
   min-height: calc(var(--plan-lane-count) * var(--plan-lane-height));
+  margin-bottom: 0;
   padding-top: 0;
   background:
     repeating-linear-gradient(
@@ -384,7 +445,7 @@ onBeforeUnmount(() => {
 }
 
 .month-plan-calendar :deep(.fc-daygrid-day-frame) {
-  min-height: calc((var(--plan-lane-count) * var(--plan-lane-height)) + 50px) !important;
+  min-height: calc((var(--plan-lane-count) * var(--plan-lane-height)) + var(--plan-day-number-height)) !important;
 }
 
 .month-plan-calendar :deep(.fc-daygrid-event-harness) {
