@@ -105,8 +105,8 @@ const orderedLineNames = computed(() => {
 const legendItems = computed(() =>
   orderedLineNames.value.map(lineName => ({
     lineName,
-    color: (LINE_THEMES[lineName] ?? { bg: '#64748B', chip: '#E2E8F0' }).bg,
-    chip: (LINE_THEMES[lineName] ?? { bg: '#64748B', chip: '#E2E8F0' }).chip,
+    color: (LINE_THEMES[lineName]).bg,
+    // chip: (LINE_THEMES[lineName] ?? { bg: '#64748B', chip: '#E2E8F0' }).chip,
   }))
 )
 

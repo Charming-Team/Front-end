@@ -40,8 +40,8 @@ const baseIcon = `
 
 const icons = {
   dashboard: baseIcon,
-  calendar: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3v4M17 3v4M4 9h16M6 5h12a2 2 0 0 1 2 2v12H4V7a2 2 0 0 1 2-2Z" /></svg>`,
-  plan: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9 9 9 0 0 0-9-9Z" /><path d="m9 12 2 2 4-5" /></svg>`,
+  orders: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9 9 9 0 0 0-9-9Z" /><path d="m9 12 2 2 4-5" /></svg>`,
+  plan: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3v4M17 3v4M4 9h16M6 5h12a2 2 0 0 1 2 2v12H4V7a2 2 0 0 1 2-2Z" /></svg>`,
   box: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h16v12H4Z" /><path d="m8 8 4-4 4 4" /></svg>`,
   line: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h6v6H4ZM14 5h6v6h-6ZM4 15h6v4H4ZM14 15h6v4h-6Z" /></svg>`,
   risk: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 4 10 17H2L12 4Z" /><path d="M12 10v5M12 18h.01" /></svg>`,
@@ -51,7 +51,7 @@ const icons = {
 
 const navigation = [
   { key: 'dashboard', label: '대시보드', icon: icons.dashboard, to: '/' },
-  { key: 'orders', label: '주문 관리', icon: icons.calendar, to: '/orders' },
+  { key: 'orders', label: '주문 관리', icon: icons.orders, to: '/orders' },
   { key: 'production', label: '생산계획', icon: icons.plan, to: '/plan' },
   { key: 'materials', label: '자재 현황', icon: icons.box, to: '/materials' },
   { key: 'lines', label: '라인 현황', icon: icons.line, to: '/lines' },

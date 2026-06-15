@@ -16,18 +16,18 @@ export const PLAN_STATUS_OPTIONS = [
 ]
 
 export const LINE_THEMES = {
-  'ABS 주 생산 Line': { bg: '#E8F1FF', chip: '#DBEAFE', border: '#B7D0FF', text: '#214E9F' },
-  'ABS 보조 생산 Line': { bg: '#EDF7E8', chip: '#DCFCE7', border: '#C9E2BF', text: '#3E7B31' },
-  'PP 범용 생산 Line': { bg: '#F1E8FA', chip: '#EDE9FE', border: '#D7C1F1', text: '#6F43C0' },
-  'PE 범용 생산 Line': { bg: '#FCE8EA', chip: '#FFE4E6', border: '#F5C2C7', text: '#E15B47' },
-  'PE 특화 생산 Line': { bg: '#FEF0DE', chip: '#FEF3C7', border: '#F6D4A7', text: '#D97706' },
-  'PP 기능성 생산 Line': { bg: '#E1F4F5', chip: '#CCFBF1', border: '#B9E3E5', text: '#0F8E9C' },
-  'LINE-A': { bg: '#E8F1FF', chip: '#DBEAFE', border: '#B7D0FF', text: '#214E9F' },
-  'LINE-B': { bg: '#EDF7E8', chip: '#DCFCE7', border: '#C9E2BF', text: '#3E7B31' },
-  'LINE-C': { bg: '#F1E8FA', chip: '#EDE9FE', border: '#D7C1F1', text: '#6F43C0' },
-  'LINE-D': { bg: '#FCE8EA', chip: '#FFE4E6', border: '#F5C2C7', text: '#E15B47' },
-  'LINE-E': { bg: '#FEF0DE', chip: '#FEF3C7', border: '#F6D4A7', text: '#D97706' },
-  'LINE-F': { bg: '#E1F4F5', chip: '#CCFBF1', border: '#B9E3E5', text: '#0F8E9C' },
+  'ABS 주 생산 Line': { bg: '#E8F1FF', },
+  'ABS 보조 생산 Line': { bg: '#EDF7E8', },
+  'PP 범용 생산 Line': { bg: '#F1E8FA', },
+  'PE 범용 생산 Line': { bg: '#FCE8EA', },
+  'PE 특화 생산 Line': { bg: '#FEF0DE', },
+  'PP 기능성 생산 Line': { bg: '#E1F4F5', },
+  'LINE-A': { bg: '#E8F1FF', },
+  'LINE-B': { bg: '#EDF7E8', },
+  'LINE-C': { bg: '#F1E8FA', },
+  'LINE-D': { bg: '#FCE8EA', },
+  'LINE-E': { bg: '#FEF0DE', },
+  'LINE-F': { bg: '#E1F4F5', },
 }
 
 export const FIXED_LINE_ORDER = [
