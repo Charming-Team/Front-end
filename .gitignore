@@ -24,3 +24,5 @@ AGENTS.md
 *.sln
 *.sw?
 AGENTS.md
+
+.env
