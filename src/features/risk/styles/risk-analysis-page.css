@@ -547,6 +547,35 @@
   transform: translateX(0);
 }
 
+.risk-detail-metric-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 20px 0 24px;
+}
+
+.risk-detail-metric-card {
+  padding: 18px 20px;
+  border: 1px solid #e5eaf3;
+  border-radius: 16px;
+  background: #f8fafc;
+}
+
+.risk-detail-metric-card span {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #64748b;
+}
+
+.risk-detail-metric-card strong {
+  display: block;
+  font-size: 28px;
+  line-height: 1.2;
+  color: #0f1b3d;
+}
+
 /* Responsive */
 @media (max-width: 1280px) {
   .risk-summary-grid {
