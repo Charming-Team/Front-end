@@ -87,7 +87,7 @@ function logout() {
     <aside class="sidebar d-flex flex-column text-white">
       <div class="brand d-flex align-items-center">
         <img class="brand-logo" :src="logoSymbol" alt="" />
-        <span>S-MAP</span>
+        <span class="brand-name">S-MAP</span>
       </div>
 
       <nav class="nav-list d-flex flex-column" aria-label="Main navigation">

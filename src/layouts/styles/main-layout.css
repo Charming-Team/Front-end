@@ -23,6 +23,11 @@
   letter-spacing: 0;
 }
 
+.brand-name {
+  font-weight: 900;
+  letter-spacing: -0.03em;
+}
+
 .brand-logo {
   width: 38px;
   height: 38px;
