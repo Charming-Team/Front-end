@@ -199,30 +199,37 @@ function runMonthlyAiAnalysis() {
         </div>
 
         <div class="flex shrink-0 items-center gap-2">
-          <div class="inline-flex shrink-0 overflow-hidden rounded-full border border-slate-200 bg-slate-100/80 p-1 shadow-sm">
+          <div class="inline-flex h-11 shrink-0 overflow-hidden rounded-full border border-slate-200 bg-[#EEF6FF] shadow-sm">
             <button
               type="button"
-              class="inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-[14px] font-semibold transition"
+              class="inline-flex min-w-[116px] items-center justify-center gap-1.5 px-5 text-[14px] font-semibold transition"
               :class="viewMode === 'month'
-                ? 'bg-white text-slate-900 shadow-sm'
-                : 'text-slate-500 hover:text-slate-700'"
+                ? 'bg-white text-slate-900 shadow-[0_1px_4px_rgba(15,23,42,0.12)]'
+                : 'text-slate-500 hover:bg-white/40 hover:text-slate-700'"
               @click="setViewMode('month')"
             >
               <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/>
+                <rect x="3" y="4" width="18" height="18" rx="2"/>
+                <line x1="3" y1="9" x2="21" y2="9"/>
+                <line x1="8" y1="2" x2="8" y2="6"/>
+                <line x1="16" y1="2" x2="16" y2="6"/>
               </svg>
               월별
             </button>
+
             <button
               type="button"
-              class="inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-[14px] font-semibold transition"
+              class="inline-flex min-w-[116px] items-center justify-center gap-1.5 px-5 text-[14px] font-semibold transition"
               :class="viewMode === 'week'
-                ? 'bg-white text-slate-900 shadow-sm'
-                : 'text-slate-500 hover:text-slate-700'"
+                ? 'bg-white text-slate-900 shadow-[0_1px_4px_rgba(15,23,42,0.12)]'
+                : 'text-slate-500 hover:bg-white/40 hover:text-slate-700'"
               @click="setViewMode('week')"
             >
               <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
+                <rect x="3" y="3" width="7" height="7"/>
+                <rect x="14" y="3" width="7" height="7"/>
+                <rect x="3" y="14" width="7" height="7"/>
+                <rect x="14" y="14" width="7" height="7"/>
               </svg>
               주차별
             </button>

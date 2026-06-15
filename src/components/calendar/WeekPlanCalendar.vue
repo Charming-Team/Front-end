@@ -344,7 +344,7 @@ onBeforeUnmount(() => {
       [&_.fc]:font-sans
       [&_.fc]:text-slate-900
       [&_.fc-theme-standard_.fc-scrollgrid]:border-0
-      [&_.fc_.fc-col-header-cell]:bg-slate-50
+      [&_.fc_.fc-col-header-cell]:bg-blue-50/70
       [&_.fc_.fc-col-header-cell-cushion]:px-2
       [&_.fc_.fc-col-header-cell-cushion]:py-3
       [&_.fc_.fc-col-header-cell-cushion]:text-sm
@@ -390,7 +390,7 @@ onBeforeUnmount(() => {
         role="button"
         tabindex="0"
         :draggable="segment.movable"
-        class="fixed-plan-segment pointer-events-auto absolute flex items-center justify-between gap-3 overflow-hidden rounded-full border px-4 text-[12px] font-bold leading-none shadow-[0_1px_3px_rgba(15,23,42,0.08)]"
+        class="fixed-plan-segment pointer-events-auto absolute flex items-center justify-between gap-3 overflow-hidden rounded-md border px-4 text-[12px] font-bold leading-none shadow-[0_1px_3px_rgba(15,23,42,0.08)]"
         :class="{
           'cursor-grab active:cursor-grabbing': segment.movable,
           'cursor-pointer': !segment.movable,
