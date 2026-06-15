@@ -32,7 +32,7 @@ defineProps({
 
 .app-status-badge--normal {
   background: #e8f8ef;
-  color: #119468;
+  color: #00897b;
 }
 
 .app-status-badge--risk {
@@ -42,7 +42,7 @@ defineProps({
 
 .app-status-badge--shortage {
   background: #ffe5e5;
-  color: #e54848;
+  color: #e53935;
 }
 
 .app-status-badge--pending {

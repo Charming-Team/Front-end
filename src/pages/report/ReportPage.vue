@@ -260,10 +260,10 @@ onMounted(() => {
     </div>
 
     <AppCard>
-      <section class="px-5 pb-5 pt-[18px] max-md:p-4">
-        <h2 class="mb-4 text-[20px] font-black text-[#0f3a70]">
+      <section class="px-5 pb-5 pt-[18px]">
+        <span class="mb-4 block text-[20px] font-black text-[#0f3a70]">
           최근 보고서 목록
-        </h2>
+        </span>
 
         <ReportListTable
           :reports="paginatedReports"
@@ -285,9 +285,9 @@ onMounted(() => {
 
     <AppCard>
       <section class="px-5 pb-[18px] pt-[18px] max-md:p-4">
-        <h2 class="mb-4 text-[20px] font-black text-[#0f3a70]">
+        <span class="mb-4 block text-[20px] font-black text-[#0f3a70]">
           최근 과거 이슈 내역
-        </h2>
+        </span>
 
         <ReportIssueTable :issues="issues" />
       </section>

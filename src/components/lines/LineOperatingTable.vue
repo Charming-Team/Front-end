@@ -32,6 +32,20 @@ const emit = defineEmits([
   "go-page",
   "go-next-page",
 ]);
+
+const lineDisplayNameMap = {
+  'ABS 주 생산 Line': 'ABS 주',
+  'ABS 보조 생산 Line': 'ABS 보조',
+  'PP 범용 생산 Line': 'PP 범용',
+  'PP 기능성 생산 Line': 'PP 기능성',
+  'PE 범용 생산 Line': 'PE 범용',
+  'PE 특화 생산 Line': 'PE 특화',
+}
+
+function getLineDisplayName(name) {
+  return lineDisplayNameMap[name] ?? name
+}
+
 </script>
 
 <template>
@@ -85,7 +99,7 @@ const emit = defineEmits([
           </tr>
           <template v-else>
             <tr v-for="line in lines" :key="line.id">
-              <td>{{ line.name }}</td>
+              <td>{{ getLineDisplayName(line.name) }}</td>
               <td>{{ line.utilizationRate }}%</td>
               <td>{{ line.currentProduct }}</td>
               <td>{{ line.nextProduct }}</td>

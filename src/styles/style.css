@@ -1,12 +1,70 @@
 @import "tailwindcss";
 
+@font-face {
+  font-family: 'SUIT';
+  src: url('../assets/fonts/SUIT-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'SUIT';
+  src: url('../assets/fonts/SUIT-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'SUIT';
+  src: url('../assets/fonts/SUIT-SemiBold.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'SUIT';
+  src: url('../assets/fonts/SUIT-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'SUIT';
+  src: url('../assets/fonts/SUIT-ExtraBold.ttf') format('truetype');
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'SUIT';
+  src: url('../assets/fonts/SUIT-Heavy.ttf') format('truetype');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@theme {
+  --font-sans: 'SUIT', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+html,
+body,
+#app {
+  font-family: 'SUIT', 'Noto Sans KR', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
 :root {
   --color-navy: #0d1f3c;
   --color-text-main: #1a2642;
   --color-text-subtle: #4a5568;
   --color-sidebar: #0d1f3c;
-  --color-primary: #1565c0;
-  --color-primary-point: #4a9eff;
+  --color-primary: #3379c9;
+  --color-primary-point: #74b2f9;
   --color-success: #00897b;
   --color-success-dark: #00695c;
   --color-warning: #f57c00;
@@ -14,7 +72,7 @@
   --color-danger-dark: #c62828;
   --color-border: #e2e8f0;
   --color-border-strong: #cbd5e0;
-  --color-bg: #f0f2f5;
+  --color-bg: #f8fbff;
   --color-bg-soft: #fafbfd;
   --color-bg-soft-blue: #eff6ff;
   --color-track: #e8eaf0;
