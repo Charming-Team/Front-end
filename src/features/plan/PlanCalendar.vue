@@ -230,25 +230,12 @@ function runMonthlyAiAnalysis() {
 
           <button
             type="button"
-            class="inline-flex items-center gap-0.5 rounded-[10px] bg-[var(--color-primary)] px-4 py-2 text-[14px] font-semibold text-white transition hover:brightness-110"
+            class="ai-analysis-button inline-flex items-center gap-0.5 rounded-lg bg-[var(--color-primary)] px-4 py-2 text-[14px] font-semibold text-white transition hover:brightness-110"
             :class="{ 'cursor-wait opacity-70': aiAnalysisLoading }"
             :disabled="aiAnalysisLoading"
             style="text-decoration: none;"
             @click="runMonthlyAiAnalysis"
           >
-            <svg
-              class="h-3.5 w-3.5"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              aria-hidden="true"
-            >
-              <path d="M12 2l1.5 4.5L18 8l-4.5 1.5L12 14l-1.5-4.5L6 8l4.5-1.5z"/>
-              <path d="M19 14l.75 2.25L22 17l-2.25.75L19 20l-.75-2.25L16 17l2.25-.75z"/>
-            </svg>
             {{ aiAnalysisLoading ? '분석 중...' : 'AI 분석 시작' }}
           </button>
         </div>
@@ -364,3 +351,9 @@ function runMonthlyAiAnalysis() {
     </div>
   </AppCard>
 </template>
+<style scoped>
+.ai-analysis-button {
+  appearance: none;
+  border-radius: 0.75rem;
+}
+</style>

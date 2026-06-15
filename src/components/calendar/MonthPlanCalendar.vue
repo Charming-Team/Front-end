@@ -361,11 +361,14 @@ onBeforeUnmount(() => {
     @drop.prevent="handleSegmentDrop"
     class="month-plan-calendar
       relative
+      rounded-2xl
+      overflow-hidden
+      border
+      border-slate-300
+      bg-white
       [&_.fc]:font-sans
       [&_.fc]:text-slate-900
       [&_.fc-theme-standard_.fc-scrollgrid]:border-0
-      [&_.fc-theme-standard_td]:border-slate-200
-      [&_.fc-theme-standard_th]:border-slate-200
       [&_.fc_.fc-col-header-cell]:bg-slate-50
       [&_.fc_.fc-col-header-cell-cushion]:px-2
       [&_.fc_.fc-col-header-cell-cushion]:py-3
@@ -388,7 +391,6 @@ onBeforeUnmount(() => {
       [&_.fc_.fc-event]:cursor-pointer
       [&_.fc_.fc-event]:transition
       [&_.fc_.fc-event:hover]:brightness-102
-      [&_.fc_.fc-event:hover]:shadow-[0_2px_8px_rgba(15,23,42,0.08)]
       [&_.fc_.fc-view-harness]:bg-white"
   >
     <FullCalendar ref="calendarRef" :options="calendarOptions" />
