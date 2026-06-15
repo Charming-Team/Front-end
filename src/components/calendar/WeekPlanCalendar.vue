@@ -426,6 +426,42 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
+.week-plan-calendar :deep(.fc a) {
+  color: inherit;
+  text-decoration: none;
+}
+
+.week-plan-calendar :deep(.fc a:hover),
+.week-plan-calendar :deep(.fc a:focus),
+.week-plan-calendar :deep(.fc a:active) {
+  color: inherit;
+  text-decoration: none;
+}
+
+.week-plan-calendar :deep(.fc-col-header-cell-cushion) {
+  color: #0f172a;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.week-plan-calendar :deep(.fc-daygrid-day-number) {
+  color: #0f172a;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.week-plan-calendar :deep(.fc-day-other .fc-daygrid-day-number) {
+  color: #cbd5e1;
+}
+
+.week-plan-calendar :deep(.fc-col-header-cell.fc-day-today .fc-col-header-cell-cushion) {
+  color: #1d4ed8;
+}
+
+.week-plan-calendar :deep(.fc-day-today .fc-daygrid-day-number) {
+  color: #1d4ed8;
+}
+
 .week-plan-calendar :deep(.fc-daygrid-day-events) {
   box-sizing: content-box;
   min-height: calc(var(--plan-lane-count) * var(--plan-lane-height));

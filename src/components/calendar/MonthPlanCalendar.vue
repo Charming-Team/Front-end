@@ -429,6 +429,32 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
+.month-plan-calendar :deep(.fc a) {
+  color: inherit;
+  text-decoration: none;
+}
+
+.month-plan-calendar :deep(.fc a:hover),
+.month-plan-calendar :deep(.fc a:focus),
+.month-plan-calendar :deep(.fc a:active) {
+  color: inherit;
+  text-decoration: none;
+}
+
+.month-plan-calendar :deep(.fc-col-header-cell-cushion) {
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.month-plan-calendar :deep(.fc-daygrid-day-number) {
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.month-plan-calendar :deep(.fc-day-other .fc-daygrid-day-number) {
+  color: #cbd5e1;
+}
+
 .month-plan-calendar :deep(.fc-daygrid-day-events) {
   box-sizing: content-box;
   min-height: calc(var(--plan-lane-count) * var(--plan-lane-height));
@@ -446,30 +472,5 @@ onBeforeUnmount(() => {
 
 .month-plan-calendar :deep(.fc-daygrid-day-frame) {
   min-height: calc((var(--plan-lane-count) * var(--plan-lane-height)) + var(--plan-day-number-height)) !important;
-}
-
-.month-plan-calendar :deep(.fc-daygrid-event-harness) {
-  margin-top: 0 !important;
-  margin-bottom: 0 !important;
-}
-
-.month-plan-calendar :deep(.fc-daygrid-event) {
-  height: 36px;
-  margin-top: 0 !important;
-  padding-bottom: 10px !important;
-  border-color: transparent !important;
-  background: transparent !important;
-  box-shadow: none !important;
-}
-
-.month-plan-calendar :deep(.fc-daygrid-event .fc-event-main),
-.month-plan-calendar :deep(.fc-daygrid-event .fc-event-main-frame),
-.month-plan-calendar :deep(.plan-event-chip) {
-  height: 26px;
-  min-height: 26px;
-}
-
-.month-plan-calendar :deep(.fc-event.is-selected-plan .plan-event-chip) {
-  box-shadow: 0 0 0 2px rgba(21, 101, 192, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.7);
 }
 </style>
