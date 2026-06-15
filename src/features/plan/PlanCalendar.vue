@@ -242,11 +242,11 @@ function runMonthlyAiAnalysis() {
       </div>
 
       <!-- 2행: 범례(우측 정렬) -->
-      <div class="mt-2 mb-3 flex flex-wrap items-center justify-end gap-2">
+      <div class="mt-2 mb-3 flex flex-wrap items-center justify-end">
         <span
           v-for="item in legendItems"
           :key="item.lineName"
-          class="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold text-slate-700"
+          class="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold text-slate-700"
           :style="{ backgroundColor: item.chip, borderColor: `${item.color}33` }"
         >
           <span class="h-2.5 w-2.5 rounded-full" :style="{ backgroundColor: item.color }"></span>

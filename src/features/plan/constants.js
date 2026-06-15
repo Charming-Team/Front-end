@@ -16,18 +16,12 @@ export const PLAN_STATUS_OPTIONS = [
 ]
 
 export const LINE_THEMES = {
-  'ABS 주 생산 Line': { bg: '#E8F1FF', },
-  'ABS 보조 생산 Line': { bg: '#EDF7E8', },
-  'PP 범용 생산 Line': { bg: '#F1E8FA', },
-  'PE 범용 생산 Line': { bg: '#FCE8EA', },
-  'PE 특화 생산 Line': { bg: '#FEF0DE', },
-  'PP 기능성 생산 Line': { bg: '#E1F4F5', },
-  'LINE-A': { bg: '#E8F1FF', },
-  'LINE-B': { bg: '#EDF7E8', },
-  'LINE-C': { bg: '#F1E8FA', },
-  'LINE-D': { bg: '#FCE8EA', },
-  'LINE-E': { bg: '#FEF0DE', },
-  'LINE-F': { bg: '#E1F4F5', },
+  'ABS 주 생산 Line': { bg: '#5a8eff', },
+  'ABS 보조 생산 Line': { bg: '#aac0ef', },
+  'PP 범용 생산 Line': { bg: '#1eb957', },
+  'PE 범용 생산 Line': { bg: '#8ae0aa', },
+  'PE 특화 생산 Line': { bg: '#e3eb6a', },
+  'PP 기능성 생산 Line': { bg: '#eef2bf', },
 }
 
 export const FIXED_LINE_ORDER = [
@@ -37,10 +31,4 @@ export const FIXED_LINE_ORDER = [
   'PE 범용 생산 Line',
   'PE 특화 생산 Line',
   'PP 기능성 생산 Line',
-  'LINE-A',
-  'LINE-B',
-  'LINE-C',
-  'LINE-D',
-  'LINE-E',
-  'LINE-F',
 ]
