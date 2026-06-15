@@ -92,7 +92,10 @@
             </button>
           </div>
 
-          <div class="risk-table-wrap">
+          <p v-if="isLoading" class="risk-empty">리스크 정보를 불러오는 중입니다.</p>
+          <p v-else-if="errorMessage" class="risk-empty">{{ errorMessage }}</p>
+
+          <div v-else class="risk-table-wrap">
             <table class="risk-table">
               <thead>
                 <tr>
@@ -109,7 +112,7 @@
               </thead>
 
               <tbody>
-                <tr v-for="item in filteredRiskItems" :key="item.id">
+                <tr v-for="item in filteredRiskItems" :key="item.orderId ?? item.id">
                   <td>{{ item.orderNo }}</td>
                   <td>{{ item.customerName }}</td>
                   <td>{{ item.productName }}</td>
@@ -118,9 +121,9 @@
                   <td>{{ item.lineName }}</td>
                   <td>
                     <div class="risk-progress">
-                      <span>{{ item.progressRate }}%</span>
+                      <span>{{ formatPercent(item.progressRate) }}%</span>
                       <div class="risk-progress-bar">
-                        <span class="risk-progress-fill" :style="{ width: `${item.progressRate}%` }" />
+                        <span class="risk-progress-fill" :style="{ width: `${normalizePercent(item.progressRate)}%` }" />
                       </div>
                     </div>
                   </td>
@@ -154,10 +157,10 @@
 
               <button
                 v-for="item in riskItems"
-                :key="item.id"
+                :key="item.orderId ?? item.id"
                 type="button"
                 class="risk-compact-row"
-                :class="{ active: selectedRiskItem?.orderNo === item.orderNo }"
+                :class="{ active: selectedRiskItem?.orderId === item.orderId }"
                 @click="handleClickDetail(item)"
               >
                 <span>{{ item.orderNo }}</span>
@@ -169,70 +172,112 @@
           </div>
         </template>
       </section>
+
       <Transition name="risk-detail-slide">
-        <aside v-if="selectedRiskItem && selectedRiskDetail" class="risk-detail-panel">
+        <aside v-if="selectedRiskItem" class="risk-detail-panel">
           <div class="risk-detail-panel-header">
             <div>
               <h2>
                 리스크 상세 분석
-                <span :class="getRiskBadgeClass(selectedRiskDetail.riskLevel)">
-                  {{ selectedRiskDetail.riskLevelLabel || getRiskLevelLabel(selectedRiskDetail.riskLevel) }}
+                <span :class="getRiskBadgeClass(detailRiskLevel)">
+                  {{ selectedRiskDetail?.riskLevelLabel || getRiskLevelLabel(detailRiskLevel) }}
                 </span>
               </h2>
 
-              <p class="risk-predicted-at">예측 진행 시점: {{ selectedRiskDetail.predictedAt }}</p>
+              <p class="risk-predicted-at">
+                예측 진행 시점: {{ selectedRiskDetail?.predictedAt || selectedRiskItem.predictedAt || '예측 정보 없음' }}
+              </p>
             </div>
 
             <button type="button" class="risk-panel-close" @click="closeDetailPanel">×</button>
           </div>
 
-          <div class="risk-detail-body">
+          <div v-if="isDetailLoading" class="risk-detail-body">
+            <p class="risk-empty">상세 정보를 불러오는 중입니다.</p>
+          </div>
+
+          <div v-else-if="selectedRiskDetail" class="risk-detail-body">
             <div class="risk-detail-progress-card">
               <div class="risk-detail-progress-header">
                 <strong>생산 진행률</strong>
-                <span>{{ selectedRiskItem.progressRate }}%</span>
+                <span>{{ formatPercent(selectedRiskDetail.progressRate) }}%</span>
               </div>
 
               <div class="risk-detail-progress-bar">
-                <span class="risk-detail-progress-fill" :style="{ width: `${selectedRiskItem.progressRate}%` }" />
+                <span class="risk-detail-progress-fill" :style="{ width: `${normalizePercent(selectedRiskDetail.progressRate)}%` }" />
               </div>
 
               <p>
-                총 {{ formatNumber(selectedRiskItem.quantity) }}개 중 {{ formatNumber(selectedRiskItem.completedQuantity) }}개 완료,
-                {{ formatNumber(selectedRiskItem.remainingQuantity) }}개 잔여
+                총 {{ formatNumber(selectedRiskDetail.quantity) }}개 중 {{ formatNumber(selectedRiskDetail.completedQuantity) }}개 완료,
+                {{ formatNumber(selectedRiskDetail.remainingQuantity) }}개 잔여
               </p>
             </div>
 
-            <div class="risk-cause-badge-group">
-              <span v-for="causeType in selectedRiskDetail.causeTypes" :key="causeType" :class="getRiskCauseBadgeClass(causeType)">
-                {{ getRiskCauseLabel(causeType) }}
-              </span>
+            <div class="risk-detail-metric-grid">
+              <article class="risk-detail-metric-card">
+                <span>지연 확률</span>
+                <strong>{{ formatDelayProbability(selectedRiskDetail) }}</strong>
+              </article>
 
-              <span v-if="!selectedRiskDetail.causeTypes || selectedRiskDetail.causeTypes.length === 0" class="risk-cause-badge">
-                주요 원인 없음
-              </span>
+              <article class="risk-detail-metric-card">
+                <span>예상 지연 일수</span>
+                <strong>{{ formatExpectedDelayDays(selectedRiskDetail.expectedDelayDays) }}</strong>
+              </article>
             </div>
 
-            <p class="risk-detail-summary">
-              {{ selectedRiskDetail.summary }}
-            </p>
+            <template v-if="isSelectedRiskSafe">
+              <p class="risk-detail-summary">
+                {{ selectedRiskDetail.summary }}
+              </p>
+            </template>
 
-            <p class="risk-detail-message">
-              {{ selectedRiskDetail.progressMessage }}
-            </p>
+            <template v-else>
+              <div v-if="hasSelectedAgentAnalysis && selectedRiskDetail.causeTypes?.length" class="risk-cause-badge-group">
+                <span v-for="causeType in selectedRiskDetail.causeTypes" :key="causeType" :class="getRiskCauseBadgeClass(causeType)">
+                  {{ getRiskCauseLabel(causeType) }}
+                </span>
+              </div>
 
-            <p class="risk-detail-message">
-              {{ selectedRiskDetail.recommendation }}
-            </p>
+              <div v-else-if="!isSelectedRiskSafe" class="risk-cause-badge-group">
+                <span class="risk-cause-badge"> 상세 분석 생성 후 제공 </span>
+              </div>
 
-            <div class="risk-detail-causes">
-              <strong>주요 원인</strong>
-              <ul>
-                <li v-for="cause in selectedRiskDetail.causes" :key="cause">
-                  {{ cause }}
-                </li>
-              </ul>
-            </div>
+              <p class="risk-detail-summary">
+                {{ selectedRiskDetail.summary }}
+              </p>
+
+              <p class="risk-detail-message">
+                {{ selectedRiskDetail.progressMessage }}
+              </p>
+
+              <p class="risk-detail-message">
+                권고 조치:
+                {{ selectedRiskDetail.recommendation || '상세 분석 생성 후 제공' }}
+              </p>
+
+              <div v-if="normalizedDetailCauses.length > 0" class="risk-detail-causes">
+                <strong>{{ hasSelectedAgentAnalysis ? '주요 원인' : 'ML 주요 영향 요인' }}</strong>
+                <ul>
+                  <li v-for="(cause, index) in normalizedDetailCauses" :key="getCauseKey(cause, index)">
+                    <template v-if="typeof cause === 'string'">
+                      {{ cause }}
+                    </template>
+
+                    <template v-else>
+                      <strong>{{ cause.causeTypeLabel || cause.causeType || cause.title }}</strong>
+                      <span v-if="cause.description"> - {{ cause.description }}</span>
+                      <span v-else-if="cause.title"> - {{ cause.title }}</span>
+                    </template>
+                  </li>
+                </ul>
+              </div>
+
+              <p v-else class="risk-detail-message">원인 상세: 상세 분석 생성 후 제공</p>
+            </template>
+          </div>
+
+          <div v-else class="risk-detail-body">
+            <p class="risk-empty">상세 정보를 불러오지 못했습니다.</p>
           </div>
         </aside>
       </Transition>
@@ -241,11 +286,20 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { riskDetailMap, riskItems, riskSummary } from './mockData';
+import { fetchRiskOrderDetail, fetchRiskOrders, fetchRiskSummary } from './api.js';
 import { formatNumber, getRiskBadgeClass, getRiskCauseBadgeClass, getRiskCauseLabel, getRiskLevelLabel } from './utils';
 import './styles/risk-analysis-page.css';
+
+const DEFAULT_RISK_SUMMARY = {
+  expectedDelayDays: 0,
+  delayedOrderCount: 0,
+  materialShortageCount: 0,
+  materialShortageQuantity: 0,
+  criticalOrderCount: 0,
+  overallRiskLevel: 'SAFE',
+};
 
 const router = useRouter();
 
@@ -253,13 +307,21 @@ const keyword = ref('');
 const selectedLine = ref('');
 const selectedRiskLevel = ref('');
 const selectedRiskItem = ref(null);
+const selectedRiskDetail = ref(null);
 
-const lineOptions = [...new Set(riskItems.map((item) => item.lineName).filter(Boolean))];
+const riskSummary = ref({ ...DEFAULT_RISK_SUMMARY });
+const riskItems = ref([]);
+
+const isLoading = ref(false);
+const isDetailLoading = ref(false);
+const errorMessage = ref('');
+
+const lineOptions = computed(() => [...new Set(riskItems.value.map((item) => item.lineName).filter(Boolean))]);
 
 const baseFilteredRiskItems = computed(() => {
   const normalizedKeyword = keyword.value.trim().toLowerCase();
 
-  return riskItems.filter((item) => {
+  return riskItems.value.filter((item) => {
     const orderNo = String(item.orderNo ?? '').toLowerCase();
     const customerName = String(item.customerName ?? '').toLowerCase();
     const productName = String(item.productName ?? '').toLowerCase();
@@ -290,24 +352,123 @@ const filteredRiskItems = computed(() => {
   return baseFilteredRiskItems.value.filter((item) => item.riskLevel === selectedRiskLevel.value);
 });
 
-const selectedRiskDetail = computed(() => {
-  if (!selectedRiskItem.value) return null;
+const detailRiskLevel = computed(() => selectedRiskDetail.value?.riskLevel || selectedRiskItem.value?.riskLevel || 'SAFE');
 
-  return (
-    riskDetailMap[selectedRiskItem.value.orderNo] ?? {
-      riskLevel: selectedRiskItem.value.riskLevel,
-      riskLevelLabel: getRiskLevelLabel(selectedRiskItem.value.riskLevel),
-      delayProbability: 0,
-      predictedAt: '예측 정보 없음',
-      title: '리스크 상세 분석',
-      causeTypes: [],
-      summary: `${selectedRiskItem.value.orderNo} 주문건의 상세 분석 데이터가 아직 생성되지 않았습니다.`,
-      progressMessage: '현재 표시 가능한 상세 생산 진행 정보가 없습니다.',
-      recommendation: '상세 분석 생성 후 대응 권고를 확인할 수 있습니다.',
-      causes: ['상세 원인 분석 데이터가 없습니다.'],
-    }
-  );
+const isSelectedRiskSafe = computed(() => detailRiskLevel.value === 'SAFE');
+
+const hasSelectedAgentAnalysis = computed(() => selectedRiskDetail.value?.hasAgentAnalysis === true);
+
+const normalizedDetailCauses = computed(() => {
+  const causes = selectedRiskDetail.value?.causes;
+
+  if (!Array.isArray(causes)) {
+    return [];
+  }
+
+  return causes.filter(Boolean);
 });
+
+onMounted(() => {
+  loadRiskPage();
+});
+
+async function loadRiskPage() {
+  isLoading.value = true;
+  errorMessage.value = '';
+
+  try {
+    const [summary, orderList] = await Promise.all([
+      fetchRiskSummary(),
+      fetchRiskOrders({
+        page: 0,
+        size: 100,
+      }),
+    ]);
+
+    riskSummary.value = {
+      ...DEFAULT_RISK_SUMMARY,
+      ...(summary ?? {}),
+    };
+
+    riskItems.value = Array.isArray(orderList?.items) ? orderList.items : [];
+  } catch (error) {
+    console.error(error);
+    errorMessage.value = '리스크 정보를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.';
+    riskSummary.value = { ...DEFAULT_RISK_SUMMARY };
+    riskItems.value = [];
+  } finally {
+    isLoading.value = false;
+  }
+}
+
+async function handleClickDetail(item) {
+  selectedRiskItem.value = item;
+  selectedRiskDetail.value = null;
+  isDetailLoading.value = true;
+  errorMessage.value = '';
+
+  try {
+    const orderId = item.orderId ?? item.id;
+    selectedRiskDetail.value = await fetchRiskOrderDetail(orderId);
+  } catch (error) {
+    console.error(error);
+    selectedRiskDetail.value = buildFallbackDetail(item);
+  } finally {
+    isDetailLoading.value = false;
+  }
+}
+
+function buildFallbackDetail(item) {
+  const riskLevel = item?.riskLevel ?? 'SAFE';
+
+  if (riskLevel === 'SAFE') {
+    return {
+      ...item,
+      riskLevel,
+      riskLevelLabel: getRiskLevelLabel(riskLevel),
+      delayProbability: item?.delayProbability ?? null,
+      delayProbabilityPercent: item?.delayProbabilityPercent ?? null,
+      predictedAt: item?.predictedAt ?? '예측 정보 없음',
+      expectedDelayDays: null,
+      title: `${item?.orderNo ?? '선택한'} 주문건은 현재 안전 단계입니다.`,
+      causeTypes: [],
+      summary: `${item?.orderNo ?? '선택한'} 주문건은 현재 안전 단계입니다. 현재 생산계획 기준 납기 내 완료 가능성이 높습니다.`,
+      progressMessage: buildProgressMessage(item),
+      recommendation: null,
+      causes: [],
+      hasAgentAnalysis: false,
+    };
+  }
+
+  return {
+    ...item,
+    riskLevel,
+    riskLevelLabel: getRiskLevelLabel(riskLevel),
+    delayProbability: item?.delayProbability ?? null,
+    delayProbabilityPercent: item?.delayProbabilityPercent ?? null,
+    predictedAt: item?.predictedAt ?? '예측 정보 없음',
+    expectedDelayDays: null,
+    title: '리스크 상세 분석',
+    causeTypes: [],
+    summary: `${item?.orderNo ?? '선택한'} 주문건의 상세 분석 데이터가 아직 생성되지 않았습니다.`,
+    progressMessage: buildProgressMessage(item),
+    recommendation: null,
+    causes: [],
+    hasAgentAnalysis: false,
+  };
+}
+
+function buildProgressMessage(item) {
+  return `생산 진행률은 ${formatPercent(item?.progressRate)}%이며, 총 ${formatNumber(item?.quantity ?? 0)}개 중 ${formatNumber(
+    item?.completedQuantity ?? 0
+  )}개 완료, ${formatNumber(item?.remainingQuantity ?? 0)}개 잔여 상태입니다.`;
+}
+
+function closeDetailPanel() {
+  selectedRiskItem.value = null;
+  selectedRiskDetail.value = null;
+  isDetailLoading.value = false;
+}
 
 function goToPreviousSimulations() {
   router.push('/ai/result');
@@ -317,11 +478,61 @@ function goToPlanPage() {
   router.push('/plan');
 }
 
-function handleClickDetail(item) {
-  selectedRiskItem.value = item;
+function normalizePercent(value) {
+  const numericValue = Number(value);
+
+  if (!Number.isFinite(numericValue)) {
+    return 0;
+  }
+
+  return Math.min(Math.max(numericValue, 0), 100);
 }
 
-function closeDetailPanel() {
-  selectedRiskItem.value = null;
+function formatPercent(value) {
+  const numericValue = Number(value);
+
+  if (!Number.isFinite(numericValue)) {
+    return '0';
+  }
+
+  return Number(numericValue.toFixed(1)).toString();
+}
+
+function formatExpectedDelayDays(value) {
+  if (value === null || value === undefined || value === '') {
+    return '예측 전';
+  }
+
+  const numericValue = Number(value);
+
+  if (!Number.isFinite(numericValue)) {
+    return '예측 전';
+  }
+
+  return `${Number(numericValue.toFixed(1))}일`;
+}
+
+function formatDelayProbability(value) {
+  const percentValue = value?.delayProbabilityPercent;
+
+  if (percentValue !== null && percentValue !== undefined && Number.isFinite(Number(percentValue))) {
+    return `${Number(Number(percentValue).toFixed(2))}%`;
+  }
+
+  const probabilityValue = value?.delayProbability;
+
+  if (probabilityValue !== null && probabilityValue !== undefined && Number.isFinite(Number(probabilityValue))) {
+    return `${Number((Number(probabilityValue) * 100).toFixed(2))}%`;
+  }
+
+  return '예측 전';
+}
+
+function getCauseKey(cause, index) {
+  if (typeof cause === 'string') {
+    return `${cause}-${index}`;
+  }
+
+  return `${cause?.causeType ?? 'cause'}-${cause?.title ?? ''}-${index}`;
 }
 </script>
