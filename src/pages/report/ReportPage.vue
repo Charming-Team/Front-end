@@ -260,8 +260,8 @@ onMounted(() => {
     </div>
 
     <AppCard>
-      <section class="px-5 pb-5 pt-[18px]">
-        <span class="mb-4 block text-[20px] font-black text-[#0f3a70]">
+      <section class="px-4 pb-5 pt-[18px]">
+        <span class="mb-4 block text-[17px] font-[800] tracking-[-0.2px] text-[#111827]">
           최근 보고서 목록
         </span>
 
@@ -284,8 +284,8 @@ onMounted(() => {
     </AppCard>
 
     <AppCard>
-      <section class="px-5 pb-[18px] pt-[18px] max-md:p-4">
-        <span class="mb-4 block text-[20px] font-black text-[#0f3a70]">
+      <section class="px-4 pb-[18px] pt-[18px] max-md:p-4">
+        <span class="mb-4 block text-[17px] font-[800] tracking-[-0.2px] text-[#111827]">
           최근 과거 이슈 내역
         </span>
 
