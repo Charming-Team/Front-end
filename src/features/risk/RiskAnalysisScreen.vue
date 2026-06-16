@@ -10,20 +10,30 @@
 
     <div class="risk-summary-grid">
       <article class="risk-summary-card risk-summary-card--danger">
-        <p class="risk-summary-title">납기 지연 예상</p>
-        <strong>{{ riskSummary.expectedDelayDays }}일</strong>
-        <span>{{ riskSummary.delayedOrderCount }}건</span>
+        <div class="risk-summary-header">
+          <p class="risk-summary-title">납기 지연 예상</p>
+          <span class="risk-summary-badge">{{ riskSummary.delayedOrderCount }}건</span>
+        </div>
+
+        <span class="text-[35px] font-extrabold">{{ riskSummary.expectedDelayDays }}일</span>
       </article>
 
       <article class="risk-summary-card risk-summary-card--warning">
-        <p class="risk-summary-title">자재 부족 예상</p>
-        <strong>{{ riskSummary.materialShortageCount }}건</strong>
-        <span>{{ formatNumber(riskSummary.materialShortageQuantity) }}개</span>
+        <div class="risk-summary-header">
+          <p class="risk-summary-title">자재 부족 예상</p>
+          <span class="risk-summary-badge">{{ formatNumber(riskSummary.materialShortageQuantity) }}개</span>
+        </div>
+
+        <span class="text-[35px] font-extrabold">{{ riskSummary.materialShortageCount }}건</span>
       </article>
 
       <article class="risk-summary-card risk-summary-card--critical">
-        <p class="risk-summary-title">고위험 주문</p>
-        <strong>{{ riskSummary.criticalOrderCount }}건</strong>
+        <div class="risk-summary-header">
+          <p class="risk-summary-title">고위험 주문</p>
+          <span class="risk-summary-badge">{{ riskSummary.criticalOrderCount }}건</span>
+        </div>
+
+        <span class="text-[35px] font-extrabold">{{ riskSummary.criticalOrderCount }}건</span>
       </article>
     </div>
 
@@ -31,7 +41,7 @@
       <section class="risk-list-card">
         <template v-if="!selectedRiskItem">
           <div class="risk-list-header">
-            <h2>리스크 목록</h2>
+            <span class="text-[25px] font-bold">리스크 목록</span>
 
             <div class="risk-list-controls">
               <select v-model="selectedLine" class="risk-select">
