@@ -7,7 +7,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 
-const IS_STYLE_DEV = true
+const IS_STYLE_DEV = false // 스타일 개발 중에는 자동 이동 방지
 
 const STEPS = [
   { number: 1, label: '데이터 수집' },
