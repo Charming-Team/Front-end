@@ -6,15 +6,15 @@ import { loadAiSimulationSession } from './simulationSession.js'
 const router = useRouter()
 const session = ref(loadAiSimulationSession())
 
-const TONES = ['blue', 'green', 'purple', 'amber']
+const TONES = ['blue']
 const COLOR_MAP = {
-  blue:   { badge: '#1565C0', iconBg: '#DBEAFE', iconColor: '#1565C0', stepBg: '#EEF4FF', stepText: '#1565C0' },
-  green:  { badge: '#00897B', iconBg: '#CCFBF1', iconColor: '#00897B', stepBg: '#E6F5F3', stepText: '#00897B' },
-  purple: { badge: '#7B3FBE', iconBg: '#EDE9FE', iconColor: '#7B3FBE', stepBg: '#F4EEFF', stepText: '#7B3FBE' },
-  amber:  { badge: '#F57C00', iconBg: '#FEF3C7', iconColor: '#F57C00', stepBg: '#FFF8EC', stepText: '#F57C00' },
+  blue:   { badge: '#3379c9', stepBg: '#EEF4FF', stepText: '#3379c9' },
 }
 
 const options = computed(() => session.value.options ?? [])
+
+const visibleOptions = computed(() => options.value.slice(0, 2))
+
 const diagnosticMessage = computed(() => session.value.diagnosticMessage ?? '')
 const simulationResponse = computed(() =>
   session.value.response?.simulation_response ?? session.value.response?.simulationResponse ?? {}
@@ -153,209 +153,230 @@ function iconPath(icon) {
     </AppCard>
 
     <template v-else>
-      <AppCard>
-        <div class="flex items-center gap-3 px-5 py-4">
-          <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-500">
-            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-              <path d="m5 12 5 5L20 7" />
-            </svg>
+      <AppCard v-if="!diagnosticMessage" class="overflow-hidden">
+        <div class="flex flex-col items-center justify-center gap-1.5 bg-sky-50 px-5 py-4 text-center">
+          <span class="text-[20px] font-extrabold text-slate-800">
+            AI 생산계획 대안이 생성되었습니다.
           </span>
-          <div>
-            <span class="text-[15px] font-bold text-emerald-800">AI 생산계획 대안이 생성되었습니다.</span>
-            <p class="mt-0.5 text-[12px] font-semibold text-slate-500">
-              현재 계획 기준 지연 위험 {{ formatNumber(pick(baselineMetrics, [
-                'delay_risk_order_count',
-                'delayRiskOrderCount',
-                'expected_delayed_orders',
-                'expectedDelayedOrders',
-                'delayed_orders_days',
-                'delayedOrdersDays',
-              ], 0), 0) }}건을 기준으로 비교합니다.
-            </p>
-          </div>
+          <p class="text-[15px] font-semibold leading-5 text-slate-700">
+            현재 계획 기준 지연 위험 {{ formatNumber(pick(baselineMetrics, [
+              'delay_risk_order_count',
+              'delayRiskOrderCount',
+              'expected_delayed_orders',
+              'expectedDelayedOrders',
+              'delayed_orders_days',
+              'delayedOrdersDays',
+            ], 0), 0) }}건을 기준으로 비교합니다.
+          </p>
         </div>
       </AppCard>
 
-      <AppCard v-if="diagnosticMessage">
-        <div class="flex items-start gap-3 px-5 py-4">
-          <span class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-700">
-            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M12 9v4M12 17h.01"/>
-              <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-            </svg>
+      <AppCard v-else-if="diagnosticMessage" class="overflow-hidden">
+        <div class="flex flex-col items-center justify-center gap-1.5 bg-orange-50 px-5 py-4 text-center">
+          <span class="text-[20px] font-extrabold text-slate-800">
+            반영 가능한 대안이 없습니다.
           </span>
-          <div>
-            <span class="text-[14px] font-bold text-amber-800">반영 가능한 대안이 없습니다.</span>
-            <p class="mt-0.5 text-[12px] font-semibold leading-5 text-amber-700">
-              {{ diagnosticMessage }}
-            </p>
-          </div>
+          <p class="text-[15px] font-semibold leading-5 text-slate-700">
+            {{ diagnosticMessage }}
+          </p>
         </div>
       </AppCard>
 
       <AppCard>
         <div class="px-5 py-4 sm:px-6">
           <div class="mb-1 border-l-4 border-[#1565C0] pl-3">
-            <h2 class="text-[15px] font-extrabold tracking-[-0.02em] text-slate-900">대응안 목록 및 상세 내용</h2>
+            <span class="text-[30px] font-bold tracking-[-0.02em] text-slate-900">대응안 목록 및 상세 내용</span>
           </div>
-          <p class="mb-4 pl-3 text-[12px] font-medium text-slate-500">
+          <p class="mb-4 pl-3 text-[15px] font-medium text-slate-700">
             기존안을 유지하거나 AI가 생성한 대응안을 선택해 상세 시뮬레이션 결과를 확인하세요.
           </p>
 
-          <div class="grid grid-cols-1 gap-4 xl:grid-cols-2">
-            <AppCard
-              class="cursor-pointer transition hover:-translate-y-0.5 hover:shadow-[0_8px_28px_rgba(15,23,42,0.10)]"
+          <div class="ai-result-options flex flex-col gap-4 xl:flex-row xl:items-stretch">
+            <div
+              class="ai-result-option-card"
               role="button"
               tabindex="0"
               @click="keepCurrentPlan"
               @keydown.enter.prevent="keepCurrentPlan"
             >
-              <div class="relative flex min-h-[220px] flex-col px-5 py-4">
-                <span class="absolute left-3 top-3 flex h-6 min-w-12 items-center justify-center rounded-full bg-slate-500 px-2 text-[11px] font-bold text-white">
-                  기존
-                </span>
+              <AppCard class="h-full cursor-pointer">
+                <div class="relative flex min-h-[220px] flex-col px-5 py-4">
+                  <span class="absolute left-3 top-3 flex h-6 min-w-12 items-center justify-center rounded-full bg-slate-500 px-2 text-[11px] font-bold text-white">
+                    기존
+                  </span>
 
-                <div class="mt-2 flex flex-col items-center">
-                  <div class="mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-600">
-                    <svg
-                      class="h-6 w-6"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="1.6"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    >
-                      <path :d="iconPath('shield')" />
-                    </svg>
-                  </div>
-
-                  <h3 class="mb-1 text-center text-[14px] font-extrabold text-slate-700">
-                    기존안 유지
-                  </h3>
-                  <div class="mb-2 flex flex-wrap justify-center gap-2">
-                    <span class="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-extrabold text-slate-600">
-                      변경 없음
+                  <div class="mt-2 flex flex-col items-center gap-1.5">
+                    <span class="mb-1 block text-center text-[25px] font-extrabold text-slate-700">
+                      기존안 유지
                     </span>
-                    <span class="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-bold text-slate-600">
-                      API 호출 없음
-                    </span>
-                  </div>
-                  <p class="mb-3 text-center text-[11px] font-medium leading-[1.5] text-slate-500">
-                    충돌난 이동을 적용하지 않고 현재 생산계획 캘린더 상태를 유지합니다.
-                  </p>
-                </div>
-
-                <div class="mt-auto">
-                  <div
-                    v-for="(step, stepIndex) in [
-                      '현재 생산계획 유지',
-                      '일정 변경 및 저장 없음',
-                      'AI 대안 반영 API 호출 없음',
-                      '필요 시 생산계획 화면에서 다시 조정'
-                    ]"
-                    :key="step"
-                    class="flex flex-col"
-                  >
-                    <div class="flex items-start gap-2">
-                      <span class="inline-flex w-[46px] shrink-0 items-center justify-center rounded-[4px] bg-slate-100 py-0.5 text-[10px] font-bold text-slate-600">
-                        STEP {{ stepIndex + 1 }}
+                    <div class="mb-2 flex flex-wrap justify-center gap-2">
+                      <span class="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-extrabold text-slate-600">
+                        변경 없음
                       </span>
-                      <span class="line-clamp-1 text-[11px] font-medium text-slate-700">{{ step }}</span>
+                      <span class="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-bold text-slate-600">
+                        API 호출 없음
+                      </span>
                     </div>
+                    <p class="mb-3 text-center text-[11px] font-medium leading-[1.5] text-slate-500">
+                      새로운 계획을 적용하지 않고 현재 생산계획 상태를 유지합니다.
+                    </p>
+                  </div>
+
+                  <div class="mt-auto">
                     <div
-                      v-if="stepIndex < 3"
-                      class="ml-[22px] h-2.5 w-px bg-slate-300"
-                    ></div>
+                      v-for="(step, stepIndex) in [
+                        '현재 생산계획 유지',
+                        '일정 변경 및 저장 없음',
+                        'AI 대안 반영 API 호출 없음',
+                        '필요 시 생산계획 화면에서 다시 조정'
+                      ]"
+                      :key="step"
+                      class="flex flex-col"
+                    >
+                      <div class="flex items-start gap-2">
+                        <span class="inline-flex w-[46px] shrink-0 items-center justify-center rounded-[4px] bg-slate-100 py-0.5 text-[10px] font-bold text-slate-600">
+                          STEP {{ stepIndex + 1 }}
+                        </span>
+                        <span class="line-clamp-1 text-[11px] font-medium text-slate-700">{{ step }}</span>
+                      </div>
+                      <div
+                        v-if="stepIndex < 3"
+                        class="ml-[22px] h-2.5 w-px bg-slate-300"
+                      ></div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </AppCard>
+              </AppCard>
+            </div>
 
-            <AppCard
-              v-for="(option, index) in options"
+            <div
+              v-for="(option, index) in visibleOptions"
               :key="option.variantCode || index"
-              class="cursor-pointer transition hover:-translate-y-0.5 hover:shadow-[0_8px_28px_rgba(15,23,42,0.10)]"
+              class="ai-result-option-card"
+              role="button"
+              tabindex="0"
               @click="openDetail(option)"
+              @keydown.enter.prevent="openDetail(option)"
             >
-              <div class="relative flex min-h-[220px] flex-col px-5 py-4">
-                <span
-                  class="absolute left-3 top-3 flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-bold text-white"
-                  :style="{ backgroundColor: COLOR_MAP[getOptionTone(index)].badge }"
-                >{{ index + 1 }}</span>
+              <AppCard class="h-full cursor-pointer">
+                <div class="relative flex min-h-[220px] flex-col px-5 py-4">
+                  <span
+                    class="absolute left-3 top-3 flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-bold text-white"
+                    :style="{ backgroundColor: COLOR_MAP[getOptionTone(index)].badge }"
+                  >{{ index + 1 }}</span>
 
-                <div class="mt-2 flex flex-col items-center">
-                  <div
-                    class="mb-2 flex h-12 w-12 items-center justify-center rounded-full"
-                    :style="{ backgroundColor: COLOR_MAP[getOptionTone(index)].iconBg }"
-                  >
-                    <svg
-                      class="h-6 w-6"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="1.6"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      :style="{ color: COLOR_MAP[getOptionTone(index)].iconColor }"
-                    >
-                      <path :d="iconPath(getOptionIcon(index))" />
-                    </svg>
-                  </div>
-
-                  <h3
-                    class="mb-1 text-center text-[14px] font-extrabold"
-                    :style="{ color: COLOR_MAP[getOptionTone(index)].badge }"
-                  >{{ formatVariantTitle(option) }}</h3>
-                  <div class="mb-2 flex flex-wrap justify-center gap-2">
+                  <div class="mt-2 flex flex-col items-center gap-1.5">
                     <span
-                      class="inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-extrabold"
-                      :class="getReviewBadgeClass(option)"
-                    >
-                      {{ getReviewState(option).label }}
-                    </span>
-                    <span class="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-bold text-slate-600">
-                      {{ getPlanStatusText(option) }}
-                    </span>
-                  </div>
-                  <p class="mb-3 text-center text-[11px] font-medium leading-[1.5] text-slate-500">
-                    {{ getOptionDescription(option) }}
-                  </p>
-                  <p
-                    v-if="getReviewState(option).message"
-                    class="mb-3 rounded-[8px] px-3 py-2 text-center text-[11px] font-bold"
-                    :class="getReviewState(option).level === 'BLOCKED'
-                      ? 'bg-red-50 text-red-700'
-                      : 'bg-amber-50 text-amber-700'"
-                  >
-                    {{ getReviewState(option).message }}
-                  </p>
-                </div>
-
-                <div class="mt-auto">
-                  <div v-for="(step, stepIndex) in getOptionSteps(option)" :key="stepIndex" class="flex flex-col">
-                    <div class="flex items-start gap-2">
+                      class="mb-1 block text-center text-[25px] font-extrabold"
+                      :style="{ color: COLOR_MAP[getOptionTone(index)].badge }"
+                    >{{ formatVariantTitle(option) }}</span>
+                    <div class="mb-2 flex flex-wrap justify-center gap-2">
                       <span
-                        class="inline-flex w-[46px] shrink-0 items-center justify-center rounded-[4px] py-0.5 text-[10px] font-bold"
-                        :style="{
-                          backgroundColor: COLOR_MAP[getOptionTone(index)].stepBg,
-                          color: COLOR_MAP[getOptionTone(index)].stepText
-                        }"
-                      >STEP {{ stepIndex + 1 }}</span>
-                      <span class="line-clamp-1 text-[11px] font-medium text-slate-700">{{ step }}</span>
+                        class="inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-extrabold"
+                        :class="getReviewBadgeClass(option)"
+                      >
+                        {{ getReviewState(option).label }}
+                      </span>
+                      <span class="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-bold text-slate-600">
+                        {{ getPlanStatusText(option) }}
+                      </span>
                     </div>
-                    <div
-                      v-if="stepIndex < getOptionSteps(option).length - 1"
-                      class="ml-[22px] h-2.5 w-px"
-                      :style="{ backgroundColor: COLOR_MAP[getOptionTone(index)].stepText, opacity: 0.25 }"
-                    ></div>
+                    <p class="mb-3 text-center text-[11px] font-medium leading-[1.5] text-slate-500">
+                      {{ getOptionDescription(option) }}
+                    </p>
+                    <p
+                      v-if="getReviewState(option).message"
+                      class="mb-3 rounded-[8px] px-3 py-2 text-center text-[11px] font-bold"
+                      :class="getReviewState(option).level === 'BLOCKED'
+                        ? 'bg-red-50 text-red-700'
+                        : 'bg-amber-50 text-amber-700'"
+                    >
+                      {{ getReviewState(option).message }}
+                    </p>
+                  </div>
+
+                  <div class="mt-auto">
+                    <div v-for="(step, stepIndex) in getOptionSteps(option)" :key="stepIndex" class="flex flex-col">
+                      <div class="flex items-start gap-2">
+                        <span
+                          class="inline-flex w-[46px] shrink-0 items-center justify-center rounded-[4px] py-0.5 text-[10px] font-bold"
+                          :style="{
+                            backgroundColor: COLOR_MAP[getOptionTone(index)].stepBg,
+                            color: COLOR_MAP[getOptionTone(index)].stepText
+                          }"
+                        >STEP {{ stepIndex + 1 }}</span>
+                        <span class="line-clamp-1 text-[11px] font-medium text-slate-700">{{ step }}</span>
+                      </div>
+                      <div
+                        v-if="stepIndex < getOptionSteps(option).length - 1"
+                        class="ml-[22px] h-2.5 w-px"
+                        :style="{ backgroundColor: COLOR_MAP[getOptionTone(index)].stepText, opacity: 0.25 }"
+                      ></div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </AppCard>
+              </AppCard>
+            </div>
           </div>
         </div>
       </AppCard>
     </template>
   </div>
 </template>
+
+<style scoped>
+.ai-result-options {
+  align-items: stretch;
+}
+
+.ai-result-option-card {
+  min-width: 0;
+  flex: 1 1 0%;
+  transform: scale(1);
+  opacity: 1;
+  transform-origin: center;
+  transition:
+    flex 700ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 700ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 500ms ease;
+  will-change: flex, transform, opacity;
+}
+
+.ai-result-options:hover .ai-result-option-card {
+  flex: 0.82 1 0%;
+  opacity: 0.82;
+  transform: scale(0.985);
+}
+
+.ai-result-options:hover .ai-result-option-card:hover {
+  z-index: 3;
+  flex: 1.55 1 0%;
+  opacity: 1;
+  transform: scale(1.015);
+}
+
+.ai-result-options:focus-within .ai-result-option-card {
+  flex: 0.82 1 0%;
+  opacity: 0.82;
+  transform: scale(0.985);
+}
+
+.ai-result-options:focus-within .ai-result-option-card:focus-within {
+  z-index: 3;
+  flex: 1.55 1 0%;
+  opacity: 1;
+  transform: scale(1.015);
+}
+
+@media (max-width: 1279px) {
+  .ai-result-option-card,
+  .ai-result-options:hover .ai-result-option-card,
+  .ai-result-options:hover .ai-result-option-card:hover,
+  .ai-result-options:focus-within .ai-result-option-card,
+  .ai-result-options:focus-within .ai-result-option-card:focus-within {
+    flex: 1 1 auto;
+    opacity: 1;
+    transform: none;
+  }
+}
+</style>
