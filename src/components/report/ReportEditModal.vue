@@ -134,34 +134,34 @@ watch(
   <AppModal title="보고서 수정" @close="emit('close')">
     <div class="grid gap-5 pb-2">
       <label class="grid gap-2">
-        <span class="text-[14px] font-extrabold text-[#16345f]">
+        <span class="text-[16px] font-extrabold text-[#16345f]">
           보고서 제목
         </span>
         <input
           v-model="form.title"
           type="text"
-          class="h-12 rounded-xl border border-slate-200 bg-white px-4 text-[15px] font-bold text-[#173967] outline-none transition focus:border-[#0b4ea2] focus:ring-4 focus:ring-blue-100"
+          class="w-full h-12 rounded-xl border border-slate-200 bg-white px-4 text-[15px] font-bold text-[#173967] outline-none transition focus:border-[#0b4ea2] focus:ring-4 focus:ring-blue-100"
           :disabled="loading"
         />
       </label>
 
       <label class="grid gap-2">
-        <span class="text-[14px] font-extrabold text-[#16345f]">
+        <span class="text-[16px] font-extrabold text-[#16345f]">
           보고서 요약
         </span>
         <textarea
           v-model="form.overview"
-          rows="4"
-          class="min-h-[120px] resize-y rounded-xl border border-slate-200 bg-white px-4 py-3 text-[14px] font-semibold leading-6 text-[#173967] outline-none transition focus:border-[#0b4ea2] focus:ring-4 focus:ring-blue-100"
+          rows="6"
+          class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-[14px] font-semibold leading-6 text-[#173967] outline-none transition focus:border-[#0b4ea2] focus:ring-4 focus:ring-blue-100"
           :disabled="loading"
         />
       </label>
 
-      <section class="grid gap-3">
+      <section class="grid gap-1.5">
         <div class="flex items-center justify-between gap-3">
-          <h4 class="text-[14px] font-extrabold text-[#16345f]">
+          <span class="text-[16px] font-extrabold text-[#16345f]">
             분석 섹션
-          </h4>
+          </span>
 
           <AppButton
             variant="secondary"
@@ -215,13 +215,13 @@ watch(
       </section>
 
       <label class="grid gap-2">
-        <span class="text-[14px] font-extrabold text-[#16345f]">
+        <span class="text-[16px] font-extrabold text-[#16345f]">
           종합 의견 및 제안
         </span>
         <textarea
           v-model="form.recommendation"
           rows="4"
-          class="min-h-[120px] resize-y rounded-xl border border-slate-200 bg-white px-4 py-3 text-[14px] font-semibold leading-6 text-[#173967] outline-none transition focus:border-[#0b4ea2] focus:ring-4 focus:ring-blue-100"
+          class="w-full min-h-[120px] resize-y rounded-xl border border-slate-200 bg-white px-4 py-3 text-[14px] font-semibold leading-6 text-[#173967] outline-none transition focus:border-[#0b4ea2] focus:ring-4 focus:ring-blue-100"
           :disabled="loading"
         />
       </label>

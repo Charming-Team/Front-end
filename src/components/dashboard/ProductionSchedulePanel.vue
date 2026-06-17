@@ -198,9 +198,9 @@ watch(
 }
 
 .panel-title {
-  color: var(--color-text-main);
-  font-size: 16px;
-  font-weight: 700;
+  color: #111827;
+  font-size: 17px;
+  font-weight: 800;
   letter-spacing: -0.2px;
 }
 

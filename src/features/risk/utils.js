@@ -22,30 +22,66 @@ export const riskCauseTypeMap = {
     label: '자재 부족',
     className: 'risk-cause-badge risk-cause-badge--material',
   },
+  MATERIAL_DELAY: {
+    label: '자재 입고 지연',
+    className: 'risk-cause-badge risk-cause-badge--material-delay',
+  },
   LOW_YIELD: {
     label: '수율 저하',
     className: 'risk-cause-badge risk-cause-badge--yield',
   },
-  LINE_WAITING_INCREASE: {
-    label: '라인 대기 증가',
-    className: 'risk-cause-badge risk-cause-badge--waiting',
-  },
-  LOW_THROUGHPUT: {
-    label: '처리량 부족',
-    className: 'risk-cause-badge risk-cause-badge--throughput',
-  },
-  MACHINE_STATUS_ABNORMAL: {
+  MACHINE_ABNORMAL: {
     label: '설비 상태 이상',
     className: 'risk-cause-badge risk-cause-badge--machine',
   },
+  LINE_ABNORMAL: {
+    label: '라인 상태 이상',
+    className: 'risk-cause-badge risk-cause-badge--line',
+  },
 };
 
+function normalizeRiskCauseType(type) {
+  if (!type) return null;
+
+  const normalized = String(type).trim().toUpperCase();
+
+  if (normalized === 'MACHINE_STATUS_ABNORMAL') {
+    return 'MACHINE_ABNORMAL';
+  }
+
+  if (
+    normalized === 'LINE_WAITING_INCREASE' ||
+    normalized === 'LOW_THROUGHPUT' ||
+    normalized === 'LINE_LOAD' ||
+    normalized === 'LINE_CAPACITY' ||
+    normalized === 'LINE_RISK'
+  ) {
+    return 'LINE_ABNORMAL';
+  }
+
+  if (normalized === 'YIELD_RISK' || normalized === 'LOW_YIELD') {
+    return 'LOW_YIELD';
+  }
+
+  if (normalized === 'MATERIAL_NOT_READY' || normalized === 'MATERIAL_SHORTAGE') {
+    return 'MATERIAL_SHORTAGE';
+  }
+
+  if (normalized === 'MATERIAL_DELAY') {
+    return 'MATERIAL_DELAY';
+  }
+
+  return normalized;
+}
+
 export function getRiskCauseLabel(type) {
-  return riskCauseTypeMap[type]?.label ?? '기타 원인';
+  const normalizedType = normalizeRiskCauseType(type);
+  return riskCauseTypeMap[normalizedType]?.label ?? '상세 분석 생성 후 제공';
 }
 
 export function getRiskCauseBadgeClass(type) {
-  return riskCauseTypeMap[type]?.className ?? 'risk-cause-badge';
+  const normalizedType = normalizeRiskCauseType(type);
+  return riskCauseTypeMap[normalizedType]?.className ?? 'risk-cause-badge';
 }
 
 export function formatNumber(value) {

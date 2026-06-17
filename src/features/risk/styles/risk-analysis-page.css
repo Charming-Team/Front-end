@@ -53,10 +53,33 @@
   padding: 22px;
 }
 
+.risk-summary-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
 .risk-summary-title {
-  margin: 0 0 12px;
+  margin: 0;
   color: var(--color-text-subtle);
   font-weight: 700;
+}
+
+.risk-summary-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: fit-content;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(255, 59, 59, 0.1);
+  color: var(--color-danger);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
 }
 
 .risk-summary-card strong {
@@ -64,17 +87,6 @@
   color: var(--color-text-main);
   font-size: 30px;
   line-height: 1.2;
-}
-
-.risk-summary-card span {
-  display: inline-flex;
-  margin-top: 8px;
-  padding: 4px 10px;
-  border-radius: 999px;
-  background: rgba(255, 59, 59, 0.1);
-  color: var(--color-danger);
-  font-size: 13px;
-  font-weight: 700;
 }
 
 /* Workspace */
@@ -178,9 +190,9 @@
 }
 
 .risk-chip--safe {
-  border-color: rgba(76, 175, 0, 0.28);
-  background: rgba(76, 175, 0, 0.1);
-  color: #347a00;
+  border-color: rgba(51, 121, 201, 0.28);
+  background: rgba(51, 121, 201, 0.1);
+  color: #3379c9;
 }
 
 .risk-chip.active {
@@ -208,8 +220,8 @@
 }
 
 .risk-chip--safe.active {
-  border-color: #4caf00;
-  background: #4caf00;
+  border-color: #3379c9;
+  background: #3379c9;
 }
 
 /* Table */
@@ -313,7 +325,7 @@
 }
 
 .risk-badge--safe {
-  background: #4caf00;
+  background: #3379c9;
 }
 
 .risk-detail-button {
@@ -545,6 +557,35 @@
 .risk-detail-slide-leave-from {
   opacity: 1;
   transform: translateX(0);
+}
+
+.risk-detail-metric-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 20px 0 24px;
+}
+
+.risk-detail-metric-card {
+  padding: 18px 20px;
+  border: 1px solid #e5eaf3;
+  border-radius: 16px;
+  background: #f8fafc;
+}
+
+.risk-detail-metric-card span {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #64748b;
+}
+
+.risk-detail-metric-card strong {
+  display: block;
+  font-size: 28px;
+  line-height: 1.2;
+  color: #0f1b3d;
 }
 
 /* Responsive */

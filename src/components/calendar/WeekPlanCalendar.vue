@@ -335,12 +335,16 @@ onBeforeUnmount(() => {
     @drop.prevent="handleSegmentDrop"
     class="week-plan-calendar
       relative
+      overflow-hidden
+      rounded-2xl
+      border
+      border-slate-300
+      bg-white
+      shadow-md
       [&_.fc]:font-sans
       [&_.fc]:text-slate-900
       [&_.fc-theme-standard_.fc-scrollgrid]:border-0
-      [&_.fc-theme-standard_td]:border-slate-200
-      [&_.fc-theme-standard_th]:border-slate-200
-      [&_.fc_.fc-col-header-cell]:bg-slate-50
+      [&_.fc_.fc-col-header-cell]:bg-blue-50/70
       [&_.fc_.fc-col-header-cell-cushion]:px-2
       [&_.fc_.fc-col-header-cell-cushion]:py-3
       [&_.fc_.fc-col-header-cell-cushion]:text-sm
@@ -363,7 +367,6 @@ onBeforeUnmount(() => {
       [&_.fc_.fc-event]:cursor-pointer
       [&_.fc_.fc-event]:transition
       [&_.fc_.fc-event:hover]:brightness-102
-      [&_.fc_.fc-event:hover]:shadow-[0_2px_8px_rgba(15,23,42,0.08)]
       [&_.fc_.fc-view-harness]:bg-white"
   >
     <FullCalendar ref="calendarRef" :options="calendarOptions">
@@ -387,7 +390,7 @@ onBeforeUnmount(() => {
         role="button"
         tabindex="0"
         :draggable="segment.movable"
-        class="fixed-plan-segment pointer-events-auto absolute flex items-center justify-between gap-3 overflow-hidden rounded-full border px-4 text-[12px] font-bold leading-none shadow-[0_1px_3px_rgba(15,23,42,0.08)]"
+        class="fixed-plan-segment pointer-events-auto absolute flex items-center justify-between gap-3 overflow-hidden rounded-md border px-4 text-[12px] font-bold leading-none shadow-[0_1px_3px_rgba(15,23,42,0.08)]"
         :class="{
           'cursor-grab active:cursor-grabbing': segment.movable,
           'cursor-pointer': !segment.movable,
@@ -426,6 +429,42 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
+.week-plan-calendar :deep(.fc a) {
+  color: inherit;
+  text-decoration: none;
+}
+
+.week-plan-calendar :deep(.fc a:hover),
+.week-plan-calendar :deep(.fc a:focus),
+.week-plan-calendar :deep(.fc a:active) {
+  color: inherit;
+  text-decoration: none;
+}
+
+.week-plan-calendar :deep(.fc-col-header-cell-cushion) {
+  color: #0f172a;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.week-plan-calendar :deep(.fc-daygrid-day-number) {
+  color: #0f172a;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.week-plan-calendar :deep(.fc-day-other .fc-daygrid-day-number) {
+  color: #cbd5e1;
+}
+
+.week-plan-calendar :deep(.fc-col-header-cell.fc-day-today .fc-col-header-cell-cushion) {
+  color: #1d4ed8;
+}
+
+.week-plan-calendar :deep(.fc-day-today .fc-daygrid-day-number) {
+  color: #1d4ed8;
+}
+
 .week-plan-calendar :deep(.fc-daygrid-day-events) {
   box-sizing: content-box;
   min-height: calc(var(--plan-lane-count) * var(--plan-lane-height));

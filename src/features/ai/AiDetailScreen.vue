@@ -423,23 +423,18 @@ function selectThisOption() {
       </div>
 
       <AppCard>
-        <div class="px-5 py-5 sm:px-6">
-          <div class="flex items-start justify-between gap-4">
-            <div class="flex items-center gap-4">
-              <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-emerald-100">
-                <svg class="h-6 w-6 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M6 20V10m6 10V4m6 16v-7" />
-                </svg>
-              </div>
+        <div class="px-4 py-4 sm:px-6">
+          <div class="flex items-start justify-between gap-2">
+            <div class="flex items-center gap-2">
               <div>
-                <h2 class="text-[18px] font-extrabold tracking-[-0.02em] text-slate-900">{{ formatVariantTitle() }}</h2>
+                <span class="text-[30px] block font-extrabold tracking-[-0.02em] text-slate-900">{{ formatVariantTitle() }}</span>
                 <p class="mt-1 text-[13px] font-medium text-slate-500">
                   {{ summaryText }}
                 </p>
               </div>
             </div>
             <span
-              class="inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1 text-[13px] font-bold"
+              class="inline-flex shrink-0 items-center gap-1.5 rounded-full px-1 py-1 text-[15px] font-bold"
               :class="getReviewBadgeClass()"
             >
               {{ reviewState.label }}
@@ -447,7 +442,7 @@ function selectThisOption() {
           </div>
           <p
             v-if="!canApplyOption"
-            class="mt-4 rounded-[10px] border px-4 py-3 text-[13px] font-bold"
+            class="mt-1 rounded-[10px] border px-3 py-3 text-[13px] font-bold"
             :class="reviewState.level === 'BLOCKED'
               ? 'border-red-100 bg-red-50 text-red-700'
               : 'border-amber-100 bg-amber-50 text-amber-700'"
@@ -455,14 +450,11 @@ function selectThisOption() {
             {{ applicationBlockMessage }}
           </p>
 
-          <div class="mt-5 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
-            <div class="flex items-center gap-3 rounded-[10px] border border-slate-100 bg-slate-50 px-4 py-3">
-              <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-600">
-                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 3v3M17 3v3M4 9h16M5 6h14a1 1 0 0 1 1 1v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a1 1 0 0 1 1-1z"/></svg>
-              </div>
+          <div class="mt-2 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+            <div class="flex items-center gap-3 rounded-[10px] border border-slate-100 bg-slate-50 px-3 py-3">
               <div>
-                <div class="text-[11px] font-semibold text-slate-500">납기 지연일</div>
-                <div class="text-[17px] font-extrabold text-slate-900">
+                <div class="text-[15px] font-semibold text-slate-500">납기 지연일</div>
+                <div class="text-[20px] font-extrabold text-slate-900">
                   {{ formatDays(delayedOrderDays(baselineMetrics)) }}
                   <span
                     :class="getMetricDirectionClass(
@@ -482,12 +474,9 @@ function selectThisOption() {
             </div>
 
             <div class="flex items-center gap-3 rounded-[10px] border border-slate-100 bg-slate-50 px-4 py-3">
-              <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
-                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3 7 4v10l-7 4-7-4V7l7-4zm0 0v18m7-14-7 4-7-4"/></svg>
-              </div>
               <div>
-                <div class="text-[11px] font-semibold text-slate-500">지연 위험 주문</div>
-                <div class="text-[17px] font-extrabold text-slate-900">
+                <div class="text-[15px] font-semibold text-slate-500">지연 위험 주문</div>
+                <div class="text-[20px] font-extrabold text-slate-900">
                   {{ formatNumber(delayRiskOrderCount(baselineMetrics), 0) }}건
                   <span
                     :class="getMetricDirectionClass(
@@ -507,12 +496,9 @@ function selectThisOption() {
             </div>
 
             <div class="flex items-center gap-3 rounded-[10px] border border-slate-100 bg-slate-50 px-4 py-3">
-              <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-orange-100 text-orange-500">
-                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-              </div>
               <div>
-                <div class="text-[11px] font-semibold text-slate-500">납기 충족률</div>
-                <div class="text-[17px] font-extrabold text-slate-900">
+                <div class="text-[15px] font-semibold text-slate-500">납기 충족률</div>
+                <div class="text-[20px] font-extrabold text-slate-900">
                   {{ formatPercent(baselineDeliveryFulfillmentRate()) }}
                   <span
                     :class="getMetricDirectionClass(
@@ -532,12 +518,9 @@ function selectThisOption() {
             </div>
 
             <div class="flex items-center gap-3 rounded-[10px] border border-slate-100 bg-slate-50 px-4 py-3">
-              <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-violet-100 text-violet-600">
-                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
-              </div>
               <div>
-                <div class="text-[11px] font-semibold text-slate-500">위험 비용</div>
-                <div class="text-[17px] font-extrabold text-slate-900">
+                <div class="text-[15px] font-semibold text-slate-500">위험 비용</div>
+                <div class="text-[20px] font-extrabold text-slate-900">
                   {{ formatCurrency(contractPenaltyValue(baselinePlanValueAnalysis)) }}
                   <span
                     :class="getMetricDirectionClass(
@@ -559,40 +542,40 @@ function selectThisOption() {
         </div>
       </AppCard>
 
-      <div class="grid grid-cols-1 gap-4 xl:grid-cols-2">
+      <div class="grid grid-cols-1 gap-3 xl:grid-cols-2">
         <AppCard>
-          <div class="px-5 py-5">
-            <h3 class="mb-4 text-[15px] font-extrabold text-slate-900">적용 조건</h3>
-            <ul class="flex flex-col gap-3">
+          <div class="px-4 py-4">
+            <span class="block mb-2 text-[25px] font-extrabold text-slate-900">적용 조건</span>
+            <ul class="flex flex-col gap-3 mt-4">
               <li class="flex items-start gap-2">
-                <span class="mt-0.5 h-4 w-4 rounded-full border-4 border-emerald-200 bg-emerald-500"></span>
-                <span class="text-[13px] font-semibold text-slate-700">적용 라인</span>
+                <span class="mt-0.5 h-4 w-4 rounded-full border-4 border-blue-100 bg-blue-500"></span>
+                <span class="text-[17px] font-semibold text-slate-700">적용 라인</span>
                 <span class="ml-auto max-w-[65%] text-right text-[13px] font-semibold text-slate-500">
                   {{ joinNames(conditions.available_lines, ['line_name', 'lineName', 'line_code', 'lineCode'], ['line_id', 'lineId']) }}
                 </span>
               </li>
               <li class="flex items-start gap-2">
-                <span class="mt-0.5 h-4 w-4 rounded-full border-4 border-emerald-200 bg-emerald-500"></span>
-                <span class="text-[13px] font-semibold text-slate-700">대상 제품</span>
+                <span class="mt-0.5 h-4 w-4 rounded-full border-4 border-blue-100 bg-blue-500"></span>
+                <span class="text-[17px] font-semibold text-slate-700">대상 제품</span>
                 <span class="ml-auto max-w-[65%] text-right text-[13px] font-semibold text-slate-500">
                   {{ joinNames(conditions.target_products, ['product_name', 'productName', 'product_code', 'productCode'], ['product_id', 'productId']) }}
                 </span>
               </li>
               <li class="flex items-start gap-2">
-                <span class="mt-0.5 h-4 w-4 rounded-full border-4 border-emerald-200 bg-emerald-500"></span>
-                <span class="text-[13px] font-semibold text-slate-700">적용 기간</span>
+                <span class="mt-0.5 h-4 w-4 rounded-full border-4 border-blue-100 bg-blue-500"></span>
+                <span class="text-[17px] font-semibold text-slate-700">적용 기간</span>
                 <span class="ml-auto max-w-[65%] text-right text-[13px] font-semibold text-slate-500">
                   {{ periodText(conditions.applicable_period ?? conditions.applicablePeriod) }}
                 </span>
               </li>
               <li class="flex items-start gap-2">
-                <span class="mt-0.5 h-4 w-4 rounded-full border-4 border-emerald-200 bg-emerald-500"></span>
-                <span class="text-[13px] font-semibold text-slate-700">변경 일정</span>
+                <span class="mt-0.5 h-4 w-4 rounded-full border-4 border-blue-100 bg-blue-500"></span>
+                <span class="text-[17px] font-semibold text-slate-700">변경 일정</span>
                 <span class="ml-auto text-[13px] font-semibold text-slate-500">{{ formatNumber(scheduleRows.length, 0) }}건</span>
               </li>
               <li class="flex items-start gap-2">
-                <span class="mt-0.5 h-4 w-4 rounded-full border-4 border-emerald-200 bg-emerald-500"></span>
-                <span class="text-[13px] font-semibold text-slate-700">변경되지 않은 겹침 계획</span>
+                <span class="mt-0.5 h-4 w-4 rounded-full border-4 border-blue-100 bg-blue-500"></span>
+                <span class="text-[17px] font-semibold text-slate-700">변경되지 않은 겹침 계획</span>
                 <span class="ml-auto text-[13px] font-semibold text-slate-500">
                   {{ formatNumber((conditions.unchanged_overlapping_orders ?? conditions.unchangedOverlappingOrders ?? []).length, 0) }}건
                 </span>
@@ -602,8 +585,8 @@ function selectThisOption() {
         </AppCard>
 
         <AppCard>
-          <div class="px-5 py-5">
-            <h3 class="mb-4 text-[15px] font-extrabold text-slate-900">시뮬레이션 결과 비교</h3>
+          <div class="px-4 py-4">
+            <span class="block mb-2 text-[25px] font-extrabold text-slate-900">시뮬레이션 결과 비교</span>
             <table class="w-full text-[13px]">
               <thead>
                 <tr class="border-b border-slate-100">
@@ -630,8 +613,8 @@ function selectThisOption() {
 
       <div class="grid grid-cols-1 gap-4 xl:grid-cols-2">
         <AppCard>
-          <div class="px-5 py-5">
-            <h3 class="mb-1 text-[15px] font-extrabold text-slate-900">현재 상태 유지 시</h3>
+          <div class="px-4 py-4">
+            <span class="block mb-2 text-[25px] font-extrabold text-slate-900">현재 상태 유지 시</span>
             <p class="mb-4 text-[12px] font-medium text-slate-500">현재 DB 생산계획을 기준으로 산출된 baseline 시뮬레이션 결과입니다.</p>
             <div class="mb-4 flex flex-wrap gap-2">
               <span class="rounded-[6px] bg-red-100 px-3 py-1.5 text-[12px] font-bold text-red-700">
@@ -653,16 +636,16 @@ function selectThisOption() {
         </AppCard>
 
         <AppCard>
-          <div class="px-5 py-5">
-            <h3 class="mb-4 text-[15px] font-extrabold text-slate-900">주요 이벤트</h3>
-            <div v-if="importantEvents.length === 0" class="rounded-[10px] bg-slate-50 px-4 py-5 text-center text-[13px] font-semibold text-slate-500">
+          <div class="px-4 py-4">
+            <span class="block mb-2 text-[25px] font-extrabold text-slate-900">주요 이벤트</span>
+            <div v-if="importantEvents.length === 0" class="rounded-[10px] bg-slate-50 px-4 py-4 text-center text-[13px] font-semibold text-slate-500">
               주요 이벤트가 없습니다.
             </div>
-            <ul v-else class="space-y-2">
+            <ul v-else class="flex flex-col gap-3">
               <li
                 v-for="(event, index) in importantEvents.slice(0, 5)"
                 :key="index"
-                class="rounded-[10px] border border-slate-100 bg-slate-50 px-3 py-2"
+                class="rounded-[10px] border border-slate-100 bg-slate-50 px-2 py-2"
               >
                 <div class="text-[13px] font-bold text-slate-800">
                   {{ event.event ?? event.title ?? event.event_type ?? '이벤트' }}
@@ -677,8 +660,8 @@ function selectThisOption() {
       </div>
 
       <AppCard>
-        <div class="px-5 py-5">
-          <h3 class="mb-4 text-[15px] font-extrabold text-slate-900">선택 대응안 변경 일정</h3>
+        <div class="px-4 py-4">
+          <span class="block mb-2 text-[25px] font-extrabold text-slate-900">선택 대응안 변경 일정</span>
           <div class="overflow-x-auto">
             <table class="w-full min-w-[860px] text-[12px]">
               <thead>
@@ -707,15 +690,10 @@ function selectThisOption() {
       </AppCard>
 
       <AppCard>
-        <div class="flex flex-col gap-4 px-5 py-4 xl:flex-row xl:items-center xl:justify-between">
+        <div class="flex flex-col gap-4 px-4 py-4 xl:flex-row xl:items-center xl:justify-between">
           <div class="flex items-start gap-3">
-            <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-100">
-              <svg class="h-5 w-5 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/>
-              </svg>
-            </div>
             <div>
-              <p class="text-[13px] font-bold text-slate-900">AI 종합 평가</p>
+              <span class="block mb-2 text-[25px] font-extrabold text-slate-900">AI 종합 평가</span>
               <p class="mt-0.5 text-[12px] font-medium leading-5 text-slate-500">
                 {{ summaryText }}
               </p>

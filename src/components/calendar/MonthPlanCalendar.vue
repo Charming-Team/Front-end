@@ -361,12 +361,15 @@ onBeforeUnmount(() => {
     @drop.prevent="handleSegmentDrop"
     class="month-plan-calendar
       relative
+      rounded-2xl
+      overflow-hidden
+      border
+      border-slate-300
+      bg-white
       [&_.fc]:font-sans
       [&_.fc]:text-slate-900
       [&_.fc-theme-standard_.fc-scrollgrid]:border-0
-      [&_.fc-theme-standard_td]:border-slate-200
-      [&_.fc-theme-standard_th]:border-slate-200
-      [&_.fc_.fc-col-header-cell]:bg-slate-50
+      [&_.fc_.fc-col-header-cell]:bg-blue-50/70
       [&_.fc_.fc-col-header-cell-cushion]:px-2
       [&_.fc_.fc-col-header-cell-cushion]:py-3
       [&_.fc_.fc-col-header-cell-cushion]:text-sm
@@ -388,7 +391,6 @@ onBeforeUnmount(() => {
       [&_.fc_.fc-event]:cursor-pointer
       [&_.fc_.fc-event]:transition
       [&_.fc_.fc-event:hover]:brightness-102
-      [&_.fc_.fc-event:hover]:shadow-[0_2px_8px_rgba(15,23,42,0.08)]
       [&_.fc_.fc-view-harness]:bg-white"
   >
     <FullCalendar ref="calendarRef" :options="calendarOptions" />
@@ -400,7 +402,7 @@ onBeforeUnmount(() => {
         role="button"
         tabindex="0"
         :draggable="segment.movable"
-        class="fixed-plan-segment pointer-events-auto absolute flex items-center justify-center overflow-hidden rounded-full border px-3 text-center text-[12px] font-bold leading-none shadow-[0_1px_3px_rgba(15,23,42,0.08)]"
+        class="fixed-plan-segment pointer-events-auto absolute flex items-center justify-center overflow-hidden rounded-md border px-3 text-center text-[12px] font-bold leading-none shadow-[0_1px_3px_rgba(15,23,42,0.08)]"
         :class="{
           'cursor-grab active:cursor-grabbing': segment.movable,
           'cursor-pointer': !segment.movable,
@@ -429,6 +431,32 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
+.month-plan-calendar :deep(.fc a) {
+  color: inherit;
+  text-decoration: none;
+}
+
+.month-plan-calendar :deep(.fc a:hover),
+.month-plan-calendar :deep(.fc a:focus),
+.month-plan-calendar :deep(.fc a:active) {
+  color: inherit;
+  text-decoration: none;
+}
+
+.month-plan-calendar :deep(.fc-col-header-cell-cushion) {
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.month-plan-calendar :deep(.fc-daygrid-day-number) {
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.month-plan-calendar :deep(.fc-day-other .fc-daygrid-day-number) {
+  color: #cbd5e1;
+}
+
 .month-plan-calendar :deep(.fc-daygrid-day-events) {
   box-sizing: content-box;
   min-height: calc(var(--plan-lane-count) * var(--plan-lane-height));
@@ -446,30 +474,5 @@ onBeforeUnmount(() => {
 
 .month-plan-calendar :deep(.fc-daygrid-day-frame) {
   min-height: calc((var(--plan-lane-count) * var(--plan-lane-height)) + var(--plan-day-number-height)) !important;
-}
-
-.month-plan-calendar :deep(.fc-daygrid-event-harness) {
-  margin-top: 0 !important;
-  margin-bottom: 0 !important;
-}
-
-.month-plan-calendar :deep(.fc-daygrid-event) {
-  height: 36px;
-  margin-top: 0 !important;
-  padding-bottom: 10px !important;
-  border-color: transparent !important;
-  background: transparent !important;
-  box-shadow: none !important;
-}
-
-.month-plan-calendar :deep(.fc-daygrid-event .fc-event-main),
-.month-plan-calendar :deep(.fc-daygrid-event .fc-event-main-frame),
-.month-plan-calendar :deep(.plan-event-chip) {
-  height: 26px;
-  min-height: 26px;
-}
-
-.month-plan-calendar :deep(.fc-event.is-selected-plan .plan-event-chip) {
-  box-shadow: 0 0 0 2px rgba(21, 101, 192, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.7);
 }
 </style>

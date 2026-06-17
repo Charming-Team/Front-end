@@ -41,7 +41,7 @@ function onStatusChange(value) {
     <AppSearchField
       class="flex-1 min-w-0"
       :model-value="searchValue"
-      placeholder="계획ID, 주문ID, 제품명, 라인, 담당자 검색"
+      placeholder="계획ID, 주문ID, 제품명, 라인, 담당자를 검색하세요"
       @update:model-value="searchValue = $event"
       @search="emit('search')"
     />

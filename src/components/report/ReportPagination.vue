@@ -52,7 +52,7 @@ function isActive(page) {
       v-for="page in visiblePages"
       :key="page"
       type="button"
-      class="grid h-7 min-w-7 place-items-center rounded-full text-[14px] font-extrabold transition"
+      class="pagination-button grid h-7 w-7 place-items-center rounded-full text-[14px] font-extrabold transition"
       :class="
         isActive(page)
           ? 'bg-[#184f96] text-white'
@@ -101,3 +101,11 @@ function isActive(page) {
     </button>
   </nav>
 </template>
+
+<style scoped>
+.pagination-button {
+  border-radius: 9999px;
+  appearance: none;
+  border: 0;
+}
+</style>

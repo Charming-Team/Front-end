@@ -189,12 +189,12 @@ const emit = defineEmits([
 .table-state { height: 124px; color: #667085; text-align: center; }
 .table-state--error { color: #d92d20; }
 .table-state--error button { margin-left: 10px; border: 0; background: transparent; color: #185ec9; font-weight: 800; cursor: pointer; }
-.table-footer { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 12px; margin-top: 12px; padding: 0 6px; }
+.table-footer { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px; margin-top: 12px; padding: 0 6px; }
 .table-footer-left { display: flex; align-items: center; gap: 10px; justify-self: start; }
 .table-count { color: #667085; font-size: 14px; font-weight: 700; }
 .footer-select:deep(.relative) { min-width: 70px; }
 .footer-select--count:deep(select) { height: 32px; border-radius: 8px; padding: 0 28px 0 10px; font-size: 14px; font-weight: 700; box-shadow: none; }
-.pagination { display: flex; align-items: center; gap: 6px; justify-self: center; }
+.pagination { display: flex; align-items: center; gap: 6px; grid-column: 2; justify-self: center; }
 .page-nav, .page-number { display: grid; place-items: center; width: 28px; height: 28px; border: 1px solid #d8e1ec; border-radius: 6px; background: #ffffff; color: #667085; font-size: 14px; font-weight: 800; }
 .page-nav svg { width: 13px; height: 13px; }
 .page-number { border-color: transparent; }

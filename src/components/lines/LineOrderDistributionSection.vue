@@ -132,7 +132,7 @@ defineProps({
 .summary-label,
 .metric-card__label {
   margin: 0 0 10px;
-  color: #1d4ed8;
+  color: #0d1f3c;
   font-size: 13px;
   font-weight: 800;
 }
