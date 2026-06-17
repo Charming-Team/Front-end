@@ -70,12 +70,21 @@ const canApplyOption = computed(() =>
 const applicationBlockMessage = computed(() =>
   reviewState.value.message || '이 대응안은 바로 반영할 수 없습니다.'
 )
-const riskInterpretation = computed(() =>
-  aiEvaluation.value.risk_interpretation?.text
-  ?? aiEvaluation.value.riskInterpretation?.text
-  ?? 'AI 리스크 해석 데이터가 없습니다.'
-)
 const AI_EVALUATION_FALLBACK_TEXT = 'AI 평가 문구를 생성하지 못했습니다. 정량 지표를 기준으로 확인해주세요.'
+const riskAnalysisTexts = computed(() => {
+  const currentStateSummary = aiEvaluation.value.current_state_summary ?? aiEvaluation.value.currentStateSummary ?? {}
+  const riskInterpretation = aiEvaluation.value.risk_interpretation ?? aiEvaluation.value.riskInterpretation ?? {}
+  const texts = [
+    currentStateSummary.risk_analysis_text ?? currentStateSummary.riskAnalysisText,
+    aiRecommendation.value.final_action ?? aiRecommendation.value.finalAction,
+    riskInterpretation.text,
+  ]
+
+  return texts
+    .map(text => String(text ?? '').trim())
+    .filter(text => text && text !== '정보 없음')
+    .filter(isDisplayableAiText)
+})
 const summaryText = computed(() => {
   if (!canApplyOption.value) {
     return applicationBlockMessage.value
@@ -631,7 +640,26 @@ function selectThisOption() {
               </span>
             </div>
             <p class="mb-1 text-[13px] font-bold text-slate-700">리스크 분석</p>
-            <p class="text-[12px] font-medium leading-5 text-slate-500">{{ riskInterpretation }}</p>
+            <div v-if="riskAnalysisTexts.length > 0" class="space-y-1">
+              <p
+                v-for="(text, index) in riskAnalysisTexts"
+                :key="`${index}-${text}`"
+                class="text-[12px] font-medium leading-5 text-slate-500"
+              >
+                {{ text }}
+              </p>
+            </div>
+            <p v-else class="text-[12px] font-medium leading-5 text-slate-500">AI 리스크 해석 데이터가 없습니다.</p>
+
+            <div class="mt-5 border-t border-slate-100 pt-4">
+              <span class="block mb-2 text-[25px] font-extrabold text-slate-900">AI 종합 평가</span>
+              <p class="mt-0.5 text-[12px] font-medium leading-5 text-slate-500">
+                {{ summaryText }}
+              </p>
+              <ul v-if="recommendationReasons.length > 0" class="mt-2 list-disc space-y-1 pl-5 text-[12px] font-medium text-slate-500">
+                <li v-for="reason in recommendationReasons.slice(0, 3)" :key="reason">{{ reason }}</li>
+              </ul>
+            </div>
           </div>
         </AppCard>
 
@@ -689,32 +717,18 @@ function selectThisOption() {
         </div>
       </AppCard>
 
-      <AppCard>
-        <div class="flex flex-col gap-4 px-4 py-4 xl:flex-row xl:items-center xl:justify-between">
-          <div class="flex items-start gap-3">
-            <div>
-              <span class="block mb-2 text-[25px] font-extrabold text-slate-900">AI 종합 평가</span>
-              <p class="mt-0.5 text-[12px] font-medium leading-5 text-slate-500">
-                {{ summaryText }}
-              </p>
-              <ul v-if="recommendationReasons.length > 0" class="mt-2 list-disc space-y-1 pl-5 text-[12px] font-medium text-slate-500">
-                <li v-for="reason in recommendationReasons.slice(0, 3)" :key="reason">{{ reason }}</li>
-              </ul>
-            </div>
-          </div>
-          <div class="flex shrink-0 items-center gap-2">
-            <AppButton variant="secondary" size="md" @click="router.push('/ai/result')">다른 대응안 비교하기</AppButton>
-            <AppButton
-              variant="primary"
-              size="md"
-              :disabled="!canApplyOption"
-              @click="selectThisOption"
-            >
-              {{ canApplyOption ? '이 대응안 선택하기' : '반영할 수 없음' }}
-            </AppButton>
-          </div>
-        </div>
-      </AppCard>
+      <div class="flex flex-wrap items-center justify-center gap-2">
+        <AppButton variant="secondary" size="md" @click="router.push('/ai/result')">다른 대응안 비교하기</AppButton>
+        <AppButton
+          variant="primary"
+          size="md"
+          :disabled="!canApplyOption"
+          @click="selectThisOption"
+        >
+          {{ canApplyOption ? '이 대응안 선택하기' : '반영할 수 없음' }}
+        </AppButton>
+      </div>
+
     </template>
   </div>
 </template>
