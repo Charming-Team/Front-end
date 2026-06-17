@@ -121,9 +121,9 @@
                   <td>{{ item.lineName }}</td>
                   <td>
                     <div class="risk-progress">
-                      <span>{{ formatPercent(item.progressRate) }}%</span>
+                      <span>{{ formatPercent(item.progressRatePercent) }}%</span>
                       <div class="risk-progress-bar">
-                        <span class="risk-progress-fill" :style="{ width: `${normalizePercent(item.progressRate)}%` }" />
+                        <span class="risk-progress-fill" :style="{ width: `${normalizePercent(item.progressRatePercent)}%` }" />
                       </div>
                     </div>
                   </td>
@@ -200,11 +200,14 @@
             <div class="risk-detail-progress-card">
               <div class="risk-detail-progress-header">
                 <strong>생산 진행률</strong>
-                <span>{{ formatPercent(selectedRiskDetail.progressRate) }}%</span>
+                <span>{{ formatPercent(selectedRiskDetail.progressRatePercent) }}%</span>
               </div>
 
               <div class="risk-detail-progress-bar">
-                <span class="risk-detail-progress-fill" :style="{ width: `${normalizePercent(selectedRiskDetail.progressRate)}%` }" />
+                <span
+                  class="risk-detail-progress-fill"
+                  :style="{ width: `${normalizePercent(selectedRiskDetail.progressRatePercent)}%` }"
+                />
               </div>
 
               <p>
@@ -256,7 +259,7 @@
               </p>
 
               <div v-if="normalizedDetailCauses.length > 0" class="risk-detail-causes">
-                <strong>{{ hasSelectedAgentAnalysis ? '주요 원인' : 'ML 주요 영향 요인' }}</strong>
+                <strong>ML 지연 예측 원인</strong>
                 <ul>
                   <li v-for="(cause, index) in normalizedDetailCauses" :key="getCauseKey(cause, index)">
                     <template v-if="typeof cause === 'string'">
@@ -459,7 +462,7 @@ function buildFallbackDetail(item) {
 }
 
 function buildProgressMessage(item) {
-  return `생산 진행률은 ${formatPercent(item?.progressRate)}%이며, 총 ${formatNumber(item?.quantity ?? 0)}개 중 ${formatNumber(
+  return `생산 진행률은 ${formatPercent(item?.progressRatePercent)}%이며, 총 ${formatNumber(item?.quantity ?? 0)}개 중 ${formatNumber(
     item?.completedQuantity ?? 0
   )}개 완료, ${formatNumber(item?.remainingQuantity ?? 0)}개 잔여 상태입니다.`;
 }
