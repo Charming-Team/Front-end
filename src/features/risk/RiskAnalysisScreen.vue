@@ -135,49 +135,44 @@
                       <div class="risk-progress-bar">
                         <span class="risk-progress-fill" :style="{ width: `${normalizePercent(item.progressRatePercent)}%` }" />
                       </div>
-                    </td>
-                    <td>
-                      <span :class="getRiskBadgeClass(item.riskLevel)">
-                        {{ getRiskLevelLabel(item.riskLevel) }}
-                      </span>
-                    </td>
-                    <td>
-                      <button type="button" class="risk-detail-button" @click="handleClickDetail(item)">상세 보기</button>
-                    </td>
-                  </tr>
+                    </div>
+                  </td>
+                  <td>
+                    <span :class="getRiskBadgeClass(item.riskLevel)">
+                      {{ getRiskLevelLabel(item.riskLevel) }}
+                    </span>
+                  </td>
+                  <td>
+                    <button type="button" class="risk-detail-button" @click="handleClickDetail(item)">상세 보기</button>
+                  </td>
+                </tr>
 
-                  <tr v-if="paginatedRiskItems.length === 0">
-                    <td colspan="9" class="risk-empty">조회 조건에 맞는 리스크 항목이 없습니다.</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+                <tr v-if="paginatedRiskItems.length === 0">
+                  <td colspan="9" class="risk-empty">조회 조건에 맞는 리스크 항목이 없습니다.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
 
-            <nav
-              v-if="totalPages > 1"
-              class="risk-pagination"
-              aria-label="리스크 목록 페이지네이션"
+          <nav v-if="totalPages > 1" class="risk-pagination" aria-label="리스크 목록 페이지네이션">
+            <button type="button" class="risk-page-button" @click="goFirstPage">«</button>
+            <button type="button" class="risk-page-button" @click="goPrevPage">‹</button>
+
+            <button
+              v-for="page in visiblePages"
+              :key="page"
+              type="button"
+              class="risk-page-button risk-page-number"
+              :class="{ active: page === currentPage }"
+              @click="goPage(page)"
             >
-              <button type="button" class="risk-page-button" @click="goFirstPage">«</button>
-              <button type="button" class="risk-page-button" @click="goPrevPage">‹</button>
+              {{ page }}
+            </button>
 
-              <button
-                v-for="page in visiblePages"
-                :key="page"
-                type="button"
-                class="risk-page-button risk-page-number"
-                :class="{ active: page === currentPage }"
-                @click="goPage(page)"
-              >
-                {{ page }}
-              </button>
-
-              <button type="button" class="risk-page-button" @click="goNextPage">›</button>
-              <button type="button" class="risk-page-button" @click="goLastPage">»</button>
-            </nav>
-          </template>
+            <button type="button" class="risk-page-button" @click="goNextPage">›</button>
+            <button type="button" class="risk-page-button" @click="goLastPage">»</button>
+          </nav>
         </template>
-
         <template v-else>
           <div class="risk-compact-list">
             <h2>리스크 목록</h2>
