@@ -285,10 +285,13 @@
                 {{ selectedRiskDetail.progressMessage }}
               </p>
 
-              <p class="risk-detail-message">
-                권고 조치:
-                {{ selectedRiskDetail.recommendation || '상세 분석 생성 후 제공' }}
-              </p>
+              <div class="risk-recommendation-block">
+                <span class="risk-cause-badge">권고 조치</span>
+
+                <p class="risk-recommendation-text">
+                  {{ selectedRiskDetail.recommendation || '상세 분석 생성 후 제공 예정입니다.' }}
+                </p>
+              </div>
 
               <div v-if="normalizedDetailCauses.length > 0" class="risk-detail-causes">
                 <strong>{{ hasSelectedAgentAnalysis ? '주요 원인' : 'ML 주요 영향 요인' }}</strong>

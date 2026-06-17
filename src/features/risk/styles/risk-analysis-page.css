@@ -751,3 +751,83 @@
   background: #184f96;
   color: #fff;
 }
+
+/* 상세 모드: 좌우 비율 1:2 */
+.risk-workspace--detail-open {
+  grid-template-columns: minmax(390px, 1fr) minmax(0, 2fr);
+  align-items: stretch;
+}
+
+/* 상세 모드에서는 일반 목록 카드의 max-height 제한을 해제해야 오른쪽 상세 카드 높이를 따라감 */
+.risk-workspace--detail-open .risk-list-card {
+  max-height: none;
+  min-height: calc(100vh - 210px);
+  height: auto;
+  align-self: stretch;
+  overflow: hidden;
+}
+
+/* 오른쪽 상세 분석도 최소 높이 동일하게 */
+.risk-workspace--detail-open .risk-detail-panel {
+  min-height: calc(100vh - 210px);
+  align-self: stretch;
+}
+
+/* 왼쪽 목록 내부는 카드 높이를 꽉 채우는 flex 구조 */
+.risk-workspace--detail-open .risk-compact-list {
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 제목은 고정 */
+.risk-workspace--detail-open .risk-compact-list h2 {
+  flex-shrink: 0;
+  margin: 0 0 22px;
+  font-size: 22px;
+  font-weight: 800;
+}
+
+/* 핵심: 목록 데이터는 카드 높이를 늘리지 말고 내부에서만 스크롤 */
+.risk-workspace--detail-open .risk-compact-table {
+  flex: 1 1 0;
+  min-height: 0;
+  height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* 주문번호 컬럼 넓게, 위험 컬럼은 고정 */
+.risk-workspace--detail-open .risk-compact-head,
+.risk-workspace--detail-open .risk-compact-row {
+  grid-template-columns: minmax(190px, 1fr) 110px;
+  gap: 12px;
+}
+
+/* 주문번호 줄바꿈 방지 */
+.risk-workspace--detail-open .risk-compact-head span:first-child,
+.risk-workspace--detail-open .risk-compact-row span:first-child {
+  white-space: nowrap;
+  text-align: center;
+}
+
+/* 위험 뱃지 가운데 정렬 */
+.risk-workspace--detail-open .risk-compact-head span:last-child,
+.risk-workspace--detail-open .risk-compact-row span:last-child {
+  justify-self: center;
+}
+
+/* 뱃지가 컬럼 전체를 채우지 않도록 */
+.risk-workspace--detail-open .risk-compact-row .risk-badge {
+  width: 88px;
+  min-width: 88px;
+  min-height: 30px;
+  padding: 6px 10px;
+}
+
+/* row 크기 정리 */
+.risk-workspace--detail-open .risk-compact-row {
+  min-height: 50px;
+  font-size: 15px;
+}
