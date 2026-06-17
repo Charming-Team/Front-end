@@ -105,35 +105,40 @@
           <p v-if="isLoading" class="risk-empty">리스크 정보를 불러오는 중입니다.</p>
           <p v-else-if="errorMessage" class="risk-empty">{{ errorMessage }}</p>
 
-          <div v-else class="risk-table-wrap">
-            <table class="risk-table">
-              <thead>
-                <tr>
-                  <th>주문번호</th>
-                  <th>고객사</th>
-                  <th>제품명</th>
-                  <th>수량</th>
-                  <th>납기</th>
-                  <th>생산 라인</th>
-                  <th>진행률</th>
-                  <th>생산 지연 위험</th>
-                  <th>상세</th>
-                </tr>
-              </thead>
+          <template v-else>
+            <div class="risk-table-wrap">
+              <table class="risk-table">
+                <thead>
+                  <tr>
+                    <th>주문번호</th>
+                    <th>고객사</th>
+                    <th>제품명</th>
+                    <th>수량</th>
+                    <th>납기</th>
+                    <th>생산 라인</th>
+                    <th>진행률</th>
+                    <th>생산 지연 위험</th>
+                    <th>상세</th>
+                  </tr>
+                </thead>
 
-              <tbody>
-                <tr v-for="item in filteredRiskItems" :key="item.orderId ?? item.id">
-                  <td>{{ item.orderNo }}</td>
-                  <td>{{ item.customerName }}</td>
-                  <td>{{ item.productName }}</td>
-                  <td>{{ formatNumber(item.quantity) }}</td>
-                  <td>{{ item.dueDate }}</td>
-                  <td>{{ item.lineName }}</td>
-                  <td>
-                    <div class="risk-progress">
-                      <span>{{ formatPercent(item.progressRatePercent) }}%</span>
-                      <div class="risk-progress-bar">
-                        <span class="risk-progress-fill" :style="{ width: `${normalizePercent(item.progressRatePercent)}%` }" />
+                <tbody>
+                  <tr v-for="item in paginatedRiskItems" :key="item.orderId ?? item.id">
+                    <td>{{ item.orderNo }}</td>
+                    <td>{{ item.customerName }}</td>
+                    <td>{{ item.productName }}</td>
+                    <td>{{ formatNumber(item.quantity) }}</td>
+                    <td>{{ item.dueDate }}</td>
+                    <td>{{ item.lineName }}</td>
+                    <td>
+                      <div class="risk-progress">
+                        <span>{{ formatPercent(item.progressRatePercent) }}%</span>
+                        <div class="risk-progress-bar">
+                          <span
+                            class="risk-progress-fill"
+                            :style="{ width: `${normalizePercent(item.progressRatePercent)}%` }"
+                          />
+                        </div>
                       </div>
                     </td>
                     <td>
@@ -142,7 +147,9 @@
                       </span>
                     </td>
                     <td>
-                      <button type="button" class="risk-detail-button" @click="handleClickDetail(item)">상세 보기</button>
+                      <button type="button" class="risk-detail-button" @click="handleClickDetail(item)">
+                        상세 보기
+                      </button>
                     </td>
                   </tr>
 
@@ -286,8 +293,8 @@
                 {{ selectedRiskDetail.progressMessage }}
               </p>
 
-              <div class="risk-recommendation-block">
-                <span class="risk-cause-badge mb-3">권고 조치</span>
+              <div class="p-1">
+                <span class="risk-recommendation-title mb-3 text-[18px] font-bold">권고 조치</span>
 
                 <p class="risk-detail-summary">
                   {{ selectedRiskDetail.recommendation || '상세 분석 생성 후 제공 예정입니다.' }}
