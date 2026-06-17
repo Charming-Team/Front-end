@@ -253,7 +253,7 @@ function runMonthlyAiAnalysis() {
         <span
           v-for="item in legendItems"
           :key="item.lineName"
-          class="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold text-slate-700"
+          class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold text-slate-700"
           :style="{ backgroundColor: item.chip, borderColor: `${item.color}33` }"
         >
           <span class="h-2.5 w-2.5 rounded-full" :style="{ backgroundColor: item.color }"></span>
