@@ -286,9 +286,9 @@
               </p>
 
               <div class="risk-recommendation-block">
-                <span class="risk-cause-badge">권고 조치</span>
+                <span class="risk-cause-badge mb-3">권고 조치</span>
 
-                <p class="risk-recommendation-text">
+                <p class="risk-detail-summary">
                   {{ selectedRiskDetail.recommendation || '상세 분석 생성 후 제공 예정입니다.' }}
                 </p>
               </div>
