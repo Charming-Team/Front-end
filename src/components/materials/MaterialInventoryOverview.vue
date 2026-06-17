@@ -3,7 +3,7 @@ import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import AppCard from "../common/AppCard.vue";
 import AppSectionHeader from "../common/AppSectionHeader.vue";
 import AppStatusBadge from "../common/AppStatusBadge.vue";
-import { formatKg, getPercentage } from "../../features/materials/utils.js";
+import { formatMaterialQuantity } from "../../features/materials/utils.js";
 
 const props = defineProps({
   items: {
@@ -47,6 +47,45 @@ function showNext() {
   startIndex.value = Math.min(maxStartIndex.value, startIndex.value + 1);
 }
 
+function getAvailableStock(material) {
+  return Number(material.availableStock ?? material.currentStock ?? 0);
+}
+
+function getSafeStock(material) {
+  return Number(material.safeStock ?? 0);
+}
+
+function getAvailabilityRate(material) {
+  const availableStock = getAvailableStock(material);
+  const safeStock = getSafeStock(material);
+
+  if (safeStock <= 0) return 0;
+
+  return Math.round((availableStock / safeStock) * 100);
+}
+
+function getAvailabilityBarWidth(material) {
+  return Math.min(getAvailabilityRate(material), 100);
+}
+
+function formatSafetyStockMessage(material) {
+  const availableStock = getAvailableStock(material);
+  const safeStock = getSafeStock(material);
+  const gap = availableStock - safeStock;
+  const absoluteGap = Math.abs(gap);
+  const formattedGap = formatMaterialQuantity(absoluteGap, material.unit);
+
+  if (gap < 0) {
+    return `${formattedGap} 필요`;
+  }
+
+  if (gap > 0) {
+    return `${formattedGap} 충족`;
+  }
+
+  return "기준 충족";
+}
+
 watch(
   () => props.items.length,
   () => {
@@ -73,31 +112,36 @@ onUnmounted(() => {
     <AppSectionHeader class="section-header-shell" title="재고 현황">
       <template #actions>
         <div class="carousel-actions">
-        <button
-          class="nav-button"
-          type="button"
-          :disabled="startIndex === 0"
-          aria-label="이전 자재 보기"
-          @click="showPrev"
-        >
-          <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-            <path d="M11.5 5 7 10l4.5 5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
-          </svg>
-        </button>
-        <button
-          class="nav-button"
-          type="button"
-          :disabled="startIndex >= maxStartIndex"
-          aria-label="다음 자재 보기"
-          @click="showNext"
-        >
-          <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-            <path d="m8.5 5 4.5 5-4.5 5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
-          </svg>
-        </button>
+          <button
+            class="nav-button"
+            type="button"
+            :disabled="startIndex === 0"
+            aria-label="이전 자재 보기"
+            @click="showPrev"
+          >
+            <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+              <path d="M11.5 5 7 10l4.5 5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </button>
+
+          <button
+            class="nav-button"
+            type="button"
+            :disabled="startIndex >= maxStartIndex"
+            aria-label="다음 자재 보기"
+            @click="showNext"
+          >
+            <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+              <path d="m8.5 5 4.5 5-4.5 5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </button>
         </div>
       </template>
     </AppSectionHeader>
+
+    <div class="inventory-caption">
+      가용률 기준 · 안전재고 대비 부족/초과 수량 표시
+    </div>
 
     <div class="inventory-grid">
       <article
@@ -106,16 +150,18 @@ onUnmounted(() => {
         class="inventory-item"
       >
         <p class="inventory-name">{{ material.name }}</p>
-        <strong class="inventory-rate">{{ material.levelLabel }}</strong>
+        <strong class="inventory-rate">{{ getAvailabilityRate(material) }}%</strong>
         <div class="inventory-bar">
           <span
             class="inventory-bar-fill"
             :class="`inventory-bar-fill--${statusMeta[material.status].tone}`"
-            :style="{ width: `${getPercentage(material)}%` }"
+            :style="{ width: `${getAvailabilityBarWidth(material)}%` }"
           ></span>
         </div>
         <div class="inventory-footer">
-          <span class="inventory-stock">{{ formatKg(material.currentStock) }} / {{ formatKg(material.safeStock) }}</span>
+          <span class="inventory-stock">
+            {{ formatSafetyStockMessage(material) }}
+          </span>
           <AppStatusBadge
             :label="statusMeta[material.status].label"
             :tone="statusMeta[material.status].tone"
@@ -134,8 +180,8 @@ onUnmounted(() => {
 }
 
 .section-header-shell {
-  margin: 0 -20px 12px;
-  padding: 0 26px 8px;
+  margin: 0 -20px 1px;
+  padding: 0 26px 0px;
 }
 
 .carousel-actions {
@@ -187,7 +233,7 @@ onUnmounted(() => {
 }
 
 .inventory-name {
-  margin: 0 0 10px;
+  margin: 0 0 8px;
   color: #344054;
   font-size: 14px;
   font-weight: 700;
@@ -273,5 +319,26 @@ onUnmounted(() => {
     grid-template-columns: 1fr;
     padding: 0;
   }
+}
+
+.section-title-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.section-title-hint {
+  color: #3d424e;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.inventory-caption {
+  margin: -8px 6px 14px;
+  color: #3d424e;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
 }
 </style>
