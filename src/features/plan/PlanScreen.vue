@@ -153,8 +153,15 @@ async function runAiRecommendationAnalysis() {
 }
 
 async function runMonthlyAiAnalysis(payload) {
+  sessionStorage.setItem('monthlyAiAnalysisPayload', JSON.stringify(payload))
+
+  router.push('/ai/analysis')
+
   const generated = await store.generateMonthlyAiRecommendation(payload)
-  if (generated) router.push('/ai/result')
+
+  if (!generated) {
+    router.push('/plan')
+  }
 }
 </script>
 
