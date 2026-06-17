@@ -18,9 +18,9 @@ defineProps({
 <template>
   <div class="grid min-w-0 gap-6">
     <section class="min-w-0">
-      <h2 class="mb-3 text-[17px] font-black text-[#0f3a70]">
+      <span class="block mb-2 text-[25px] font-bold text-[#0f3a70]">
         주요 요약
-      </h2>
+      </span>
 
       <div class="w-full max-w-full overflow-x-auto rounded-xl border border-slate-200">
         <table class="w-full min-w-[560px] table-fixed border-collapse text-[13px]">
@@ -57,9 +57,9 @@ defineProps({
     </section>
 
     <section class="min-w-0">
-      <h2 class="mb-3 text-[17px] font-black text-[#0f3a70]">
+      <span class="block mb-2 text-[25px] font-bold text-[#0f3a70]">
         라인별 성과
-      </h2>
+      </span>
 
       <div class="w-full max-w-full overflow-x-auto rounded-xl border border-slate-200">
         <table class="w-full min-w-[760px] table-fixed border-collapse text-[13px]">
@@ -97,9 +97,9 @@ defineProps({
     </section>
 
     <section class="min-w-0">
-      <h2 class="mb-3 text-[17px] font-black text-[#0f3a70]">
+      <span class="block mb-2 text-[25px] font-bold text-[#0f3a70]">
         주요 설비 현황
-      </h2>
+      </span>
 
       <div class="w-full max-w-full overflow-x-auto rounded-xl border border-slate-200">
         <table class="w-full min-w-[700px] table-fixed border-collapse text-[13px]">

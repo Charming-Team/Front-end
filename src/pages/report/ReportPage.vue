@@ -7,7 +7,6 @@ import AppLoadingOverlay from "../../components/common/AppLoadingOverlay.vue";
 import AppSearchField from "../../components/common/AppSearchField.vue";
 import AppToast from "../../components/common/AppToast.vue";
 import ReportCreateModal from "../../components/report/ReportCreateModal.vue";
-import ReportIssueTable from "../../components/report/ReportIssueTable.vue";
 import ReportListTable from "../../components/report/ReportListTable.vue";
 import ReportPagination from "../../components/report/ReportPagination.vue";
 import {
@@ -280,16 +279,6 @@ onMounted(() => {
           @go-next="goToNextPage"
           @go-last="goToLastPage"
         />
-      </section>
-    </AppCard>
-
-    <AppCard>
-      <section class="px-4 pb-[18px] pt-[18px] max-md:p-4">
-        <span class="mb-4 block text-[17px] font-[800] tracking-[-0.2px] text-[#111827]">
-          최근 과거 이슈 내역
-        </span>
-
-        <ReportIssueTable :issues="issues" />
       </section>
     </AppCard>
 

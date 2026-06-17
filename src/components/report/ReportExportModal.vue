@@ -1,5 +1,7 @@
 <script setup>
 import AppModal from "../common/AppModal.vue";
+import ReportPdfIcon from "../../assets/icons/pdf_icon.png";
+import ReportMailIcon from "../../assets/icons/mail_icon.png";
 
 defineProps({
   loading: {
@@ -15,13 +17,15 @@ const exportOptions = [
     value: "PDF",
     title: "PDF 다운로드",
     description: "보고서를 PDF 파일로\n저장합니다.",
-    icon: "PDF",
+    icon: ReportPdfIcon,
+    iconAlt: "PDF 다운로드 아이콘",
   },
   {
     value: "MAIL",
     title: "메일 발송",
     description: "선택한 사용자에게 보고서를\n공유합니다.",
-    icon: "MAIL",
+    icon: ReportMailIcon,
+    iconAlt: "메일 발송 아이콘",
   },
 ];
 
@@ -37,8 +41,8 @@ function handleClick(value) {
 
 <template>
   <AppModal title="내보내기" @close="emit('close')">
-    <div class="grid gap-6">
-      <p class="text-[15px] font-bold leading-6 text-[#173967]">
+    <div class="grid gap-4">
+      <p class="text-[16px] font-bold leading-6 text-[#173967] pl-2">
         보고서를 원하는 방식으로 저장하거나 공유할 수 있습니다.
       </p>
 
@@ -47,39 +51,17 @@ function handleClick(value) {
           v-for="option in exportOptions"
           :key="option.value"
           type="button"
-          class="group grid min-h-[190px] place-items-center rounded-2xl border border-slate-200 bg-white px-5 py-7 text-center transition hover:border-[#0b5fff] hover:bg-blue-50 hover:shadow-[0_0_0_3px_rgba(37,99,235,0.08)] disabled:cursor-not-allowed disabled:opacity-60"
+          class="export-option-card group grid min-h-[190px] place-items-center border border-slate-200 bg-white px-5 py-7 text-center transition hover:border-[#0b5fff] hover:bg-blue-50 hover:shadow-[0_8px_24px_rgba(37,99,235,0.12)] disabled:cursor-not-allowed disabled:opacity-60"
           :disabled="loading"
           @click="handleClick(option.value)"
         >
           <div class="grid justify-items-center gap-4">
-            <div
-              v-if="option.icon === 'PDF'"
-              class="relative grid h-14 w-14 place-items-center rounded-xl border-2 border-[#0b3d91] text-[11px] font-black text-[#0b3d91]"
-            >
-              <span
-                class="absolute -bottom-1 rounded bg-red-500 px-1.5 py-0.5 text-[10px] font-black text-white"
-              >
-                PDF
-              </span>
-              <span class="mb-3 text-2xl">▯</span>
-            </div>
-
-            <div
-              v-else
-              class="grid h-14 w-14 place-items-center rounded-xl text-[#0b3d91]"
-            >
-              <svg
-                viewBox="0 0 24 24"
-                class="h-14 w-14"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.8"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <rect x="3" y="5" width="18" height="14" rx="2" />
-                <path d="m3 7 9 6 9-6" />
-              </svg>
+            <div class="grid h-16 w-16 place-items-center rounded-2xl bg-blue-50 transition group-hover:bg-white">
+              <img
+                :src="option.icon"
+                :alt="option.iconAlt"
+                class="h-11 w-11 object-contain"
+              />
             </div>
 
             <div>
@@ -98,3 +80,18 @@ function handleClick(value) {
     </div>
   </AppModal>
 </template>
+
+<style scoped>
+.export-option-card {
+  border-radius: 24px;
+  overflow: hidden;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.export-option-card:hover,
+.export-option-card:focus,
+.export-option-card:active {
+  border-radius: 24px;
+}
+</style>
