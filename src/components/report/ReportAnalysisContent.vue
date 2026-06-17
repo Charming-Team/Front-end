@@ -9,12 +9,12 @@ defineProps({
 
 <template>
   <section>
-    <h2 class="mb-6 text-[18px] font-black text-[#0f3a70]">
+    <span class="block mb-1 text-[25px] font-bold text-[#0f3a70]">
       보고서 요약 및 분석
-    </h2>
+    </span>
 
     <div class="grid gap-7 text-[15px] font-semibold leading-8 text-[#31527c]">
-      <p>
+      <p v-if="analysis.overview">
         {{ analysis.overview }}
       </p>
 
@@ -22,9 +22,9 @@ defineProps({
         v-for="section in analysis.sections"
         :key="section.title"
       >
-        <h3 class="mb-2 text-[16px] font-black text-[#0f3a70]">
+        <span class="block mb-2 text-[20px] font-bold text-[#0f3a70]">
           {{ section.title }}
-        </h3>
+        </span>
 
         <ul class="list-disc space-y-1 pl-5">
           <li
@@ -36,10 +36,10 @@ defineProps({
         </ul>
       </div>
 
-      <div>
-        <h3 class="mb-2 text-[16px] font-black text-[#0f3a70]">
+      <div v-if="analysis.recommendation">
+        <span class="block mb-2 text-[20px] font-bold text-[#0f3a70]">
           종합 의견 및 제안
-        </h3>
+        </span>
         <p>
           {{ analysis.recommendation }}
         </p>

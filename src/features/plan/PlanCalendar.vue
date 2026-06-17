@@ -1,6 +1,5 @@
 <script setup>
 import { computed, ref } from 'vue'
-import { RouterLink } from 'vue-router'
 import PlanFilterBar from '../../components/plan/PlanFilterBar.vue'
 import MonthPlanCalendar from '../../components/calendar/MonthPlanCalendar.vue'
 import WeekPlanCalendar from '../../components/calendar/WeekPlanCalendar.vue'
@@ -21,6 +20,7 @@ const props = defineProps({
   calendarSaving: { type: Boolean, default: false },
   calendarSaveError: { type: String, default: '' },
   canManagePlans: { type: Boolean, default: false },
+  aiAnalysisLoading: { type: Boolean, default: false },
 })
 
 const emit = defineEmits([
@@ -35,7 +35,7 @@ const emit = defineEmits([
   'clear-plan-move-preview',
   'enter-calendar-edit',
   'complete-calendar-edit',
-  'open-bulk-upload',
+  'run-monthly-ai-analysis',
 ])
 
 const viewMode = ref('month')
@@ -105,8 +105,8 @@ const orderedLineNames = computed(() => {
 const legendItems = computed(() =>
   orderedLineNames.value.map(lineName => ({
     lineName,
-    color: (LINE_THEMES[lineName] ?? { bg: '#64748B', chip: '#E2E8F0' }).bg,
-    chip: (LINE_THEMES[lineName] ?? { bg: '#64748B', chip: '#E2E8F0' }).chip,
+    color: (LINE_THEMES[lineName]).bg,
+    // chip: (LINE_THEMES[lineName] ?? { bg: '#64748B', chip: '#E2E8F0' }).chip,
   }))
 )
 
@@ -156,6 +156,28 @@ function goToday() {
 function setViewMode(mode) {
   viewMode.value = mode
 }
+
+function pad(value) {
+  return String(value).padStart(2, '0')
+}
+
+function formatKstMonthBoundary(year, monthIndex) {
+  const normalized = new Date(Date.UTC(year, monthIndex, 1))
+  return `${normalized.getUTCFullYear()}-${pad(normalized.getUTCMonth() + 1)}-01T00:00:00+09:00`
+}
+
+function getMonthlyAnalysisWindow() {
+  const year = anchorDate.value.getFullYear()
+  const monthIndex = anchorDate.value.getMonth()
+  return {
+    planningStart: formatKstMonthBoundary(year, monthIndex),
+    planningEnd: formatKstMonthBoundary(year, monthIndex + 1),
+  }
+}
+
+function runMonthlyAiAnalysis() {
+  emit('run-monthly-ai-analysis', getMonthlyAnalysisWindow())
+}
 </script>
 
 <template>
@@ -177,64 +199,61 @@ function setViewMode(mode) {
         </div>
 
         <div class="flex shrink-0 items-center gap-2">
-          <div class="inline-flex shrink-0 overflow-hidden rounded-full border border-slate-200 bg-slate-100/80 p-1 shadow-sm">
+          <div class="inline-flex h-11 shrink-0 overflow-hidden rounded-full border border-slate-200 bg-[#EEF6FF] shadow-sm">
             <button
               type="button"
-              class="inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-[14px] font-semibold transition"
+              class="inline-flex min-w-[116px] items-center justify-center gap-1.5 px-5 text-[14px] font-semibold transition"
               :class="viewMode === 'month'
-                ? 'bg-white text-slate-900 shadow-sm'
-                : 'text-slate-500 hover:text-slate-700'"
+                ? 'bg-white text-slate-900 shadow-[0_1px_4px_rgba(15,23,42,0.12)]'
+                : 'text-slate-500 hover:bg-white/40 hover:text-slate-700'"
               @click="setViewMode('month')"
             >
               <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/>
+                <rect x="3" y="4" width="18" height="18" rx="2"/>
+                <line x1="3" y1="9" x2="21" y2="9"/>
+                <line x1="8" y1="2" x2="8" y2="6"/>
+                <line x1="16" y1="2" x2="16" y2="6"/>
               </svg>
               월별
             </button>
+
             <button
               type="button"
-              class="inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-[14px] font-semibold transition"
+              class="inline-flex min-w-[116px] items-center justify-center gap-1.5 px-5 text-[14px] font-semibold transition"
               :class="viewMode === 'week'
-                ? 'bg-white text-slate-900 shadow-sm'
-                : 'text-slate-500 hover:text-slate-700'"
+                ? 'bg-white text-slate-900 shadow-[0_1px_4px_rgba(15,23,42,0.12)]'
+                : 'text-slate-500 hover:bg-white/40 hover:text-slate-700'"
               @click="setViewMode('week')"
             >
               <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
+                <rect x="3" y="3" width="7" height="7"/>
+                <rect x="14" y="3" width="7" height="7"/>
+                <rect x="3" y="14" width="7" height="7"/>
+                <rect x="14" y="14" width="7" height="7"/>
               </svg>
               주차별
             </button>
           </div>
 
-          <RouterLink
-            to="/ai/analysis"
-            class="inline-flex items-center gap-0.5 rounded-[10px] bg-[var(--color-primary)] px-4 py-2 text-[14px] font-semibold text-white transition hover:brightness-110"
+          <button
+            type="button"
+            class="ai-analysis-button inline-flex items-center gap-0.5 rounded-lg bg-[var(--color-primary)] px-4 py-2 text-[14px] font-semibold text-white transition hover:brightness-110"
+            :class="{ 'cursor-wait opacity-70': aiAnalysisLoading }"
+            :disabled="aiAnalysisLoading"
             style="text-decoration: none;"
+            @click="runMonthlyAiAnalysis"
           >
-            <svg
-              class="h-3.5 w-3.5"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              aria-hidden="true"
-            >
-              <path d="M12 2l1.5 4.5L18 8l-4.5 1.5L12 14l-1.5-4.5L6 8l4.5-1.5z"/>
-              <path d="M19 14l.75 2.25L22 17l-2.25.75L19 20l-.75-2.25L16 17l2.25-.75z"/>
-            </svg>
-            AI 분석 시작
-          </RouterLink>
+            {{ aiAnalysisLoading ? '분석 중...' : 'AI 분석 시작' }}
+          </button>
         </div>
       </div>
 
       <!-- 2행: 범례(우측 정렬) -->
-      <div class="mt-2 mb-3 flex flex-wrap items-center justify-end gap-2">
+      <div class="mt-2 mb-3 flex flex-wrap items-center justify-end">
         <span
           v-for="item in legendItems"
           :key="item.lineName"
-          class="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold text-slate-700"
+          class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold text-slate-700"
           :style="{ backgroundColor: item.chip, borderColor: `${item.color}33` }"
         >
           <span class="h-2.5 w-2.5 rounded-full" :style="{ backgroundColor: item.color }"></span>
@@ -290,14 +309,6 @@ function setViewMode(mode) {
               v-if="canManagePlans && !calendarEditing"
               variant="secondary"
               size="sm"
-              @click="emit('open-bulk-upload')"
-            >
-              일괄 등록
-            </AppButton>
-            <AppButton
-              v-if="canManagePlans && !calendarEditing"
-              variant="secondary"
-              size="sm"
               @click="emit('enter-calendar-edit')"
             >
               수정
@@ -347,3 +358,9 @@ function setViewMode(mode) {
     </div>
   </AppCard>
 </template>
+<style scoped>
+.ai-analysis-button {
+  appearance: none;
+  border-radius: 0.75rem;
+}
+</style>

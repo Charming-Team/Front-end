@@ -132,16 +132,16 @@ defineProps({
 .summary-label,
 .metric-card__label {
   margin: 0 0 10px;
-  color: #1d4ed8;
+  color: #0d1f3c;
   font-size: 13px;
   font-weight: 800;
 }
 
 .summary-order-id {
   display: block;
-  margin-bottom: 12px;
+  margin-bottom: 11px;
   color: #0f172a;
-  font-size: 28px;
+  font-size: 25px;
   line-height: 1;
   font-weight: 900;
 }

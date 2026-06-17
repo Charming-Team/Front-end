@@ -22,6 +22,22 @@ async function parseResponse(response) {
   return null
 }
 
+function parseFilenameFromContentDisposition(contentDisposition) {
+  if (!contentDisposition) return ''
+
+  const encodedMatch = contentDisposition.match(/filename\*=UTF-8''([^;]+)/i)
+  if (encodedMatch?.[1]) {
+    try {
+      return decodeURIComponent(encodedMatch[1])
+    } catch {
+      return encodedMatch[1]
+    }
+  }
+
+  const fallbackMatch = contentDisposition.match(/filename="?([^";]+)"?/i)
+  return fallbackMatch?.[1] || ''
+}
+
 function buildHeaders(fetchOptions, token, skipAuth) {
   const headers = new Headers(fetchOptions.headers || {})
 
@@ -120,4 +136,44 @@ export async function apiRequest(path, options = {}) {
   }
 
   return payload?.data ?? payload
+}
+
+export async function apiFileRequest(path, options = {}) {
+  const { skipAuth = false, skipRefresh = false, ...fetchOptions } = options
+  const token = getToken()
+  let response = await fetch(`${API_BASE_URL}${path}`, {
+    ...fetchOptions,
+    headers: buildHeaders(fetchOptions, token, skipAuth),
+  })
+
+  if (response.status === 401 && !skipAuth && !skipRefresh) {
+    try {
+      const refreshedToken = await refreshAccessToken()
+      response = await fetch(`${API_BASE_URL}${path}`, {
+        ...fetchOptions,
+        headers: buildHeaders(fetchOptions, refreshedToken, false),
+      })
+    } catch (err) {
+      clearToken()
+      redirectToLogin()
+      throw err
+    }
+  }
+
+  if (!response.ok) {
+    const payload = await parseResponse(response)
+    throw new ApiError(payload?.message || '파일 다운로드 중 오류가 발생했습니다.', {
+      status: response.status,
+      code: payload?.code,
+      data: payload?.data,
+    })
+  }
+
+  return {
+    blob: await response.blob(),
+    contentType: response.headers.get('content-type') || '',
+    filename: parseFilenameFromContentDisposition(
+      response.headers.get('content-disposition')
+    ),
+  }
 }

@@ -15,15 +15,15 @@ const emit = defineEmits(["close"]);
     @click.self="emit('close')"
   >
     <div
-      class="flex max-h-[calc(100vh-48px)] w-[600px] max-w-[calc(100vw-32px)] flex-col rounded-[15px] border border-[#e8eef7] bg-white px-[18px] pb-4 pt-[18px] shadow-[0_24px_48px_rgba(15,23,42,0.14)]"
+      class="flex max-h-[calc(100vh-48px)] w-[600px] max-w-[calc(100vw-32px)] flex-col rounded-[15px] border border-[#e8eef7] bg-white px-[18px] pb-4 pt-[20px] shadow-[0_24px_48px_rgba(15,23,42,0.14)]"
     >
-      <div class="mb-2.5 flex shrink-0 items-center justify-between gap-3">
-        <h3
+      <div class="mb-3 flex shrink-0 items-center justify-between gap-3">
+        <span
           v-if="title"
-          class="m-0 text-[17px] font-extrabold text-gray-900"
+          class="block m-0 pl-2 text-[20px] font-[800] leading-[1.2] tracking-[-0.4px] text-gray-900"
         >
           {{ title }}
-        </h3>
+        </span>
 
         <slot name="header" />
 

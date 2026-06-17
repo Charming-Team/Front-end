@@ -28,9 +28,13 @@ const draggingEvent = ref(null)
 const lastPreviewKey = ref('')
 const BLOCKED_MOVE_STATUSES = ['COMPLETED', 'CANCELLED']
 const DAY_IN_MS = 86_400_000
+const DAY_MINUTES = 1_440
+const MIN_SEGMENT_WIDTH = 28
+const CELL_HORIZONTAL_PADDING = 6
 const LANE_HEIGHT = 40
 const BAR_HEIGHT = 28
 const BAR_TOP_OFFSET = (LANE_HEIGHT - BAR_HEIGHT) / 2
+const DAY_NUMBER_HEIGHT = 30
 
 const laneCount = computed(() => {
   const maxEventLineOrder = [...props.events, ...props.previewEvents].reduce((max, event) => {
@@ -44,6 +48,7 @@ const calendarStyle = computed(() => ({
   '--plan-lane-count': String(laneCount.value),
   '--plan-lane-height': `${LANE_HEIGHT}px`,
   '--plan-bar-height': `${BAR_HEIGHT}px`,
+  '--plan-day-number-height': `${DAY_NUMBER_HEIGHT}px`,
 }))
 
 function getMonthLabel(date) {
@@ -56,6 +61,54 @@ function startOfDay(date) {
   return next
 }
 
+function addDays(date, amount) {
+  const next = new Date(date)
+  next.setDate(next.getDate() + amount)
+  return next
+}
+
+function getDateFromCell(cell) {
+  return new Date(`${cell.dataset.date}T00:00:00`)
+}
+
+function minutesFromDayStart(date, dayStart) {
+  const minutes = (date - dayStart) / 60_000
+  return Math.min(DAY_MINUTES, Math.max(0, minutes))
+}
+
+function getSegmentBounds(plan, first, last) {
+  const planStart = new Date(plan.plannedStartAt)
+  const planEnd = new Date(plan.plannedEndAt)
+  if (Number.isNaN(planStart.getTime()) || Number.isNaN(planEnd.getTime())) return null
+
+  const firstDayStart = getDateFromCell(first.cell)
+  const lastDayStart = getDateFromCell(last.cell)
+  const segmentStart = new Date(Math.max(planStart.getTime(), firstDayStart.getTime()))
+  const segmentEnd = new Date(Math.min(planEnd.getTime(), addDays(lastDayStart, 1).getTime()))
+  if (segmentEnd <= segmentStart) return null
+
+  const firstInnerWidth = Math.max(0, first.rect.width - (CELL_HORIZONTAL_PADDING * 2))
+  const lastInnerWidth = Math.max(0, last.rect.width - (CELL_HORIZONTAL_PADDING * 2))
+  const startRatio = minutesFromDayStart(segmentStart, firstDayStart) / DAY_MINUTES
+  const endRatio = minutesFromDayStart(segmentEnd, lastDayStart) / DAY_MINUTES
+  const minLeft = first.rect.left + CELL_HORIZONTAL_PADDING
+  const maxRight = last.rect.right - CELL_HORIZONTAL_PADDING
+  let left = minLeft + (firstInnerWidth * startRatio)
+  let right = last.rect.left + CELL_HORIZONTAL_PADDING + (lastInnerWidth * endRatio)
+
+  if (right - left < MIN_SEGMENT_WIDTH) {
+    const center = (left + right) / 2
+    left = Math.max(minLeft, center - (MIN_SEGMENT_WIDTH / 2))
+    right = Math.min(maxRight, left + MIN_SEGMENT_WIDTH)
+    left = Math.max(minLeft, right - MIN_SEGMENT_WIDTH)
+  }
+
+  return {
+    left,
+    width: Math.max(1, right - left),
+  }
+}
+
 function formatDateKey(date) {
   const year = date.getFullYear()
   const month = String(date.getMonth() + 1).padStart(2, '0')
@@ -65,7 +118,12 @@ function formatDateKey(date) {
 
 function eachPlanDate(plan) {
   const dates = []
-  for (let date = startOfDay(plan.plannedStartAt); date <= startOfDay(plan.plannedEndAt); date.setDate(date.getDate() + 1)) {
+  const planStart = new Date(plan.plannedStartAt)
+  const planEnd = new Date(plan.plannedEndAt)
+  if (Number.isNaN(planStart.getTime()) || Number.isNaN(planEnd.getTime())) return dates
+
+  const effectiveEnd = planEnd > planStart ? new Date(planEnd.getTime() - 1) : planStart
+  for (let date = startOfDay(planStart); date <= startOfDay(effectiveEnd); date.setDate(date.getDate() + 1)) {
     dates.push(new Date(date))
   }
   return dates
@@ -208,12 +266,14 @@ function buildFixedSegments() {
         const last = items[items.length - 1]
         const eventsArea = first.cell.querySelector('.fc-daygrid-day-events')?.getBoundingClientRect() ?? first.rect
         const theme = getEventTheme(event)
+        const bounds = getSegmentBounds(plan, first, last)
+        if (!bounds) return
         segments.push({
           id: `${isPreview ? 'preview' : 'plan'}-${event.id}-${Math.round(row.top)}`,
           title: event.title,
-          left: first.rect.left - rootRect.left + 6,
+          left: bounds.left - rootRect.left,
           top: eventsArea.top - rootRect.top + (lineOrder * LANE_HEIGHT) + BAR_TOP_OFFSET,
-          width: last.rect.right - first.rect.left - 12,
+          width: bounds.width,
           height: BAR_HEIGHT,
           backgroundColor: event.backgroundColor || theme.bg,
           borderColor: event.borderColor || theme.border,
@@ -301,12 +361,15 @@ onBeforeUnmount(() => {
     @drop.prevent="handleSegmentDrop"
     class="month-plan-calendar
       relative
+      rounded-2xl
+      overflow-hidden
+      border
+      border-slate-300
+      bg-white
       [&_.fc]:font-sans
       [&_.fc]:text-slate-900
       [&_.fc-theme-standard_.fc-scrollgrid]:border-0
-      [&_.fc-theme-standard_td]:border-slate-200
-      [&_.fc-theme-standard_th]:border-slate-200
-      [&_.fc_.fc-col-header-cell]:bg-slate-50
+      [&_.fc_.fc-col-header-cell]:bg-blue-50/70
       [&_.fc_.fc-col-header-cell-cushion]:px-2
       [&_.fc_.fc-col-header-cell-cushion]:py-3
       [&_.fc_.fc-col-header-cell-cushion]:text-sm
@@ -328,7 +391,6 @@ onBeforeUnmount(() => {
       [&_.fc_.fc-event]:cursor-pointer
       [&_.fc_.fc-event]:transition
       [&_.fc_.fc-event:hover]:brightness-102
-      [&_.fc_.fc-event:hover]:shadow-[0_2px_8px_rgba(15,23,42,0.08)]
       [&_.fc_.fc-view-harness]:bg-white"
   >
     <FullCalendar ref="calendarRef" :options="calendarOptions" />
@@ -340,7 +402,7 @@ onBeforeUnmount(() => {
         role="button"
         tabindex="0"
         :draggable="segment.movable"
-        class="fixed-plan-segment pointer-events-auto absolute flex items-center justify-center overflow-hidden rounded-full border px-3 text-center text-[12px] font-bold leading-none shadow-[0_1px_3px_rgba(15,23,42,0.08)]"
+        class="fixed-plan-segment pointer-events-auto absolute flex items-center justify-center overflow-hidden rounded-md border px-3 text-center text-[12px] font-bold leading-none shadow-[0_1px_3px_rgba(15,23,42,0.08)]"
         :class="{
           'cursor-grab active:cursor-grabbing': segment.movable,
           'cursor-pointer': !segment.movable,
@@ -369,9 +431,36 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
+.month-plan-calendar :deep(.fc a) {
+  color: inherit;
+  text-decoration: none;
+}
+
+.month-plan-calendar :deep(.fc a:hover),
+.month-plan-calendar :deep(.fc a:focus),
+.month-plan-calendar :deep(.fc a:active) {
+  color: inherit;
+  text-decoration: none;
+}
+
+.month-plan-calendar :deep(.fc-col-header-cell-cushion) {
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.month-plan-calendar :deep(.fc-daygrid-day-number) {
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.month-plan-calendar :deep(.fc-day-other .fc-daygrid-day-number) {
+  color: #cbd5e1;
+}
+
 .month-plan-calendar :deep(.fc-daygrid-day-events) {
   box-sizing: content-box;
   min-height: calc(var(--plan-lane-count) * var(--plan-lane-height));
+  margin-bottom: 0;
   padding-top: 0;
   background:
     repeating-linear-gradient(
@@ -384,31 +473,6 @@ onBeforeUnmount(() => {
 }
 
 .month-plan-calendar :deep(.fc-daygrid-day-frame) {
-  min-height: calc((var(--plan-lane-count) * var(--plan-lane-height)) + 50px) !important;
-}
-
-.month-plan-calendar :deep(.fc-daygrid-event-harness) {
-  margin-top: 0 !important;
-  margin-bottom: 0 !important;
-}
-
-.month-plan-calendar :deep(.fc-daygrid-event) {
-  height: 36px;
-  margin-top: 0 !important;
-  padding-bottom: 10px !important;
-  border-color: transparent !important;
-  background: transparent !important;
-  box-shadow: none !important;
-}
-
-.month-plan-calendar :deep(.fc-daygrid-event .fc-event-main),
-.month-plan-calendar :deep(.fc-daygrid-event .fc-event-main-frame),
-.month-plan-calendar :deep(.plan-event-chip) {
-  height: 26px;
-  min-height: 26px;
-}
-
-.month-plan-calendar :deep(.fc-event.is-selected-plan .plan-event-chip) {
-  box-shadow: 0 0 0 2px rgba(21, 101, 192, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  min-height: calc((var(--plan-lane-count) * var(--plan-lane-height)) + var(--plan-day-number-height)) !important;
 }
 </style>

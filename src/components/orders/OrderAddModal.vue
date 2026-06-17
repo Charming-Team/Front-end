@@ -27,7 +27,7 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(["close", "save", "update:productionStartDate"]);
+const emit = defineEmits(["close", "save"]);
 const form = reactive(createDefaultOrderForm());
 
 watch(
@@ -35,18 +35,13 @@ watch(
   (nextForm) => {
     Object.assign(form, createDefaultOrderForm(), nextForm ?? {});
   },
-  { immediate: true, deep: true }
+  { immediate: true }
 );
 
 function onSave() {
   emit("save", { ...form });
 }
 
-function onProductionStartDateInput(event) {
-  const value = event.target.value;
-  form.productionStartDate = value;
-  emit("update:productionStartDate", value);
-}
 </script>
 
 <template>
@@ -79,19 +74,19 @@ function onProductionStartDateInput(event) {
       <label>
         <span>생산 시작일</span>
         <input
-          :value="form.productionStartDate"
+          v-model="form.productionStartDate"
           type="date"
           :min="productionStartDateMin"
-          @input="onProductionStartDateInput"
+          :max="form.dueDate || undefined"
         />
       </label>
       <label>
         <span>생산 담당자</span>
-        <input v-model="form.productionManager" type="text" placeholder="윤정원" />
+        <input v-model="form.productionManager" type="text" placeholder="신작업" />
       </label>
       <label>
         <span>고객사 담당자</span>
-        <input v-model="form.customerManager" type="text" placeholder="배난수" />
+        <input v-model="form.customerManager" type="text" placeholder="박고객" />
       </label>
       <label>
         <span>계약 금액</span>

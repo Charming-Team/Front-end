@@ -55,7 +55,7 @@ const canCreate = computed(() => !validationMessage.value && !props.loading);
 </script>
 
 <template>
-  <AppModal title="보고서 생성하기" @close="emit('close')">
+  <AppModal title="기간 설정 보고서 생성" @close="emit('close')">
     <div class="grid gap-5 pb-2">
       <div class="grid grid-cols-2 gap-4 max-sm:grid-cols-1">
         <label class="grid gap-2">

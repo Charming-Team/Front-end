@@ -9,13 +9,32 @@ defineProps({
 });
 
 const legendItems = [
-  { key: "RUNNING", label: "생산 중", color: "#17a34a" },
-  { key: "IDLE", label: "대기", color: "#2563eb" },
-  { key: "SETUP", label: "셋업", color: "#f59e0b" },
-  { key: "STOPPED", label: "정지", color: "#94a3b8" },
-  { key: "ERROR", label: "오류", color: "#ef4444" },
-  { key: "MAINTENANCE", label: "점검", color: "#a855f7" },
+  { key: "RUNNING", label: "생산 중", color: "#00897b" },
+  { key: "IDLE", label: "대기", color: "#a9cdee" },
+  { key: "SETUP", label: "셋업", color: "#b8c0cc" },
+  { key: "STOPPED", label: "정지", color: "#0d1f3c" },
+  { key: "ERROR", label: "오류", color: "#e53935" },
+  { key: "MAINTENANCE", label: "점검", color: "#4f7dd7" },
 ];
+
+const lineDisplayNameMap = {
+  'ABS 주 생산 Line': 'ABS 주',
+  'ABS 보조 생산 Line': 'ABS 보조',
+  'PP 범용 생산 Line': 'PP 범용',
+  'PP 기능성 생산 Line': 'PP 기능성',
+  'PE 범용 생산 Line': 'PE 범용',
+  'PE 특화 생산 Line': 'PE 특화',
+}
+
+function getLineDisplayName(name) {
+  return lineDisplayNameMap[name] ?? name
+}
+
+function getEquipmentDisplayName(label) {
+  return String(label ?? '')
+    .replace(/[A-Za-z0-9-]/g, '')
+    .trim()
+}
 
 const statusLabelMap = Object.fromEntries(
   legendItems.map((item) => [item.key, item.label])
@@ -46,7 +65,7 @@ const statusColorMap = Object.fromEntries(
     <div v-else class="chart-list">
       <div v-for="line in items" :key="line.id" class="chart-row">
         <div class="chart-row__meta">
-          <span class="chart-row__label">{{ line.name }}</span>
+          <span class="chart-row__label">{{ getLineDisplayName(line.name) }}</span>
         </div>
 
         <div class="chart-row__bar">
@@ -59,7 +78,7 @@ const statusColorMap = Object.fromEntries(
               backgroundColor: statusColorMap[equipment.status] ?? '#94a3b8',
             }"
           >
-            <span class="chart-row__segment-label">{{ equipment.label }}</span>
+            <span class="chart-row__segment-label">{{ getEquipmentDisplayName(equipment.label) }}</span>
           </div>
         </div>
       </div>
@@ -168,7 +187,7 @@ const statusColorMap = Object.fromEntries(
   justify-items: center;
   height: 100%;
   border-right: 1px solid rgba(255, 255, 255, 0.38);
-  padding-inline: 4px;
+  padding-inline: 2px;
   color: #ffffff;
   line-height: 1.05;
   overflow: hidden;
@@ -187,7 +206,7 @@ const statusColorMap = Object.fromEntries(
 }
 
 .chart-row__segment-label {
-  font-size: 10px;
+  font-size: 13px;
   font-weight: 800;
 }
 

@@ -1,4 +1,4 @@
-<script setup>
+<!-- <script setup>
 import { reactive, watch } from "vue";
 import AppButton from "../../components/common/AppButton.vue";
 import AppModal from "../../components/common/AppModal.vue";
@@ -111,4 +111,4 @@ function onSave() {
     grid-template-columns: 1fr;
   }
 }
-</style>
+</style> -->
