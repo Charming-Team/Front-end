@@ -15,7 +15,7 @@
           <span class="risk-summary-badge">{{ riskSummary.delayedOrderCount }}건</span>
         </div>
 
-        <span class="text-[35px] font-extrabold">{{ riskSummary.expectedDelayDays }}일</span>
+        <span class="risk-summary-value">{{ riskSummary.expectedDelayDays }}일</span>
       </article>
 
       <article class="risk-summary-card risk-summary-card--warning">
@@ -24,7 +24,7 @@
           <span class="risk-summary-badge">{{ formatNumber(riskSummary.materialShortageQuantity) }}개</span>
         </div>
 
-        <span class="text-[35px] font-extrabold">{{ riskSummary.materialShortageCount }}건</span>
+        <span class="risk-summary-value">{{ riskSummary.materialShortageCount }}건</span>
       </article>
 
       <article class="risk-summary-card risk-summary-card--critical">
@@ -33,7 +33,7 @@
           <span class="risk-summary-badge">{{ riskSummary.criticalOrderCount }}건</span>
         </div>
 
-        <span class="text-[35px] font-extrabold">{{ riskSummary.criticalOrderCount }}건</span>
+        <span class="risk-summary-value">{{ riskSummary.criticalOrderCount }}건</span>
       </article>
     </div>
 
@@ -41,7 +41,7 @@
       <section class="risk-list-card">
         <template v-if="!selectedRiskItem">
           <div class="risk-list-header">
-            <span class="text-[25px] font-bold">리스크 목록</span>
+            <span class="risk-list-title">리스크 목록</span>
 
             <div class="risk-list-controls">
               <select v-model="selectedLine" class="risk-select">
@@ -105,54 +105,79 @@
           <p v-if="isLoading" class="risk-empty">리스크 정보를 불러오는 중입니다.</p>
           <p v-else-if="errorMessage" class="risk-empty">{{ errorMessage }}</p>
 
-          <div v-else class="risk-table-wrap">
-            <table class="risk-table">
-              <thead>
-                <tr>
-                  <th>주문번호</th>
-                  <th>고객사</th>
-                  <th>제품명</th>
-                  <th>수량</th>
-                  <th>납기</th>
-                  <th>생산 라인</th>
-                  <th>진행률</th>
-                  <th>생산 지연 위험</th>
-                  <th>상세</th>
-                </tr>
-              </thead>
+          <template v-else>
+            <div class="risk-table-wrap">
+              <table class="risk-table">
+                <thead>
+                  <tr>
+                    <th>주문번호</th>
+                    <th>고객사</th>
+                    <th>제품명</th>
+                    <th>수량</th>
+                    <th>납기</th>
+                    <th>생산 라인</th>
+                    <th>진행률</th>
+                    <th>생산 지연 위험</th>
+                    <th>상세</th>
+                  </tr>
+                </thead>
 
-              <tbody>
-                <tr v-for="item in filteredRiskItems" :key="item.orderId ?? item.id">
-                  <td>{{ item.orderNo }}</td>
-                  <td>{{ item.customerName }}</td>
-                  <td>{{ item.productName }}</td>
-                  <td>{{ formatNumber(item.quantity) }}</td>
-                  <td>{{ item.dueDate }}</td>
-                  <td>{{ item.lineName }}</td>
-                  <td>
-                    <div class="risk-progress">
-                      <span>{{ formatPercent(item.progressRate) }}%</span>
-                      <div class="risk-progress-bar">
-                        <span class="risk-progress-fill" :style="{ width: `${normalizePercent(item.progressRate)}%` }" />
+                <tbody>
+                  <tr v-for="item in paginatedRiskItems" :key="item.orderId ?? item.id">
+                    <td>{{ item.orderNo }}</td>
+                    <td>{{ item.customerName }}</td>
+                    <td>{{ item.productName }}</td>
+                    <td>{{ formatNumber(item.quantity) }}</td>
+                    <td>{{ item.dueDate }}</td>
+                    <td>{{ item.lineName }}</td>
+                    <td>
+                      <div class="risk-progress">
+                        <span>{{ formatPercent(item.progressRate) }}%</span>
+                        <div class="risk-progress-bar">
+                          <span class="risk-progress-fill" :style="{ width: `${normalizePercent(item.progressRate)}%` }" />
+                        </div>
                       </div>
-                    </div>
-                  </td>
-                  <td>
-                    <span :class="getRiskBadgeClass(item.riskLevel)">
-                      {{ getRiskLevelLabel(item.riskLevel) }}
-                    </span>
-                  </td>
-                  <td>
-                    <button type="button" class="risk-detail-button" @click="handleClickDetail(item)">상세 보기</button>
-                  </td>
-                </tr>
+                    </td>
+                    <td>
+                      <span :class="getRiskBadgeClass(item.riskLevel)">
+                        {{ getRiskLevelLabel(item.riskLevel) }}
+                      </span>
+                    </td>
+                    <td>
+                      <button type="button" class="risk-detail-button" @click="handleClickDetail(item)">상세 보기</button>
+                    </td>
+                  </tr>
 
-                <tr v-if="filteredRiskItems.length === 0">
-                  <td colspan="9" class="risk-empty">조회 조건에 맞는 리스크 항목이 없습니다.</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+                  <tr v-if="paginatedRiskItems.length === 0">
+                    <td colspan="9" class="risk-empty">조회 조건에 맞는 리스크 항목이 없습니다.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <nav
+              v-if="totalPages > 1"
+              class="risk-pagination"
+              aria-label="리스크 목록 페이지네이션"
+            >
+              <button type="button" class="risk-page-button" @click="goFirstPage">«</button>
+              <button type="button" class="risk-page-button" @click="goPrevPage">‹</button>
+
+              <button
+                v-for="page in visiblePages"
+                :key="page"
+                type="button"
+                class="risk-page-button risk-page-number"
+                :class="{ active: page === currentPage }"
+                @click="goPage(page)"
+              >
+                {{ page }}
+              </button>
+
+              <button type="button" class="risk-page-button" @click="goNextPage">›</button>
+              <button type="button" class="risk-page-button" @click="goLastPage">»</button>
+            </nav>
+          </template>
         </template>
 
         <template v-else>
@@ -260,10 +285,13 @@
                 {{ selectedRiskDetail.progressMessage }}
               </p>
 
-              <p class="risk-detail-message">
-                권고 조치:
-                {{ selectedRiskDetail.recommendation || '상세 분석 생성 후 제공' }}
-              </p>
+              <div class="risk-recommendation-block">
+                <span class="risk-cause-badge mb-3">권고 조치</span>
+
+                <p class="risk-detail-summary">
+                  {{ selectedRiskDetail.recommendation || '상세 분석 생성 후 제공 예정입니다.' }}
+                </p>
+              </div>
 
               <div v-if="normalizedDetailCauses.length > 0" class="risk-detail-causes">
                 <strong>{{ hasSelectedAgentAnalysis ? '주요 원인' : 'ML 주요 영향 요인' }}</strong>
@@ -296,7 +324,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { fetchRiskOrderDetail, fetchRiskOrders, fetchRiskSummary } from './api.js';
 import { formatNumber, getRiskBadgeClass, getRiskCauseBadgeClass, getRiskCauseLabel, getRiskLevelLabel } from './utils';
@@ -325,6 +353,10 @@ const riskItems = ref([]);
 const isLoading = ref(false);
 const isDetailLoading = ref(false);
 const errorMessage = ref('');
+
+const RISK_PAGE_SIZE = 7;
+
+const currentPage = ref(1);
 
 const lineOptions = computed(() => [...new Set(riskItems.value.map((item) => item.lineName).filter(Boolean))]);
 
@@ -362,6 +394,33 @@ const filteredRiskItems = computed(() => {
   return baseFilteredRiskItems.value.filter((item) => item.riskLevel === selectedRiskLevel.value);
 });
 
+const totalPages = computed(() => {
+  return Math.max(1, Math.ceil(filteredRiskItems.value.length / RISK_PAGE_SIZE));
+});
+
+const paginatedRiskItems = computed(() => {
+  const startIndex = (currentPage.value - 1) * RISK_PAGE_SIZE;
+  return filteredRiskItems.value.slice(startIndex, startIndex + RISK_PAGE_SIZE);
+});
+
+const visiblePages = computed(() => {
+  const maxVisibleCount = 5;
+  const pages = [];
+
+  let startPage = Math.max(1, currentPage.value - 2);
+  let endPage = Math.min(totalPages.value, startPage + maxVisibleCount - 1);
+
+  if (endPage - startPage + 1 < maxVisibleCount) {
+    startPage = Math.max(1, endPage - maxVisibleCount + 1);
+  }
+
+  for (let page = startPage; page <= endPage; page += 1) {
+    pages.push(page);
+  }
+
+  return pages;
+});
+
 const detailRiskLevel = computed(() => selectedRiskDetail.value?.riskLevel || selectedRiskItem.value?.riskLevel || 'SAFE');
 
 const isSelectedRiskSafe = computed(() => detailRiskLevel.value === 'SAFE');
@@ -376,6 +435,16 @@ const normalizedDetailCauses = computed(() => {
   }
 
   return causes.filter(Boolean);
+});
+
+watch([keyword, selectedLine, selectedRiskLevel], () => {
+  currentPage.value = 1;
+});
+
+watch(totalPages, (nextTotalPages) => {
+  if (currentPage.value > nextTotalPages) {
+    currentPage.value = nextTotalPages;
+  }
 });
 
 onMounted(() => {
@@ -536,6 +605,26 @@ function formatDelayProbability(value) {
   }
 
   return '예측 전';
+}
+
+function goFirstPage() {
+  currentPage.value = 1;
+}
+
+function goPrevPage() {
+  currentPage.value = Math.max(1, currentPage.value - 1);
+}
+
+function goPage(page) {
+  currentPage.value = Math.min(Math.max(Number(page), 1), totalPages.value);
+}
+
+function goNextPage() {
+  currentPage.value = Math.min(totalPages.value, currentPage.value + 1);
+}
+
+function goLastPage() {
+  currentPage.value = totalPages.value;
 }
 
 function getCauseKey(cause, index) {
