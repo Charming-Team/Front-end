@@ -105,37 +105,35 @@
           <p v-if="isLoading" class="risk-empty">리스크 정보를 불러오는 중입니다.</p>
           <p v-else-if="errorMessage" class="risk-empty">{{ errorMessage }}</p>
 
-          <template v-else>
-            <div class="risk-table-wrap">
-              <table class="risk-table">
-                <thead>
-                  <tr>
-                    <th>주문번호</th>
-                    <th>고객사</th>
-                    <th>제품명</th>
-                    <th>수량</th>
-                    <th>납기</th>
-                    <th>생산 라인</th>
-                    <th>진행률</th>
-                    <th>생산 지연 위험</th>
-                    <th>상세</th>
-                  </tr>
-                </thead>
+          <div v-else class="risk-table-wrap">
+            <table class="risk-table">
+              <thead>
+                <tr>
+                  <th>주문번호</th>
+                  <th>고객사</th>
+                  <th>제품명</th>
+                  <th>수량</th>
+                  <th>납기</th>
+                  <th>생산 라인</th>
+                  <th>진행률</th>
+                  <th>생산 지연 위험</th>
+                  <th>상세</th>
+                </tr>
+              </thead>
 
-                <tbody>
-                  <tr v-for="item in paginatedRiskItems" :key="item.orderId ?? item.id">
-                    <td>{{ item.orderNo }}</td>
-                    <td>{{ item.customerName }}</td>
-                    <td>{{ item.productName }}</td>
-                    <td>{{ formatNumber(item.quantity) }}</td>
-                    <td>{{ item.dueDate }}</td>
-                    <td>{{ item.lineName }}</td>
-                    <td>
-                      <div class="risk-progress">
-                        <span>{{ formatPercent(item.progressRate) }}%</span>
-                        <div class="risk-progress-bar">
-                          <span class="risk-progress-fill" :style="{ width: `${normalizePercent(item.progressRate)}%` }" />
-                        </div>
+              <tbody>
+                <tr v-for="item in filteredRiskItems" :key="item.orderId ?? item.id">
+                  <td>{{ item.orderNo }}</td>
+                  <td>{{ item.customerName }}</td>
+                  <td>{{ item.productName }}</td>
+                  <td>{{ formatNumber(item.quantity) }}</td>
+                  <td>{{ item.dueDate }}</td>
+                  <td>{{ item.lineName }}</td>
+                  <td>
+                    <div class="risk-progress">
+                      <span>{{ formatPercent(item.progressRatePercent) }}%</span>
+                      <div class="risk-progress-bar">
+                        <span class="risk-progress-fill" :style="{ width: `${normalizePercent(item.progressRatePercent)}%` }" />
                       </div>
                     </td>
                     <td>
@@ -235,11 +233,14 @@
             <div class="risk-detail-progress-card">
               <div class="risk-detail-progress-header">
                 <strong>생산 진행률</strong>
-                <span>{{ formatPercent(selectedRiskDetail.progressRate) }}%</span>
+                <span>{{ formatPercent(selectedRiskDetail.progressRatePercent) }}%</span>
               </div>
 
               <div class="risk-detail-progress-bar">
-                <span class="risk-detail-progress-fill" :style="{ width: `${normalizePercent(selectedRiskDetail.progressRate)}%` }" />
+                <span
+                  class="risk-detail-progress-fill"
+                  :style="{ width: `${normalizePercent(selectedRiskDetail.progressRatePercent)}%` }"
+                />
               </div>
 
               <p>
@@ -294,7 +295,7 @@
               </div>
 
               <div v-if="normalizedDetailCauses.length > 0" class="risk-detail-causes">
-                <strong>{{ hasSelectedAgentAnalysis ? '주요 원인' : 'ML 주요 영향 요인' }}</strong>
+                <strong>ML 지연 예측 원인</strong>
                 <ul>
                   <li v-for="(cause, index) in normalizedDetailCauses" :key="getCauseKey(cause, index)">
                     <template v-if="typeof cause === 'string'">
@@ -538,7 +539,7 @@ function buildFallbackDetail(item) {
 }
 
 function buildProgressMessage(item) {
-  return `생산 진행률은 ${formatPercent(item?.progressRate)}%이며, 총 ${formatNumber(item?.quantity ?? 0)}개 중 ${formatNumber(
+  return `생산 진행률은 ${formatPercent(item?.progressRatePercent)}%이며, 총 ${formatNumber(item?.quantity ?? 0)}개 중 ${formatNumber(
     item?.completedQuantity ?? 0
   )}개 완료, ${formatNumber(item?.remainingQuantity ?? 0)}개 잔여 상태입니다.`;
 }
