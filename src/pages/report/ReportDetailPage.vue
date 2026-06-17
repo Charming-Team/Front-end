@@ -33,6 +33,12 @@ const isEditModalOpen = ref(false);
 const isMailModalOpen = ref(false);
 const isProcessing = ref(false);
 
+const activeReportPane = ref("balanced");
+
+function setActiveReportPane(pane) {
+  activeReportPane.value = activeReportPane.value === pane ? "balanced" : pane;
+}
+
 const toast = ref({
   show: false,
   title: "",
@@ -355,9 +361,19 @@ watch(
         @edit="handleEdit"
       />
 
-      <div class="grid grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] gap-0 p-6 max-xl:grid-cols-1">
+      <div
+        class="report-detail-expand-layout p-6 max-xl:grid-cols-1"
+        :class="{
+          'report-detail-expand-layout--summary': activeReportPane === 'summary',
+          'report-detail-expand-layout--analysis': activeReportPane === 'analysis',
+        }"
+      >
         <div
-          class="min-w-0 overflow-hidden border-r border-slate-200 pr-6 max-xl:border-r-0 max-xl:border-b max-xl:pb-6 max-xl:pr-0"
+          class="report-detail-expand-pane report-detail-expand-pane--summary min-w-0 overflow-hidden border-r border-slate-200 pr-6 max-xl:border-r-0 max-xl:border-b max-xl:pb-6 max-xl:pr-0"
+          role="button"
+          tabindex="0"
+          @click="setActiveReportPane('summary')"
+          @keydown.enter.prevent="setActiveReportPane('summary')"
         >
           <ReportSummaryTable
             :summary-rows="report.summaryRows"
@@ -366,7 +382,13 @@ watch(
           />
         </div>
 
-        <div class="min-w-0 pl-7 max-xl:pl-0 max-xl:pt-6">
+        <div
+          class="report-detail-expand-pane report-detail-expand-pane--analysis min-w-0 pl-7 max-xl:pl-0 max-xl:pt-6"
+          role="button"
+          tabindex="0"
+          @click="setActiveReportPane('analysis')"
+          @keydown.enter.prevent="setActiveReportPane('analysis')"
+        >
           <ReportAnalysisContent :analysis="report.analysis" />
         </div>
       </div>
@@ -417,3 +439,59 @@ watch(
     />
   </AppCard>
 </template>
+<style scoped>
+.report-detail-expand-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 0;
+  align-items: start;
+  transition: grid-template-columns 0.36s ease;
+}
+
+.report-detail-expand-layout--summary {
+  grid-template-columns: minmax(0, 1.35fr) minmax(260px, 0.65fr);
+}
+
+.report-detail-expand-layout--analysis {
+  grid-template-columns: minmax(260px, 0.65fr) minmax(0, 1.35fr);
+}
+
+.report-detail-expand-pane {
+  min-width: 0;
+  cursor: pointer;
+  transition:
+    opacity 0.28s ease,
+    transform 0.28s ease;
+}
+
+.report-detail-expand-layout--summary .report-detail-expand-pane--analysis,
+.report-detail-expand-layout--analysis .report-detail-expand-pane--summary {
+  opacity: 0.72;
+  transform: scale(0.985);
+}
+
+.report-detail-expand-layout--summary .report-detail-expand-pane--summary,
+.report-detail-expand-layout--analysis .report-detail-expand-pane--analysis {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.report-detail-expand-pane:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 6px;
+  border-radius: 16px;
+}
+
+@media (max-width: 1280px) {
+  .report-detail-expand-layout,
+  .report-detail-expand-layout--summary,
+  .report-detail-expand-layout--analysis {
+    grid-template-columns: 1fr;
+  }
+
+  .report-detail-expand-pane {
+    opacity: 1;
+    transform: none;
+  }
+}
+</style>

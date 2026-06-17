@@ -29,24 +29,24 @@ const emit = defineEmits([
 </script>
 
 <template>
-  <div class="border-b border-slate-200 bg-white px-6 py-5">
+  <div class="border-b border-slate-200 bg-white px-4 py-4">
     <button
       type="button"
-      class="mb-7 inline-flex items-center gap-2 text-[14px] font-extrabold text-[#0b4ea2] transition hover:text-[#083b7a]"
+      class="inline-flex items-center gap-2 text-[14px] font-extrabold text-[#0b4ea2] transition hover:text-[#083b7a]"
       @click="emit('back')"
     >
       <span>←</span>
       <span>최근 보고서 목록으로 돌아가기</span>
     </button>
 
-    <div class="flex items-start justify-between gap-6 max-lg:flex-col">
+    <div class="flex items-start justify-between mt-2 gap-5 max-lg:flex-col">
       <div>
-        <h1 class="text-[26px] font-black tracking-[-0.02em] text-[#0f2f5f]">
+        <span class="text-[25px] block font-bold tracking-[-0.02em] text-[#0f2f5f]">
           {{ report.title }}
-        </h1>
+        </span>
 
         <div
-          class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-[14px] font-bold text-slate-500"
+          class="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 text-[14px] font-bold text-slate-700"
         >
           <span>작성자 : {{ report.author }}</span>
           <span class="h-3 w-px bg-slate-300" />
@@ -56,7 +56,7 @@ const emit = defineEmits([
         </div>
       </div>
 
-      <div class="flex flex-wrap justify-end gap-3">
+      <div class="flex flex-wrap justify-end gap-2">
         <AppButton
           v-if="showExecutiveButton"
           variant="secondary"
@@ -84,13 +84,6 @@ const emit = defineEmits([
         >
           수정
         </AppButton>
-
-        <button
-          type="button"
-          class="grid h-11 w-10 place-items-center rounded-xl text-xl font-black text-[#173967] transition hover:bg-slate-100"
-        >
-          ⋮
-        </button>
       </div>
     </div>
   </div>
