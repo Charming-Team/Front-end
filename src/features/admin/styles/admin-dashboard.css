@@ -33,7 +33,7 @@
   font-weight: 650;
 }
 
-.admin-message--error {
+.admin-message-error {
   color: var(--color-danger);
 }
 
@@ -57,7 +57,7 @@
   border-top: 0;
 }
 
-.role-row__meta {
+.role-row-meta {
   display: flex;
   justify-content: space-between;
   gap: 12px;

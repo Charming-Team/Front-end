@@ -1,15 +1,15 @@
 <template>
   <section class="risk-page">
     <div class="risk-actions">
-      <button type="button" class="risk-action-button risk-action-button--ghost" @click="goToPreviousSimulations">
+      <button type="button" class="risk-action-button risk-action-button-ghost" @click="goToPreviousSimulations">
         이전 대응안 목록 조회
       </button>
 
-      <button type="button" class="risk-action-button risk-action-button--primary" @click="goToPlanPage">생산 계획 수정하러 가기</button>
+      <button type="button" class="risk-action-button risk-action-button-primary" @click="goToPlanPage">생산 계획 수정하러 가기</button>
     </div>
 
     <div class="risk-summary-grid">
-      <article class="risk-summary-card risk-summary-card--danger">
+      <article class="risk-summary-card risk-summary-card-danger">
         <div class="risk-summary-header">
           <p class="risk-summary-title">납기 지연 예상</p>
           <span class="risk-summary-badge">{{ riskSummary.delayedOrderCount }}건</span>
@@ -18,7 +18,7 @@
         <span class="risk-summary-value">{{ riskSummary.expectedDelayDays }}일</span>
       </article>
 
-      <article class="risk-summary-card risk-summary-card--warning">
+      <article class="risk-summary-card risk-summary-card-warning">
         <div class="risk-summary-header">
           <p class="risk-summary-title">자재 부족 예상</p>
           <span class="risk-summary-badge">{{ formatNumber(riskSummary.materialShortageQuantity) }}개</span>
@@ -27,7 +27,7 @@
         <span class="risk-summary-value">{{ riskSummary.materialShortageCount }}건</span>
       </article>
 
-      <article class="risk-summary-card risk-summary-card--critical">
+      <article class="risk-summary-card risk-summary-card-critical">
         <div class="risk-summary-header">
           <p class="risk-summary-title">고위험 주문</p>
           <span class="risk-summary-badge">{{ riskSummary.criticalOrderCount }}건</span>
@@ -37,7 +37,7 @@
       </article>
     </div>
 
-    <section class="risk-workspace" :class="{ 'risk-workspace--detail-open': selectedRiskItem }">
+    <section class="risk-workspace" :class="{ 'risk-workspace-detail-open': selectedRiskItem }">
       <section class="risk-list-card">
         <template v-if="!selectedRiskItem">
           <div class="risk-list-header">
@@ -58,7 +58,7 @@
           <div class="risk-filter-chips">
             <button
               type="button"
-              class="risk-chip risk-chip--all"
+              class="risk-chip risk-chip-all"
               :class="{ active: selectedRiskLevel === '' }"
               @click="selectedRiskLevel = ''"
             >
@@ -67,7 +67,7 @@
 
             <button
               type="button"
-              class="risk-chip risk-chip--critical"
+              class="risk-chip risk-chip-critical"
               :class="{ active: selectedRiskLevel === 'CRITICAL' }"
               @click="selectedRiskLevel = 'CRITICAL'"
             >
@@ -76,7 +76,7 @@
 
             <button
               type="button"
-              class="risk-chip risk-chip--warning"
+              class="risk-chip risk-chip-warning"
               :class="{ active: selectedRiskLevel === 'WARNING' }"
               @click="selectedRiskLevel = 'WARNING'"
             >
@@ -85,7 +85,7 @@
 
             <button
               type="button"
-              class="risk-chip risk-chip--caution"
+              class="risk-chip risk-chip-caution"
               :class="{ active: selectedRiskLevel === 'CAUTION' }"
               @click="selectedRiskLevel = 'CAUTION'"
             >
@@ -94,7 +94,7 @@
 
             <button
               type="button"
-              class="risk-chip risk-chip--safe"
+              class="risk-chip risk-chip-safe"
               :class="{ active: selectedRiskLevel === 'SAFE' }"
               @click="selectedRiskLevel = 'SAFE'"
             >
@@ -132,9 +132,12 @@
                     <td>{{ item.lineName }}</td>
                     <td>
                       <div class="risk-progress">
-                        <span>{{ formatPercent(item.progressRate) }}%</span>
+                        <span>{{ formatPercent(item.progressRatePercent) }}%</span>
                         <div class="risk-progress-bar">
-                          <span class="risk-progress-fill" :style="{ width: `${normalizePercent(item.progressRate)}%` }" />
+                          <span
+                            class="risk-progress-fill"
+                            :style="{ width: `${normalizePercent(item.progressRatePercent)}%` }"
+                          />
                         </div>
                       </div>
                     </td>
@@ -144,7 +147,9 @@
                       </span>
                     </td>
                     <td>
-                      <button type="button" class="risk-detail-button" @click="handleClickDetail(item)">상세 보기</button>
+                      <button type="button" class="risk-detail-button" @click="handleClickDetail(item)">
+                        상세 보기
+                      </button>
                     </td>
                   </tr>
 
@@ -235,11 +240,14 @@
             <div class="risk-detail-progress-card">
               <div class="risk-detail-progress-header">
                 <strong>생산 진행률</strong>
-                <span>{{ formatPercent(selectedRiskDetail.progressRate) }}%</span>
+                <span>{{ formatPercent(selectedRiskDetail.progressRatePercent) }}%</span>
               </div>
 
               <div class="risk-detail-progress-bar">
-                <span class="risk-detail-progress-fill" :style="{ width: `${normalizePercent(selectedRiskDetail.progressRate)}%` }" />
+                <span
+                  class="risk-detail-progress-fill"
+                  :style="{ width: `${normalizePercent(selectedRiskDetail.progressRatePercent)}%` }"
+                />
               </div>
 
               <p>
@@ -285,8 +293,8 @@
                 {{ selectedRiskDetail.progressMessage }}
               </p>
 
-              <div class="risk-recommendation-block">
-                <span class="risk-cause-badge mb-3">권고 조치</span>
+              <div class="p-1">
+                <span class="risk-recommendation-title mb-3 text-[18px] font-bold">권고 조치</span>
 
                 <p class="risk-detail-summary">
                   {{ selectedRiskDetail.recommendation || '상세 분석 생성 후 제공 예정입니다.' }}
@@ -294,7 +302,7 @@
               </div>
 
               <div v-if="normalizedDetailCauses.length > 0" class="risk-detail-causes">
-                <strong>{{ hasSelectedAgentAnalysis ? '주요 원인' : 'ML 주요 영향 요인' }}</strong>
+                <strong>ML 지연 예측 원인</strong>
                 <ul>
                   <li v-for="(cause, index) in normalizedDetailCauses" :key="getCauseKey(cause, index)">
                     <template v-if="typeof cause === 'string'">
@@ -538,7 +546,7 @@ function buildFallbackDetail(item) {
 }
 
 function buildProgressMessage(item) {
-  return `생산 진행률은 ${formatPercent(item?.progressRate)}%이며, 총 ${formatNumber(item?.quantity ?? 0)}개 중 ${formatNumber(
+  return `생산 진행률은 ${formatPercent(item?.progressRatePercent)}%이며, 총 ${formatNumber(item?.quantity ?? 0)}개 중 ${formatNumber(
     item?.completedQuantity ?? 0
   )}개 완료, ${formatNumber(item?.remainingQuantity ?? 0)}개 잔여 상태입니다.`;
 }

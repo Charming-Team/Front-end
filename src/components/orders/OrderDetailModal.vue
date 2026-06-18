@@ -70,7 +70,7 @@ const secondaryRows = computed(() => [
   <AppModal title="주문 상세" @close="emit('close')">
     <div v-if="loading" class="modal-state">주문 상세를 불러오는 중입니다.</div>
 
-    <div v-else-if="error" class="modal-state modal-state--error">
+    <div v-else-if="error" class="modal-state modal-state-error">
       <span>{{ error }}</span>
       <button type="button" @click="emit('retry')">다시 시도</button>
     </div>
@@ -91,7 +91,7 @@ const secondaryRows = computed(() => [
 
       <div class="summary-meta">
         <div v-if="order.priority" class="meta-chip">
-          <span class="meta-chip__label">생산 순서</span>
+          <span class="meta-chip-label">생산 순서</span>
           <span class="priority-chip">{{ order.priority }}</span>
         </div>
         <p class="summary-text">{{ summaryText }}</p>
@@ -100,7 +100,7 @@ const secondaryRows = computed(() => [
 
     <div class="detail-panels">
       <section class="detail-panel">
-        <h4 class="detail-panel__title">기본 정보</h4>
+        <h4 class="detail-panel-title">기본 정보</h4>
         <div class="detail-grid">
           <div v-for="row in primaryRows" :key="row.label" class="detail-row">
             <dt>{{ row.label }}</dt>
@@ -110,7 +110,7 @@ const secondaryRows = computed(() => [
       </section>
 
       <section class="detail-panel">
-        <h4 class="detail-panel__title">진행 정보</h4>
+        <h4 class="detail-panel-title">진행 정보</h4>
         <div class="detail-grid">
           <div v-for="row in secondaryRows" :key="row.label" class="detail-row">
             <dt>{{ row.label }}</dt>
@@ -146,12 +146,12 @@ const secondaryRows = computed(() => [
   font-weight: 800;
 }
 
-.modal-state--error {
+.modal-state-error {
   gap: 10px;
   color: #d92d20;
 }
 
-.modal-state--error button {
+.modal-state-error button {
   border: 0;
   background: transparent;
   color: #185ec9;
@@ -199,7 +199,7 @@ const secondaryRows = computed(() => [
   gap: 8px;
 }
 
-.meta-chip__label {
+.meta-chip-label {
   color: #475467;
   font-size: 12px;
   font-weight: 800;
@@ -239,7 +239,7 @@ const secondaryRows = computed(() => [
   background: #ffffff;
 }
 
-.detail-panel__title {
+.detail-panel-title {
   margin: 0 0 14px;
   color: #111827;
   font-size: 14px;

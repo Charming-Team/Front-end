@@ -137,14 +137,14 @@ onMounted(() => loadUsers())
     </div>
 
     <article class="user-list-card">
-      <div class="user-list-card__header">
+      <div class="user-list-card-header">
         <div>
           <h2>사용자 목록</h2>
           <p>총 {{ pageInfo.totalElements }}명</p>
         </div>
       </div>
 
-      <p v-if="error" class="user-list-message user-list-message--error">{{ error }}</p>
+      <p v-if="error" class="user-list-message user-list-message-error">{{ error }}</p>
 
       <div class="user-table-wrap">
         <table class="user-table">
@@ -157,15 +157,15 @@ onMounted(() => loadUsers())
               <th>부서</th>
               <th>회사명</th>
               <th>연락처</th>
-              <th class="user-table__actions-heading" aria-label="탈퇴"></th>
+              <th class="user-table-actions-heading" aria-label="탈퇴"></th>
             </tr>
           </thead>
           <tbody>
             <tr v-if="loading">
-              <td colspan="8" class="user-table__empty">사용자 목록을 불러오는 중입니다.</td>
+              <td colspan="8" class="user-table-empty">사용자 목록을 불러오는 중입니다.</td>
             </tr>
             <tr v-else-if="pageInfo.empty">
-              <td colspan="8" class="user-table__empty">조회된 사용자가 없습니다.</td>
+              <td colspan="8" class="user-table-empty">조회된 사용자가 없습니다.</td>
             </tr>
             <tr v-for="user in users" v-else :key="user.id">
               <td>
@@ -174,14 +174,14 @@ onMounted(() => loadUsers())
               <td>{{ user.email }}</td>
               <td>{{ roleLabel(user.role) }}</td>
               <td>
-                <span class="user-status" :class="`user-status--${String(user.status).toLowerCase()}`">
+                <span class="user-status" :class="`user-status-${String(user.status).toLowerCase()}`">
                   {{ statusLabel(user.status) }}
                 </span>
               </td>
               <td>{{ user.department }}</td>
               <td>{{ user.companyName }}</td>
               <td>{{ user.phoneNumber }}</td>
-              <td class="user-table__actions">
+              <td class="user-table-actions">
                 <AppButton variant="danger-outline" size="sm" @click="openDeleteModal(user)">탈퇴</AppButton>
               </td>
             </tr>

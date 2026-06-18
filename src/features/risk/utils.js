@@ -1,42 +1,42 @@
 export const riskLevelMap = {
   CRITICAL: {
     label: '매우 위험',
-    className: 'risk-badge risk-badge--critical',
+    className: 'risk-badge risk-badge-critical',
   },
   WARNING: {
     label: '위험',
-    className: 'risk-badge risk-badge--warning',
+    className: 'risk-badge risk-badge-warning',
   },
   CAUTION: {
     label: '주의',
-    className: 'risk-badge risk-badge--caution',
+    className: 'risk-badge risk-badge-caution',
   },
   SAFE: {
     label: '안전',
-    className: 'risk-badge risk-badge--safe',
+    className: 'risk-badge risk-badge-safe',
   },
 };
 
 export const riskCauseTypeMap = {
   MATERIAL_SHORTAGE: {
     label: '자재 부족',
-    className: 'risk-cause-badge risk-cause-badge--material',
+    className: 'risk-cause-badge risk-cause-badge-material',
   },
   MATERIAL_DELAY: {
     label: '자재 입고 지연',
-    className: 'risk-cause-badge risk-cause-badge--material-delay',
+    className: 'risk-cause-badge risk-cause-badge-material-delay',
   },
   LOW_YIELD: {
     label: '수율 저하',
-    className: 'risk-cause-badge risk-cause-badge--yield',
+    className: 'risk-cause-badge risk-cause-badge-yield',
   },
   MACHINE_ABNORMAL: {
     label: '설비 상태 이상',
-    className: 'risk-cause-badge risk-cause-badge--machine',
+    className: 'risk-cause-badge risk-cause-badge-machine',
   },
   LINE_ABNORMAL: {
     label: '라인 상태 이상',
-    className: 'risk-cause-badge risk-cause-badge--line',
+    className: 'risk-cause-badge risk-cause-badge-line',
   },
 };
 

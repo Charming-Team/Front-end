@@ -58,27 +58,27 @@ const statusColorMap = Object.fromEntries(
 
     <div v-if="loading" class="chart-state">설비 가동 현황을 불러오는 중입니다.</div>
 
-    <div v-else-if="error" class="chart-state chart-state--error">{{ error }}</div>
+    <div v-else-if="error" class="chart-state chart-state-error">{{ error }}</div>
 
     <div v-else-if="items.length === 0" class="chart-state">조회된 설비 가동 현황이 없습니다.</div>
 
     <div v-else class="chart-list">
       <div v-for="line in items" :key="line.id" class="chart-row">
-        <div class="chart-row__meta">
-          <span class="chart-row__label">{{ getLineDisplayName(line.name) }}</span>
+        <div class="chart-row-meta">
+          <span class="chart-row-label">{{ getLineDisplayName(line.name) }}</span>
         </div>
 
-        <div class="chart-row__bar">
+        <div class="chart-row-bar">
           <div
             v-for="equipment in line.equipments"
             :key="`${line.id}-${equipment.name}`"
-            class="chart-row__segment"
+            class="chart-row-segment"
             :title="`${equipment.name} · ${equipment.statusLabel || statusLabelMap[equipment.status] || equipment.status}`"
             :style="{
               backgroundColor: statusColorMap[equipment.status] ?? '#94a3b8',
             }"
           >
-            <span class="chart-row__segment-label">{{ getEquipmentDisplayName(equipment.label) }}</span>
+            <span class="chart-row-segment-label">{{ getEquipmentDisplayName(equipment.label) }}</span>
           </div>
         </div>
       </div>
@@ -148,7 +148,7 @@ const statusColorMap = Object.fromEntries(
   font-weight: 800;
 }
 
-.chart-state--error {
+.chart-state-error {
   color: #d92d20;
 }
 
@@ -159,18 +159,18 @@ const statusColorMap = Object.fromEntries(
   gap: 12px;
 }
 
-.chart-row__meta {
+.chart-row-meta {
   display: flex;
   align-items: center;
 }
 
-.chart-row__label {
+.chart-row-label {
   color: #334155;
   font-size: 14px;
   font-weight: 700;
 }
 
-.chart-row__bar {
+.chart-row-bar {
   display: flex;
   width: 100%;
   height: 38px;
@@ -180,7 +180,7 @@ const statusColorMap = Object.fromEntries(
   box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.12);
 }
 
-.chart-row__segment {
+.chart-row-segment {
   flex: 1 1 0;
   display: grid;
   align-content: center;
@@ -193,11 +193,11 @@ const statusColorMap = Object.fromEntries(
   overflow: hidden;
 }
 
-.chart-row__segment:last-child {
+.chart-row-segment:last-child {
   border-right: 0;
 }
 
-.chart-row__segment-label {
+.chart-row-segment-label {
   display: block;
   max-width: 100%;
   overflow: hidden;
@@ -205,7 +205,7 @@ const statusColorMap = Object.fromEntries(
   white-space: nowrap;
 }
 
-.chart-row__segment-label {
+.chart-row-segment-label {
   font-size: 13px;
   font-weight: 800;
 }

@@ -229,7 +229,7 @@ onMounted(() => {
 
 <template>
   <div class="line-status-page">
-    <div class="line-status-page__top">
+    <div class="line-status-page-top">
       <LineOperatingTable
         :lines="lines"
         :line-options="lineOptions"
@@ -269,11 +269,11 @@ onMounted(() => {
       @search="applyOrderSearch"
     />
 
-    <div v-if="orderLoading" class="line-status-page__state">주문별 생산 라인 분배 현황을 불러오는 중입니다.</div>
-    <div v-else-if="orderError" class="line-status-page__state line-status-page__state--error">
+    <div v-if="orderLoading" class="line-status-page-state">주문별 생산 라인 분배 현황을 불러오는 중입니다.</div>
+    <div v-else-if="orderError" class="line-status-page-state line-status-page-state-error">
       {{ orderError }}
     </div>
-    <div v-else-if="orderDistributions.length === 0" class="line-status-page__state">
+    <div v-else-if="orderDistributions.length === 0" class="line-status-page-state">
       조회된 주문별 생산 라인 분배 현황이 없습니다.
     </div>
 
@@ -292,13 +292,13 @@ onMounted(() => {
   gap: 12px;
 }
 
-.line-status-page__top {
+.line-status-page-top {
   display: grid;
   grid-template-columns: minmax(0, 1.35fr) minmax(360px, 1fr);
   gap: 12px;
 }
 
-.line-status-page__state {
+.line-status-page-state {
   display: grid;
   min-height: 120px;
   place-items: center;
@@ -310,12 +310,12 @@ onMounted(() => {
   font-weight: 800;
 }
 
-.line-status-page__state--error {
+.line-status-page-state-error {
   color: #d92d20;
 }
 
 @media (max-width: 1180px) {
-  .line-status-page__top {
+  .line-status-page-top {
     grid-template-columns: 1fr;
   }
 }
