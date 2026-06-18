@@ -1,13 +1,11 @@
 <!--
   [Screen] AI 생산계획 분석 로딩 화면
-  역할: AI 분석 진행 상태를 5단계로 시각화하고, 완료 시 /ai/result로 자동 이동합니다.
+  역할: AI 분석 진행 상태를 5단계로 시각화하고, 실제 API 완료를 기다립니다.
   API 연동 시: 실제 분석 진행률 및 단계 완료 여부를 polling 또는 WebSocket으로 수신할 예정입니다.
 -->
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
-
-const IS_STYLE_DEV = false // 스타일 개발 중에는 자동 이동 방지
 
 const STEPS = [
   { number: 1, label: '데이터 수집' },
@@ -125,17 +123,10 @@ onMounted(() => {
   }, 1000)
 
   stepTimer = setInterval(() => {
-    if (completedSteps.value < 5) {
+    if (completedSteps.value < 4) {
       completedSteps.value++
-
-      if (completedSteps.value >= 5) {
-        clearInterval(stepTimer)
-        clearInterval(timeTimer)
-
-        if (!IS_STYLE_DEV) {
-          setTimeout(() => router.push('/ai/result'), 1500)
-        }
-      }
+    } else {
+      clearInterval(stepTimer)
     }
   }, 5000)
 })

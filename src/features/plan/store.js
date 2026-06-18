@@ -11,6 +11,7 @@ import {
   saveSelectedPlanSimulation,
 } from './api.js'
 import {
+  clearAiSimulationSession,
   loadAiSimulationSession,
   saveAiSimulationSession,
   updateAiSimulationSession,
@@ -1026,6 +1027,7 @@ export function usePlanStore() {
   }
 
   async function generateMonthlyAiRecommendation(payload) {
+    clearAiSimulationSession()
     aiRecommendationLoading.value = true
     aiRecommendationError.value = null
     aiRecommendationOptions.value = []

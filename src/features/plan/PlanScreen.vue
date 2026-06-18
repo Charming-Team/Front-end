@@ -159,9 +159,7 @@ async function runMonthlyAiAnalysis(payload) {
 
   const generated = await store.generateMonthlyAiRecommendation(payload)
 
-  if (!generated) {
-    router.push('/plan')
-  }
+  router.push(generated ? '/ai/result' : '/plan')
 }
 </script>
 
