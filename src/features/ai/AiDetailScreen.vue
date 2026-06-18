@@ -65,7 +65,7 @@ const reviewState = computed(() =>
   option.value?.reviewState ?? { level: 'RECOMMENDED', label: '반영 가능', message: '' }
 )
 const canApplyOption = computed(() =>
-  !['BLOCKED', 'NOT_RECOMMENDED', 'CAUTION'].includes(reviewState.value.level)
+  !['BLOCKED', 'NOT_RECOMMENDED'].includes(reviewState.value.level)
 )
 const applicationBlockMessage = computed(() =>
   reviewState.value.message || '이 대응안은 바로 반영할 수 없습니다.'
