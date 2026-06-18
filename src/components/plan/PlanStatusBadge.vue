@@ -7,16 +7,16 @@ const props = defineProps({
 })
 
 const STATUS_CLASSES = {
-  SCHEDULED:   'plan-status-badge--scheduled',
-  IN_PROGRESS: 'plan-status-badge--in-progress',
-  COMPLETED:   'plan-status-badge--completed',
-  DELAYED:     'plan-status-badge--delayed',
-  CANCELLED:   'plan-status-badge--cancelled',
+  SCHEDULED:   'plan-status-badge-scheduled',
+  IN_PROGRESS: 'plan-status-badge-in-progress',
+  COMPLETED:   'plan-status-badge-completed',
+  DELAYED:     'plan-status-badge-delayed',
+  CANCELLED:   'plan-status-badge-cancelled',
 }
 
 const info = computed(() => ({
   label: PLAN_STATUS_LABELS[props.status] ?? props.status,
-  className: STATUS_CLASSES[props.status] ?? 'plan-status-badge--unknown',
+  className: STATUS_CLASSES[props.status] ?? 'plan-status-badge-unknown',
 }))
 </script>
 

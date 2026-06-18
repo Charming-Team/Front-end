@@ -154,7 +154,7 @@ onUnmounted(() => {
         <div class="inventory-bar">
           <span
             class="inventory-bar-fill"
-            :class="`inventory-bar-fill--${statusMeta[material.status].tone}`"
+            :class="`inventory-bar-fill-${statusMeta[material.status].tone}`"
             :style="{ width: `${getAvailabilityBarWidth(material)}%` }"
           ></span>
         </div>
@@ -262,19 +262,19 @@ onUnmounted(() => {
   border-radius: inherit;
 }
 
-.inventory-bar-fill--normal {
+.inventory-bar-fill-normal {
   background: #0f9b8e;
 }
 
-.inventory-bar-fill--risk {
+.inventory-bar-fill-risk {
   background: #ff8f1f;
 }
 
-.inventory-bar-fill--shortage {
+.inventory-bar-fill-shortage {
   background: #ef4444;
 }
 
-.inventory-bar-fill--pending {
+.inventory-bar-fill-pending {
   background: #4a78d1;
 }
 

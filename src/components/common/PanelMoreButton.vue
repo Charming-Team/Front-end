@@ -12,7 +12,7 @@ defineProps({
 <template>
   <button class="panel-more-button" type="button" @click="$emit('click', $event)">
     <span>{{ label }}</span>
-    <span class="panel-more-button__arrow" aria-hidden="true"></span>
+    <span class="panel-more-button-arrow" aria-hidden="true"></span>
   </button>
 </template>
 
@@ -35,7 +35,7 @@ defineProps({
   cursor: pointer;
 }
 
-.panel-more-button__arrow {
+.panel-more-button-arrow {
   width: 7px;
   height: 7px;
   display: inline-block;

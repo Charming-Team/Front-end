@@ -19,7 +19,7 @@
   box-shadow: 0 14px 32px rgba(15, 23, 42, 0.06);
 }
 
-.user-list-card__header {
+.user-list-card-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -28,14 +28,14 @@
   border-bottom: 1px solid var(--color-border);
 }
 
-.user-list-card__header h2 {
+.user-list-card-header h2 {
   margin: 0 0 6px;
   color: var(--color-text-main);
   font-size: 18px;
   font-weight: 800;
 }
 
-.user-list-card__header p,
+.user-list-card-header p,
 .user-list-footer {
   margin: 0;
   color: var(--color-text-subtle);
@@ -51,7 +51,7 @@
   font-weight: 700;
 }
 
-.user-list-message--error {
+.user-list-message-error {
   background: var(--color-danger-bg);
   color: var(--color-danger-dark);
 }
@@ -109,26 +109,26 @@
   font-weight: 800;
 }
 
-.user-status--active {
+.user-status-active {
   background: #e8f7ec;
   color: #1f7a3b;
 }
 
-.user-status--suspended {
+.user-status-suspended {
   background: #fff7e6;
   color: #9a5b00;
 }
 
-.user-status--banned {
+.user-status-banned {
   background: var(--color-danger-bg);
   color: var(--color-danger-dark);
 }
 
-.user-table__actions {
+.user-table-actions {
   width: 86px;
 }
 
-.user-table__empty {
+.user-table-empty {
   height: 160px;
   text-align: center !important;
   color: var(--color-text-subtle) !important;
@@ -180,7 +180,7 @@
 }
 
 @media (max-width: 768px) {
-  .user-list-card__header,
+  .user-list-card-header,
   .user-list-footer {
     align-items: flex-start;
     flex-direction: column;

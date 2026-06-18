@@ -227,42 +227,42 @@ watch(
   <div class="app-chatbot">
     <Transition name="app-chatbot-panel">
       <section v-if="isOpen" class="app-chatbot-panel" aria-label="S-MAP 챗봇">
-        <header class="app-chatbot-panel__header">
-          <div class="app-chatbot-panel__title">
+        <header class="app-chatbot-panel-header">
+          <div class="app-chatbot-panel-title">
             <img :src="logoSymbol" alt="" aria-hidden="true" />
             <strong>S-MAP</strong>
             <span>챗봇</span>
           </div>
-          <button type="button" class="app-chatbot-panel__close" aria-label="챗봇 닫기" @click="closeChatbot">
+          <button type="button" class="app-chatbot-panel-close" aria-label="챗봇 닫기" @click="closeChatbot">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M18 6 6 18M6 6l12 12" />
             </svg>
           </button>
         </header>
 
-        <div ref="messagesRef" class="app-chatbot-panel__messages">
+        <div ref="messagesRef" class="app-chatbot-panel-messages">
           <div
             v-for="item in messages"
             :key="item.id"
             class="app-chatbot-message"
-            :class="`app-chatbot-message--${item.role}`"
+            :class="`app-chatbot-message-${item.role}`"
           >
             <p>{{ item.text }}</p>
-            <div v-if="item.urls?.length" class="app-chatbot-message__links" aria-label="상세 이동">
+            <div v-if="item.urls?.length" class="app-chatbot-message-links" aria-label="상세 이동">
               <template v-for="link in item.urls" :key="link.id">
                 <a
                   v-if="link.external"
                   :href="link.url"
                   target="_blank"
                   rel="noreferrer"
-                  class="app-chatbot-message__link"
+                  class="app-chatbot-message-link"
                 >
-                  <span class="app-chatbot-message__link-label">{{ link.label }}</span>
-                  <span v-if="link.type" class="app-chatbot-message__link-type">{{ link.type }}</span>
+                  <span class="app-chatbot-message-link-label">{{ link.label }}</span>
+                  <span v-if="link.type" class="app-chatbot-message-link-type">{{ link.type }}</span>
                 </a>
-                <button v-else type="button" class="app-chatbot-message__link" @click="openAssistantLink(link)">
-                  <span class="app-chatbot-message__link-label">{{ link.label }}</span>
-                  <span v-if="link.type" class="app-chatbot-message__link-type">{{ link.type }}</span>
+                <button v-else type="button" class="app-chatbot-message-link" @click="openAssistantLink(link)">
+                  <span class="app-chatbot-message-link-label">{{ link.label }}</span>
+                  <span v-if="link.type" class="app-chatbot-message-link-type">{{ link.type }}</span>
                 </button>
               </template>
             </div>
@@ -270,7 +270,7 @@ watch(
           </div>
         </div>
 
-        <div class="app-chatbot-panel__suggestions" aria-label="추천 질문">
+        <div class="app-chatbot-panel-suggestions" aria-label="추천 질문">
           <button
             v-for="question in suggestedQuestions"
             :key="question"
@@ -282,7 +282,7 @@ watch(
           </button>
         </div>
 
-        <form class="app-chatbot-panel__composer" @submit.prevent="submitMessage()">
+        <form class="app-chatbot-panel-composer" @submit.prevent="submitMessage()">
           <input
             v-model="message"
             type="text"
@@ -300,7 +300,7 @@ watch(
     </Transition>
 
     <AppButton v-if="!isOpen" class="app-chatbot-button" :aria-label="label" @click="openChatbot">
-      <span class="app-chatbot-button__bubble" aria-hidden="true">
+      <span class="app-chatbot-button-bubble" aria-hidden="true">
         <i></i>
         <i></i>
         <i></i>

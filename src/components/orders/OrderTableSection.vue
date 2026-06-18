@@ -132,7 +132,7 @@ const emit = defineEmits([
             <td colspan="6" class="table-state">주문 목록을 불러오는 중입니다.</td>
           </tr>
           <tr v-else-if="error">
-            <td colspan="6" class="table-state table-state--error">
+            <td colspan="6" class="table-state table-state-error">
               <span>{{ error }}</span>
               <button type="button" @click="emit('retry')">다시 시도</button>
             </td>
@@ -170,7 +170,7 @@ const emit = defineEmits([
         <AppSelect
           :model-value="pageSize"
           :options="pageSizeOptions"
-          class="footer-select footer-select--count"
+          class="footer-select footer-select-count"
           @update:model-value="emit('update:pageSize', $event)"
         />
       </div>
@@ -199,7 +199,7 @@ const emit = defineEmits([
           v-for="page in visiblePages"
           :key="page"
           class="page-number"
-          :class="{ 'page-number--active': currentPage === page }"
+          :class="{ 'page-number-active': currentPage === page }"
           type="button"
           :disabled="loading"
           @click="emit('go-page', page)"
@@ -373,11 +373,11 @@ const emit = defineEmits([
   text-align: center;
 }
 
-.table-state--error {
+.table-state-error {
   color: #d92d20 !important;
 }
 
-.table-state--error button {
+.table-state-error button {
   margin-left: 10px;
   border: 0;
   background: transparent;
@@ -432,7 +432,7 @@ const emit = defineEmits([
   border-color: transparent;
 }
 
-.page-number--active {
+.page-number-active {
   background: #185ec9;
   color: #ffffff;
   box-shadow: 0 6px 14px rgba(24, 94, 201, 0.18);
@@ -448,7 +448,7 @@ const emit = defineEmits([
   min-width: 70px;
 }
 
-.footer-select--count:deep(select) {
+.footer-select-count:deep(select) {
   height: 32px;
   min-height: 32px;
   border-radius: 8px;
@@ -459,11 +459,11 @@ const emit = defineEmits([
   box-shadow: none;
 }
 
-.footer-select--count:deep(span) {
+.footer-select-count:deep(span) {
   right: 10px;
 }
 
-.footer-select--count:deep(svg) {
+.footer-select-count:deep(svg) {
   width: 14px;
   height: 14px;
 }
