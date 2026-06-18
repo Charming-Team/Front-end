@@ -1,6 +1,6 @@
 export const PLAN_STATUS_LABELS = {
   SCHEDULED:   '예정',
-  IN_PROGRESS: '진행중',
+  IN_PROGRESS: '진행 중',
   COMPLETED:   '완료',
   DELAYED:     '지연',
   CANCELLED:   '취소',
@@ -9,7 +9,7 @@ export const PLAN_STATUS_LABELS = {
 export const PLAN_STATUS_OPTIONS = [
   { value: '',            label: '전체 상태' },
   { value: 'SCHEDULED',  label: '예정' },
-  { value: 'IN_PROGRESS',label: '진행중' },
+  { value: 'IN_PROGRESS',label: '진행 중' },
   { value: 'COMPLETED',  label: '완료' },
   { value: 'DELAYED',    label: '지연' },
   { value: 'CANCELLED',  label: '취소' },

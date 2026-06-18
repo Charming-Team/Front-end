@@ -22,12 +22,12 @@
   cursor: pointer;
 }
 
-.risk-action-button--ghost {
+.risk-action-button-ghost {
   background: var(--color-panel);
   color: var(--color-text-main);
 }
 
-.risk-action-button--primary {
+.risk-action-button-primary {
   border-color: var(--color-primary);
   background: var(--color-primary);
   color: #fff;
@@ -97,7 +97,7 @@
   transition: grid-template-columns 0.25s ease;
 }
 
-.risk-workspace--detail-open {
+.risk-workspace-detail-open {
   grid-template-columns: 300px minmax(0, 1fr);
   align-items: start;
 }
@@ -165,31 +165,31 @@
   transform: translateY(-1px);
 }
 
-.risk-chip--all {
+.risk-chip-all {
   border-color: #cbd5e1;
   background: #f8fafc;
   color: #334155;
 }
 
-.risk-chip--critical {
+.risk-chip-critical {
   border-color: rgba(255, 31, 61, 0.28);
   background: rgba(255, 31, 61, 0.08);
   color: #c5162f;
 }
 
-.risk-chip--warning {
+.risk-chip-warning {
   border-color: rgba(255, 107, 0, 0.3);
   background: rgba(255, 107, 0, 0.09);
   color: #c24f00;
 }
 
-.risk-chip--caution {
+.risk-chip-caution {
   border-color: rgba(245, 176, 0, 0.35);
   background: rgba(245, 176, 0, 0.12);
   color: #9a6a00;
 }
 
-.risk-chip--safe {
+.risk-chip-safe {
   border-color: rgba(51, 121, 201, 0.28);
   background: rgba(51, 121, 201, 0.1);
   color: #3379c9;
@@ -199,27 +199,27 @@
   color: #fff;
 }
 
-.risk-chip--all.active {
+.risk-chip-all.active {
   border-color: #475569;
   background: #475569;
 }
 
-.risk-chip--critical.active {
+.risk-chip-critical.active {
   border-color: #ff1f3d;
   background: #ff1f3d;
 }
 
-.risk-chip--warning.active {
+.risk-chip-warning.active {
   border-color: #ff6b00;
   background: #ff6b00;
 }
 
-.risk-chip--caution.active {
+.risk-chip-caution.active {
   border-color: #f5b000;
   background: #f5b000;
 }
 
-.risk-chip--safe.active {
+.risk-chip-safe.active {
   border-color: #3379c9;
   background: #3379c9;
 }
@@ -312,19 +312,19 @@
   white-space: nowrap;
 }
 
-.risk-badge--critical {
+.risk-badge-critical {
   background: #ff1f3d;
 }
 
-.risk-badge--warning {
+.risk-badge-warning {
   background: #ff6b00;
 }
 
-.risk-badge--caution {
+.risk-badge-caution {
   background: #f5b000;
 }
 
-.risk-badge--safe {
+.risk-badge-safe {
   background: #3379c9;
 }
 
@@ -514,27 +514,27 @@
   font-weight: 800;
 }
 
-.risk-cause-badge--material {
+.risk-cause-badge-material {
   background: rgba(245, 158, 11, 0.12);
   color: #b45309;
 }
 
-.risk-cause-badge--yield {
+.risk-cause-badge-yield {
   background: rgba(239, 68, 68, 0.12);
   color: #b91c1c;
 }
 
-.risk-cause-badge--waiting {
+.risk-cause-badge-waiting {
   background: rgba(59, 130, 246, 0.12);
   color: #1d4ed8;
 }
 
-.risk-cause-badge--throughput {
+.risk-cause-badge-throughput {
   background: rgba(139, 92, 246, 0.12);
   color: #6d28d9;
 }
 
-.risk-cause-badge--machine {
+.risk-cause-badge-machine {
   background: rgba(100, 116, 139, 0.16);
   color: #334155;
 }
@@ -598,7 +598,7 @@
     flex-direction: column;
   }
 
-  .risk-workspace--detail-open {
+  .risk-workspace-detail-open {
     grid-template-columns: 260px minmax(0, 1fr);
   }
 
@@ -615,11 +615,219 @@
   }
 
   .risk-summary-grid,
-  .risk-workspace--detail-open {
+  .risk-workspace-detail-open {
     grid-template-columns: 1fr;
   }
 
   .risk-search {
     width: 100%;
   }
+}
+
+.risk-page {
+  gap: 14px;
+  font-size: 14px;
+}
+
+.risk-actions {
+  gap: 10px;
+}
+
+.risk-action-button {
+  height: 38px;
+  padding: 0 16px;
+  font-size: 14px;
+}
+
+.risk-summary-grid {
+  gap: 12px;
+}
+
+.risk-summary-card {
+  min-height: 108px;
+  padding: 18px 20px;
+}
+
+.risk-summary-header {
+  margin-bottom: 10px;
+}
+
+.risk-summary-title {
+  font-size: 14px;
+}
+
+.risk-summary-badge {
+  padding: 4px 9px;
+  font-size: 12px;
+}
+
+.risk-summary-value {
+  display: block;
+  color: var(--color-text-main);
+  font-size: 30px;
+  line-height: 1.15;
+  font-weight: 800;
+  letter-spacing: -0.6px;
+}
+
+.risk-list-card {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 210px);
+  padding: 20px 22px 16px;
+  overflow: hidden;
+}
+
+.risk-list-header {
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.risk-list-title {
+  color: var(--color-text-main);
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.4px;
+}
+
+.risk-select,
+.risk-search {
+  height: 36px;
+  font-size: 14px;
+}
+
+.risk-chip {
+  height: 32px;
+  padding: 0 10px;
+  font-size: 13px;
+}
+
+.risk-table-wrap {
+  flex: 1;
+  min-height: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.risk-table {
+  min-width: 1120px;
+  font-size: 14px;
+}
+
+.risk-table th,
+.risk-table td {
+  height: 45px;
+  padding: 0 12px;
+}
+
+.risk-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-shrink: 0;
+  padding-top: 16px;
+}
+
+.risk-page-button {
+  display: grid;
+  min-width: 28px;
+  height: 28px;
+  place-items: center;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #173967;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.risk-page-button:hover {
+  background: #eff6ff;
+}
+
+.risk-page-number.active {
+  background: #184f96;
+  color: #fff;
+}
+
+/* 상세 모드: 좌우 비율 1:2 */
+.risk-workspace-detail-open {
+  grid-template-columns: minmax(390px, 1fr) minmax(0, 2fr);
+  align-items: stretch;
+}
+
+/* 상세 모드에서는 일반 목록 카드의 max-height 제한을 해제해야 오른쪽 상세 카드 높이를 따라감 */
+.risk-workspace-detail-open .risk-list-card {
+  max-height: none;
+  min-height: calc(100vh - 210px);
+  height: auto;
+  align-self: stretch;
+  overflow: hidden;
+}
+
+/* 오른쪽 상세 분석도 최소 높이 동일하게 */
+.risk-workspace-detail-open .risk-detail-panel {
+  min-height: calc(100vh - 210px);
+  align-self: stretch;
+}
+
+/* 왼쪽 목록 내부는 카드 높이를 꽉 채우는 flex 구조 */
+.risk-workspace-detail-open .risk-compact-list {
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 제목은 고정 */
+.risk-workspace-detail-open .risk-compact-list h2 {
+  flex-shrink: 0;
+  margin: 0 0 22px;
+  font-size: 22px;
+  font-weight: 800;
+}
+
+/* 핵심: 목록 데이터는 카드 높이를 늘리지 말고 내부에서만 스크롤 */
+.risk-workspace-detail-open .risk-compact-table {
+  flex: 1 1 0;
+  min-height: 0;
+  height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* 주문번호 컬럼 넓게, 위험 컬럼은 고정 */
+.risk-workspace-detail-open .risk-compact-head,
+.risk-workspace-detail-open .risk-compact-row {
+  grid-template-columns: minmax(190px, 1fr) 110px;
+  gap: 12px;
+}
+
+/* 주문번호 줄바꿈 방지 */
+.risk-workspace-detail-open .risk-compact-head span:first-child,
+.risk-workspace-detail-open .risk-compact-row span:first-child {
+  white-space: nowrap;
+  text-align: center;
+}
+
+/* 위험 뱃지 가운데 정렬 */
+.risk-workspace-detail-open .risk-compact-head span:last-child,
+.risk-workspace-detail-open .risk-compact-row span:last-child {
+  justify-self: center;
+}
+
+/* 뱃지가 컬럼 전체를 채우지 않도록 */
+.risk-workspace-detail-open .risk-compact-row .risk-badge {
+  width: 88px;
+  min-width: 88px;
+  min-height: 30px;
+  padding: 6px 10px;
+}
+
+/* row 크기 정리 */
+.risk-workspace-detail-open .risk-compact-row {
+  min-height: 50px;
+  font-size: 15px;
 }

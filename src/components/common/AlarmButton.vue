@@ -328,19 +328,19 @@ onUnmounted(() => {
         <path d="M18 8a6 6 0 1 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9" />
         <path d="M10 21h4" />
       </svg>
-      <span v-if="unreadCount > 0" class="app-alarm-button__badge">{{ unreadCount }}</span>
+      <span v-if="unreadCount > 0" class="app-alarm-button-badge">{{ unreadCount }}</span>
     </AppButton>
 
     <div v-if="isOpen" class="app-alarm-panel" role="dialog" aria-label="알림 목록">
-      <header class="app-alarm-panel__header">
+      <header class="app-alarm-panel-header">
         <div>
           <h2>알림</h2>
           <p>미확인 {{ unreadCount }}개</p>
         </div>
-        <div class="app-alarm-panel__actions">
+        <div class="app-alarm-panel-actions">
           <button
             type="button"
-            class="app-alarm-panel__delete"
+            class="app-alarm-panel-delete"
             :disabled="unreadCount === 0"
             @click="readAllNotifications"
           >
@@ -348,14 +348,14 @@ onUnmounted(() => {
           </button>
           <button
             type="button"
-            class="app-alarm-panel__delete"
+            class="app-alarm-panel-delete"
             :disabled="notifications.length === 0"
             @click="deleteAllNotifications"
           >
             전체 삭제
           </button>
-          <span class="app-alarm-panel__total">전체 {{ notifications.length }}</span>
-          <button type="button" class="app-alarm-panel__close" aria-label="알림 닫기" @click="closeAlarm">
+          <span class="app-alarm-panel-total">전체 {{ notifications.length }}</span>
+          <button type="button" class="app-alarm-panel-close" aria-label="알림 닫기" @click="closeAlarm">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M18 6 6 18M6 6l12 12" />
             </svg>
@@ -363,7 +363,7 @@ onUnmounted(() => {
         </div>
       </header>
 
-      <div class="app-alarm-panel__list">
+      <div class="app-alarm-panel-list">
         <button
           v-for="notification in notifications"
           :key="notification.id"
@@ -372,8 +372,8 @@ onUnmounted(() => {
           :class="{ 'is-read': notification.isRead }"
           @click="goToNotification(notification)"
         >
-          <span v-if="!notification.isRead" class="app-alarm-item__dot" aria-hidden="true"></span>
-          <span class="app-alarm-item__icon" :class="`app-alarm-item__icon--${notification.tone}`">
+          <span v-if="!notification.isRead" class="app-alarm-item-dot" aria-hidden="true"></span>
+          <span class="app-alarm-item-icon" :class="`app-alarm-item-icon-${notification.tone}`">
             <svg v-if="notification.tone !== 'success'" viewBox="0 0 24 24" aria-hidden="true">
               <path d="M12 3 2.8 19h18.4L12 3Z" />
               <path d="M12 8v6M12 17.5h.01" />
@@ -382,12 +382,12 @@ onUnmounted(() => {
               <path d="M20 6 9 17l-5-5" />
             </svg>
           </span>
-          <span class="app-alarm-item__content">
+          <span class="app-alarm-item-content">
             <strong>{{ notification.title }}</strong>
             <small>{{ notification.message }}</small>
           </span>
-          <span class="app-alarm-item__status">
-            <span class="app-alarm-item__badge" :class="`app-alarm-item__badge--${notification.tone}`">
+          <span class="app-alarm-item-status">
+            <span class="app-alarm-item-badge" :class="`app-alarm-item-badge-${notification.tone}`">
               {{ notification.level }}
             </span>
           </span>
@@ -400,7 +400,7 @@ onUnmounted(() => {
           :disabled="isLoading"
           @click="loadNotifications({ append: true })"
         >
-          <span class="app-alarm-item__content">
+          <span class="app-alarm-item-content">
             <strong>{{ isLoading ? '불러오는 중' : '더 보기' }}</strong>
             <small>이전 알림을 추가로 불러옵니다.</small>
           </span>

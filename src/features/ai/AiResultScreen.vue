@@ -141,12 +141,14 @@ function iconPath(icon) {
 <template>
   <div class="flex flex-col gap-4">
     <AppCard v-if="options.length === 0">
-      <div class="px-6 py-8 text-center">
-        <h2 class="text-[18px] font-extrabold text-slate-900">AI 분석 결과가 없습니다.</h2>
-        <p class="mt-2 text-[13px] font-semibold text-slate-500">
+      <div class="flex min-h-[292px] flex-col items-center justify-center px-6 py-10 text-center sm:px-8">
+        <div class="text-[23px] font-extrabold tracking-[-0.03em] text-[var(--color-text-main)] sm:text-[24px]">
+          AI 분석 결과가 없습니다.
+        </div>
+        <p class="mt-2 text-[13px] font-medium leading-6 text-slate-500 sm:text-[14px]">
           생산계획 화면에서 충돌 일정에 대한 AI 분석을 먼저 실행해주세요.
         </p>
-        <div class="mt-5">
+        <div class="mt-6">
           <AppButton variant="primary" @click="backToPlan">생산계획으로 돌아가기</AppButton>
         </div>
       </div>

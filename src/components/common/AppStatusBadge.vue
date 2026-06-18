@@ -12,7 +12,7 @@ defineProps({
 </script>
 
 <template>
-  <span class="app-status-badge" :class="`app-status-badge--${tone}`">
+  <span class="app-status-badge" :class="`app-status-badge-${tone}`">
     {{ label }}
   </span>
 </template>
@@ -30,27 +30,27 @@ defineProps({
   font-weight: 800;
 }
 
-.app-status-badge--normal {
+.app-status-badge-normal {
   background: #e8f8ef;
   color: #00897b;
 }
 
-.app-status-badge--risk {
+.app-status-badge-risk {
   background: #fff1df;
   color: #f08a24;
 }
 
-.app-status-badge--shortage {
+.app-status-badge-shortage {
   background: #ffe5e5;
   color: #e53935;
 }
 
-.app-status-badge--pending {
+.app-status-badge-pending {
   background: #eaf1ff;
   color: #2f62c9;
 }
 
-.app-status-badge--cancelled {
+.app-status-badge-cancelled {
   background: #eef0f3;
   color: #5f6673;
 }

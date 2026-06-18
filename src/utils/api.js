@@ -3,6 +3,21 @@ import { clearToken, getRefreshToken, getToken, setRefreshToken, setToken } from
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || ''
 let refreshPromise = null
 
+const ERROR_MESSAGES_BY_STATUS = {
+  400: '입력값을 확인해주세요.',
+  401: '로그인이 만료되었습니다. 다시 로그인해주세요.',
+  403: '해당 기능에 접근할 권한이 없습니다.',
+  404: '요청한 정보를 찾을 수 없습니다.',
+  409: '현재 상태에서는 처리할 수 없습니다.',
+  422: '업무 규칙상 처리할 수 없습니다.',
+  500: '서버 오류가 발생했습니다.',
+  502: 'AI 서버 처리 중 문제가 발생했습니다. 잠시 후 다시 시도해주세요.',
+  504: 'AI 서버 처리 중 문제가 발생했습니다. 잠시 후 다시 시도해주세요.',
+}
+
+const KOREAN_TEXT_PATTERN = /[가-힣]/
+const CODE_VALUE_FIELDS = new Set(['riskLevel'])
+
 export class ApiError extends Error {
   constructor(message, { status, code, data } = {}) {
     super(message)
@@ -50,6 +65,76 @@ function buildHeaders(fetchOptions, token, skipAuth) {
   }
 
   return headers
+}
+
+function getErrorMessage(status, payload, fallbackMessage) {
+  return ERROR_MESSAGES_BY_STATUS[status] || payload?.message || fallbackMessage
+}
+
+function isJsonRequest(fetchOptions = {}) {
+  if (!fetchOptions.body || typeof fetchOptions.body !== 'string') return false
+
+  const headers = new Headers(fetchOptions.headers || {})
+  return !headers.has('Content-Type') || headers.get('Content-Type')?.includes('application/json')
+}
+
+function isCodeValueField(key) {
+  return CODE_VALUE_FIELDS.has(key) || key.endsWith('Status')
+}
+
+function collectJsonConventionViolations(value, path = '') {
+  if (!value || typeof value !== 'object') return []
+
+  if (Array.isArray(value)) {
+    return value.flatMap((item, index) => collectJsonConventionViolations(item, `${path}[${index}]`))
+  }
+
+  return Object.entries(value).flatMap(([key, fieldValue]) => {
+    const fieldPath = path ? `${path}.${key}` : key
+    const violations = []
+
+    if (key.includes('_')) {
+      violations.push(`${fieldPath}: API JSON 필드는 camelCase를 사용해야 합니다.`)
+    }
+
+    if (
+      typeof fieldValue === 'string'
+      && isCodeValueField(key)
+      && KOREAN_TEXT_PATTERN.test(fieldValue)
+    ) {
+      violations.push(`${fieldPath}: API에는 한글 상태값 대신 코드값을 전송해야 합니다.`)
+    }
+
+    return violations.concat(collectJsonConventionViolations(fieldValue, fieldPath))
+  })
+}
+
+function validateRequestBody(fetchOptions) {
+  if (!isJsonRequest(fetchOptions)) return
+
+  let payload = null
+  try {
+    payload = JSON.parse(fetchOptions.body)
+  } catch {
+    return
+  }
+
+  const violations = collectJsonConventionViolations(payload)
+  if (violations.length === 0) return
+
+  throw new ApiError('API 요청 JSON 형식을 확인해주세요.', {
+    status: 400,
+    data: { violations },
+  })
+}
+
+function buildRequestInit(fetchOptions, token, skipAuth) {
+  validateRequestBody(fetchOptions)
+
+  return {
+    ...fetchOptions,
+    headers: buildHeaders(fetchOptions, token, skipAuth),
+  }
 }
 
 function redirectToLogin() {
@@ -106,19 +191,13 @@ async function refreshAccessToken() {
 export async function apiRequest(path, options = {}) {
   const { skipAuth = false, skipRefresh = false, ...fetchOptions } = options
   const token = getToken()
-  let response = await fetch(`${API_BASE_URL}${path}`, {
-    ...fetchOptions,
-    headers: buildHeaders(fetchOptions, token, skipAuth),
-  })
+  let response = await fetch(`${API_BASE_URL}${path}`, buildRequestInit(fetchOptions, token, skipAuth))
   let payload = await parseResponse(response)
 
   if (response.status === 401 && !skipAuth && !skipRefresh) {
     try {
       const refreshedToken = await refreshAccessToken()
-      response = await fetch(`${API_BASE_URL}${path}`, {
-        ...fetchOptions,
-        headers: buildHeaders(fetchOptions, refreshedToken, false),
-      })
+      response = await fetch(`${API_BASE_URL}${path}`, buildRequestInit(fetchOptions, refreshedToken, false))
       payload = await parseResponse(response)
     } catch (err) {
       clearToken()
@@ -128,7 +207,12 @@ export async function apiRequest(path, options = {}) {
   }
 
   if (!response.ok || payload?.success === false) {
-    throw new ApiError(payload?.message || '요청 처리 중 오류가 발생했습니다.', {
+    if (response.status === 401) {
+      clearToken()
+      redirectToLogin()
+    }
+
+    throw new ApiError(getErrorMessage(response.status, payload, '요청 처리 중 오류가 발생했습니다.'), {
       status: response.status,
       code: payload?.code,
       data: payload?.data,
@@ -141,18 +225,12 @@ export async function apiRequest(path, options = {}) {
 export async function apiFileRequest(path, options = {}) {
   const { skipAuth = false, skipRefresh = false, ...fetchOptions } = options
   const token = getToken()
-  let response = await fetch(`${API_BASE_URL}${path}`, {
-    ...fetchOptions,
-    headers: buildHeaders(fetchOptions, token, skipAuth),
-  })
+  let response = await fetch(`${API_BASE_URL}${path}`, buildRequestInit(fetchOptions, token, skipAuth))
 
   if (response.status === 401 && !skipAuth && !skipRefresh) {
     try {
       const refreshedToken = await refreshAccessToken()
-      response = await fetch(`${API_BASE_URL}${path}`, {
-        ...fetchOptions,
-        headers: buildHeaders(fetchOptions, refreshedToken, false),
-      })
+      response = await fetch(`${API_BASE_URL}${path}`, buildRequestInit(fetchOptions, refreshedToken, false))
     } catch (err) {
       clearToken()
       redirectToLogin()
@@ -162,7 +240,12 @@ export async function apiFileRequest(path, options = {}) {
 
   if (!response.ok) {
     const payload = await parseResponse(response)
-    throw new ApiError(payload?.message || '파일 다운로드 중 오류가 발생했습니다.', {
+    if (response.status === 401) {
+      clearToken()
+      redirectToLogin()
+    }
+
+    throw new ApiError(getErrorMessage(response.status, payload, '파일 다운로드 중 오류가 발생했습니다.'), {
       status: response.status,
       code: payload?.code,
       data: payload?.data,

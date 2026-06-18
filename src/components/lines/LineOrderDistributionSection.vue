@@ -12,9 +12,9 @@ defineProps({
 
 <template>
   <AppCard class="distribution-shell">
-    <div class="distribution-shell__body">
+    <div class="distribution-shell-body">
       <div class="order-summary-grid">
-        <AppCard class="summary-card summary-card--primary">
+        <AppCard class="summary-card summary-card-primary">
         <p class="summary-label">주문별 생산 라인 분배</p>
         <strong class="summary-order-id">{{ order.id }}</strong>
         <dl class="summary-meta">
@@ -30,26 +30,26 @@ defineProps({
         </AppCard>
 
         <AppCard class="summary-card metric-card">
-          <p class="metric-card__label">총 생산 라인 수</p>
-          <strong class="metric-card__value">{{ order.lineCount }} 개</strong>
+          <p class="metric-card-label">총 생산 라인 수</p>
+          <strong class="metric-card-value">{{ order.lineCount }} 개</strong>
         </AppCard>
 
         <AppCard class="summary-card metric-card">
-          <p class="metric-card__label">총 생산 수량</p>
-          <strong class="metric-card__value">{{ formatKg(order.totalProducedKg) }}</strong>
+          <p class="metric-card-label">총 생산 수량</p>
+          <strong class="metric-card-value">{{ formatKg(order.totalProducedKg) }}</strong>
         </AppCard>
 
         <AppCard class="summary-card metric-card">
-          <p class="metric-card__label">생산 진행률</p>
-          <strong class="metric-card__value">{{ order.progressRate }} %</strong>
-          <div class="metric-card__progress">
+          <p class="metric-card-label">생산 진행률</p>
+          <strong class="metric-card-value">{{ order.progressRate }} %</strong>
+          <div class="metric-card-progress">
             <span :style="{ width: `${order.progressRate}%` }"></span>
           </div>
         </AppCard>
 
         <AppCard class="summary-card metric-card">
-          <p class="metric-card__label">납기까지 남은 기간</p>
-          <strong class="metric-card__value">{{ order.daysUntilDeadlineLabel }}</strong>
+          <p class="metric-card-label">납기까지 남은 기간</p>
+          <strong class="metric-card-value">{{ order.daysUntilDeadlineLabel }}</strong>
         </AppCard>
       </div>
 
@@ -109,7 +109,7 @@ defineProps({
   padding: 12px;
 }
 
-.distribution-shell__body {
+.distribution-shell-body {
   display: grid;
   gap: 12px;
 }
@@ -125,12 +125,12 @@ defineProps({
   padding: 18px 20px;
 }
 
-.summary-card--primary {
+.summary-card-primary {
   background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
 }
 
 .summary-label,
-.metric-card__label {
+.metric-card-label {
   margin: 0 0 10px;
   color: #0d1f3c;
   font-size: 13px;
@@ -139,9 +139,9 @@ defineProps({
 
 .summary-order-id {
   display: block;
-  margin-bottom: 12px;
+  margin-bottom: 11px;
   color: #0f172a;
-  font-size: 28px;
+  font-size: 25px;
   line-height: 1;
   font-weight: 900;
 }
@@ -172,7 +172,7 @@ defineProps({
   font-weight: 700;
 }
 
-.metric-card__value {
+.metric-card-value {
   display: block;
   color: #1e3a8a;
   font-size: 30px;
@@ -180,7 +180,7 @@ defineProps({
   font-weight: 900;
 }
 
-.metric-card__progress {
+.metric-card-progress {
   height: 6px;
   margin-top: 14px;
   border-radius: 999px;
@@ -188,7 +188,7 @@ defineProps({
   overflow: hidden;
 }
 
-.metric-card__progress span {
+.metric-card-progress span {
   display: block;
   height: 100%;
   border-radius: inherit;
@@ -275,7 +275,7 @@ defineProps({
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .summary-card--primary {
+  .summary-card-primary {
     grid-column: 1 / -1;
   }
 }

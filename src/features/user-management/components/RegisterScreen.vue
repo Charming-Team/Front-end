@@ -66,19 +66,35 @@ async function handleSubmit() {
   error.value = ''
   form.phoneNumber = formatPhoneNumber(form.phoneNumber)
 
+  if (!form.name.trim()) {
+    error.value = '이름을 입력하세요.'
+    return
+  }
+  if (!emailPattern.test(form.email.trim())) {
+    error.value = '이메일은 xxx@sk.com 형식이어야 합니다.'
+    return
+  }
   if (form.password !== form.confirmPassword) {
     error.value = '비밀번호가 일치하지 않습니다.'
     return
   }
-  if (props.adminMode && !emailPattern.test(form.email.trim())) {
-    error.value = '이메일은 sk.com 도메인만 사용할 수 있습니다.'
-    return
-  }
-  if (props.adminMode && !passwordPattern.test(form.password)) {
+  if (!passwordPattern.test(form.password)) {
     error.value = '비밀번호는 대문자 1개, 특수기호(!,@,#,$,~) 1개, 숫자 2개를 포함하고 11자 이상이어야 합니다.'
     return
   }
-  if (props.adminMode && !phonePattern.test(form.phoneNumber.trim())) {
+  if (!form.role) {
+    error.value = '권한을 선택하세요.'
+    return
+  }
+  if (!form.companyName.trim()) {
+    error.value = '회사명을 입력하세요.'
+    return
+  }
+  if (!form.department.trim()) {
+    error.value = '부서를 입력하세요.'
+    return
+  }
+  if (!phonePattern.test(form.phoneNumber.trim())) {
     error.value = '연락처는 010-1234-5678 형식이어야 합니다.'
     return
   }
@@ -120,7 +136,7 @@ function handleCancel() {
 </script>
 
 <template>
-  <div class="register-shell" :class="{ 'register-shell--elevated': elevated }">
+  <div class="register-shell" :class="{ 'register-shell-elevated': elevated }">
     <div class="register-wrap">
       <div class="register-card">
         <div class="register-header">
