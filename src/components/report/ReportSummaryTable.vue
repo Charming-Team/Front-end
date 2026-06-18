@@ -12,6 +12,14 @@ defineProps({
     type: Array,
     default: () => [],
   },
+  showLineSection: {
+    type: Boolean,
+    default: true,
+  },
+  showEquipmentSection: {
+    type: Boolean,
+    default: true,
+  },
 });
 </script>
 
@@ -56,7 +64,10 @@ defineProps({
       </div>
     </section>
 
-    <section class="min-w-0">
+    <section
+      v-if="showLineSection"
+      class="min-w-0"
+    >
       <span class="block mb-2 text-[25px] font-bold text-[#0f3a70]">
         라인별 성과
       </span>
@@ -96,7 +107,10 @@ defineProps({
       </div>
     </section>
 
-    <section class="min-w-0">
+    <section
+      v-if="showEquipmentSection"
+      class="min-w-0"
+    >
       <span class="block mb-2 text-[25px] font-bold text-[#0f3a70]">
         주요 설비 현황
       </span>
