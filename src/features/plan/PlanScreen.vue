@@ -82,7 +82,7 @@ function isDelayWorse(option) {
 }
 
 function canApplyAiOption(option) {
-  return !['BLOCKED', 'NOT_RECOMMENDED', 'CAUTION'].includes(option?.reviewState?.level)
+  return !['BLOCKED', 'NOT_RECOMMENDED'].includes(option?.reviewState?.level)
 }
 
 function getReviewLabel(option) {
@@ -203,23 +203,32 @@ async function runMonthlyAiAnalysis(payload) {
     </div>
 
     <AppModal
-      v-if="store.scheduleConflict.value"
-      title="AI 분석이 필요합니다"
+      v-if="store.scheduleConflict.value || store.aiRecommendationReviewOpen.value"
+      :title="store.scheduleConflict.value ? 'AI 분석이 필요합니다' : 'AI 대응안 반영'"
       @close="closeScheduleConflict"
     >
       <div class="space-y-4 text-[14px] leading-6 text-slate-700">
-        <p class="font-semibold text-slate-900">
+        <p v-if="store.scheduleConflict.value" class="font-semibold text-slate-900">
           {{ store.scheduleConflict.value.message }}
         </p>
-        <p>
+        <p v-else class="font-semibold text-slate-900">
+          선택한 AI 대응안을 실제 생산계획에 반영합니다.
+        </p>
+        <p v-if="store.scheduleConflict.value">
           선택한 시간대에 이미 다른 생산계획이 있어 일정 이동이 저장되지 않았습니다.
           기존안을 유지하거나, AI 대안을 생성한 뒤 선택한 대안을 실제 생산계획에 반영할 수 있습니다.
         </p>
 
         <div class="rounded-[10px] border border-slate-200 bg-slate-50 p-3">
-          <div class="text-[12px] font-bold uppercase tracking-wide text-slate-500">이동 대상</div>
-          <div class="mt-1 font-bold text-slate-900">{{ getConflictPlanTitle(store.scheduleConflict.value) }}</div>
-          <div class="mt-1 text-[13px] text-slate-600">{{ getConflictTargetSchedule(store.scheduleConflict.value) }}</div>
+          <template v-if="store.scheduleConflict.value">
+            <div class="text-[12px] font-bold uppercase tracking-wide text-slate-500">이동 대상</div>
+            <div class="mt-1 font-bold text-slate-900">{{ getConflictPlanTitle(store.scheduleConflict.value) }}</div>
+            <div class="mt-1 text-[13px] text-slate-600">{{ getConflictTargetSchedule(store.scheduleConflict.value) }}</div>
+          </template>
+          <template v-else>
+            <div class="font-bold text-slate-900">월간 생산계획 분석 결과</div>
+            <div class="mt-1 text-[13px] text-slate-600">변경 일정과 적용 지표를 확인한 뒤 대응안을 선택하세요.</div>
+          </template>
         </div>
 
         <div

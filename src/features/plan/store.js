@@ -665,6 +665,7 @@ export function usePlanStore() {
   const calendarSaving = ref(false)
   const calendarSaveError = ref(null)
   const scheduleConflict = ref(null)
+  const aiRecommendationReviewOpen = ref(false)
   const aiRecommendationLoading = ref(false)
   const aiRecommendationError = ref(null)
   const aiRecommendationOptions = ref([])
@@ -954,6 +955,7 @@ export function usePlanStore() {
 
   function closeScheduleConflict() {
     scheduleConflict.value = null
+    aiRecommendationReviewOpen.value = false
     aiRecommendationLoading.value = false
     aiRecommendationError.value = null
     aiRecommendationOptions.value = []
@@ -1029,6 +1031,7 @@ export function usePlanStore() {
     aiRecommendationOptions.value = []
     selectedAiVariantCode.value = ''
     scheduleConflict.value = null
+    aiRecommendationReviewOpen.value = false
 
     try {
       const response = hydrateAiPlanningResponse(await generateMonthlyPlanAiAnalysis(payload))
@@ -1068,6 +1071,7 @@ export function usePlanStore() {
     aiRecommendationError.value = null
     aiRecommendationLoading.value = false
     applyingAiRecommendation.value = false
+    aiRecommendationReviewOpen.value = true
 
     if (session.conflict?.payload) {
       scheduleConflict.value = {
@@ -1090,9 +1094,9 @@ export function usePlanStore() {
       return
     }
 
-    if (option.reviewState?.level === 'NOT_RECOMMENDED' || option.reviewState?.level === 'CAUTION') {
+    if (option.reviewState?.level === 'NOT_RECOMMENDED') {
       aiRecommendationError.value = option.reviewState.message
-        || '기존 계획 대비 개선이 확인되지 않아 바로 반영할 수 없습니다.'
+        || '기존 계획보다 지연 시간이 증가해 바로 반영할 수 없습니다.'
       return
     }
 
@@ -1147,6 +1151,7 @@ export function usePlanStore() {
     // calendar
     calendarPlans, visibleCalendarPlans, calendarPreviewPlans, calendarLoading, calendarError,
     calendarEditing, calendarSaving, calendarSaveError, scheduleConflict,
+    aiRecommendationReviewOpen,
     aiRecommendationLoading, aiRecommendationError, aiRecommendationOptions,
     selectedAiVariantCode, selectedAiRecommendation, applyingAiRecommendation,
     filters,
