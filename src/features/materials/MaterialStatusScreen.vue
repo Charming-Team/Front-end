@@ -88,6 +88,15 @@ function normalizeLevelLabel(currentStock, safeStock) {
   return `${Math.round((currentStock / safeStock) * 100)}%`;
 }
 
+/**
+ * 목적: 자재 API 응답을 재고 현황 테이블/카드 공통 표시 모델로 변환한다.
+ * 입력: 백엔드 자재 객체.
+ * 출력: 자재 식별자, 유형, 수량, 안전재고 비율, 상태를 담은 화면 모델.
+ * 처리 흐름:
+ * 1. current/safety/available/reserved 수량을 숫자로 보정한다.
+ * 2. 코드/이름/유형/단위/설명 필드를 화면 표시명으로 매핑한다.
+ * 3. 안전재고 대비 현재고 비율 라벨과 재고 상태 코드를 계산한다.
+ */
 function normalizeMaterial(material) {
   const currentStock = toNumber(material.currentQuantity);
   const safeStock = toNumber(material.safetyStockQuantity);
@@ -109,6 +118,15 @@ function normalizeMaterial(material) {
   };
 }
 
+/**
+ * 목적: 자재 목록을 조회해 검색/페이지네이션의 원본 데이터를 채운다.
+ * 입력: 없음. 현재 화면은 전체 100건을 한 번에 조회한다.
+ * 출력: 반환값 없음. materials, loading/error 상태를 갱신한다.
+ * 처리 흐름:
+ * 1. fetchMaterials로 자재 목록을 조회한다.
+ * 2. 응답 content 배열을 normalizeMaterial로 화면 모델에 맞춘다.
+ * 3. 실패하면 목록을 비우고 사용자 메시지를 error에 저장한다.
+ */
 async function loadMaterials() {
   loading.value = true;
   error.value = "";

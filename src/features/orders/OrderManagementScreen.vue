@@ -98,6 +98,16 @@ const canCreateOrder = computed(() => getUserRole() === "MANUFACTURING_MANAGER")
 const visiblePages = computed(() => getVisiblePages(currentPage.value, pageCount.value));
 const paginatedOrders = computed(() => orders.value);
 
+/**
+ * 목적: 현재 선택된 필터/페이지 조건으로 주문 목록을 조회한다.
+ * 입력: selected* 필터 상태, currentPage, pageSize.
+ * 출력: 반환값 없음. orders, totalCount, pageCount, loading/error 상태를 갱신한다.
+ * 처리 흐름:
+ * 1. 납기일 범위를 먼저 검증하고 잘못된 경우 목록과 페이지 상태를 초기화한다.
+ * 2. fetchOrders에 페이지/검색/상태/고객/제품/납기 조건을 전달한다.
+ * 3. 응답 content를 normalizeOrderSummary로 화면 모델에 맞춘다.
+ * 4. 실패하면 목록을 비우고 사용자 메시지를 error에 저장한다.
+ */
 async function loadOrders() {
   if (isInvalidDateRange(selectedStartDate.value, selectedEndDate.value)) {
     orders.value = [];
@@ -139,6 +149,15 @@ async function loadOrders() {
   }
 }
 
+/**
+ * 목적: 검색 카드의 draft 필터를 실제 조회 필터로 확정하고 목록을 다시 조회한다.
+ * 입력: draftKeyword/draftStatus/draftCustomer/draftProduct/draftStartDate/draftEndDate.
+ * 출력: 반환값 없음. selected* 필터와 currentPage를 갱신한 뒤 loadOrders를 호출한다.
+ * 처리 흐름:
+ * 1. draft 날짜 범위를 검증해 잘못된 경우 조회를 중단한다.
+ * 2. draft 상태를 selected 상태로 복사한다.
+ * 3. 첫 페이지로 이동한 뒤 주문 목록을 다시 불러온다.
+ */
 function applyFilters() {
   if (isInvalidDateRange(draftStartDate.value, draftEndDate.value)) {
     orders.value = [];
@@ -197,6 +216,15 @@ function closePostSaveModal() {
   isPostSaveModalOpen.value = false;
 }
 
+/**
+ * 목적: 주문 등록 직후 리스크/AI 검토 화면으로 이동할 때 필요한 query를 만든다.
+ * 입력: lastCreatedOrder, nextOrderNo 상태.
+ * 출력: router.push에 전달할 query 객체.
+ * 처리 흐름:
+ * 1. 생성 응답의 orderId/id/orderNo를 우선순위대로 찾는다.
+ * 2. 주문 생성 흐름에서 온 진입임을 source로 표시한다.
+ * 3. 주문 식별자가 있으면 문자열 orderId로 query에 포함한다.
+ */
 function buildRiskReviewQuery() {
   const createdOrder = lastCreatedOrder.value ?? {};
   const orderId = createdOrder.orderId || createdOrder.id || createdOrder.orderNo || nextOrderNo.value;
@@ -224,6 +252,16 @@ async function proceedToAiScheduleReview() {
   });
 }
 
+/**
+ * 목적: 주문 등록 폼을 검증한 뒤 주문 생성 API를 호출하고 후속 모달을 연다.
+ * 입력: OrderAddModal에서 전달한 form 객체.
+ * 출력: 반환값 없음. 생성 결과, 목록, 모달/로딩/오류 상태를 갱신한다.
+ * 처리 흐름:
+ * 1. validateOrderForm으로 필수 입력을 검증한다.
+ * 2. buildOrderCreatePayload로 API payload를 만든 뒤 createOrder를 호출한다.
+ * 3. 성공하면 첫 페이지 목록을 다시 조회하고 저장 후 안내 모달을 연다.
+ * 4. 실패하면 addError에 사용자 메시지를 저장한다.
+ */
 async function saveOrder(form) {
   const validationMessage = validateOrderForm(form);
   if (validationMessage) {
@@ -250,6 +288,15 @@ async function saveOrder(form) {
   }
 }
 
+/**
+ * 목적: 선택한 주문의 상세 정보를 조회해 상세 모달에 표시한다.
+ * 입력: 목록 행 또는 URL query에서 만든 주문 객체.
+ * 출력: 반환값 없음. selectedOrder, detailLoading/detailError를 갱신한다.
+ * 처리 흐름:
+ * 1. 우선 전달받은 주문을 selectedOrder에 넣어 모달을 즉시 연다.
+ * 2. fetchOrder로 상세 정보를 조회한다.
+ * 3. 성공 시 normalizeOrderDetail로 상세 화면 모델을 만들고, 실패 시 오류를 표시한다.
+ */
 async function openDetailModal(order) {
   selectedOrder.value = order;
   detailLoading.value = true;

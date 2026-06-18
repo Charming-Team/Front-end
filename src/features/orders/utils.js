@@ -80,6 +80,15 @@ export function matchesDateRange(targetDate, startDate, endDate) {
   return true;
 }
 
+/**
+ * 목적: 주문 등록 폼 값을 화면 목록에서 바로 사용할 수 있는 임시 주문 객체로 변환한다.
+ * 입력: 주문 폼 상태와 현재 목록 인덱스.
+ * 출력: 주문 테이블 표시 형식에 맞춘 주문 객체.
+ * 처리 흐름:
+ * 1. 주문번호가 없으면 인덱스 기반 임시 번호를 만든다.
+ * 2. 필수 표시값은 trim 처리하고 비어 있으면 기본 문구를 채운다.
+ * 3. 수량/상태/우선순위 등 목록 렌더링에 필요한 필드를 보강한다.
+ */
 export function createOrderFromForm(form, index) {
   const fallbackNumber = String(index + 1).padStart(3, "0");
 
@@ -121,6 +130,15 @@ function normalizeOrderStatus(value) {
   return value || "WAITING";
 }
 
+/**
+ * 목적: 주문 목록 API 응답을 주문 테이블의 표준 행 모델로 변환한다.
+ * 입력: 백엔드 주문 요약 객체.
+ * 출력: 화면 컴포넌트가 기대하는 주문 요약 객체.
+ * 처리 흐름:
+ * 1. orderNo/orderId를 기준으로 화면 식별자를 만든다.
+ * 2. 고객/제품/수량/납기/상태 필드를 화면 명칭으로 매핑한다.
+ * 3. 목록에 없는 상세 전용 필드는 안전한 기본값으로 채운다.
+ */
 export function normalizeOrderSummary(order) {
   const orderNo = order.orderNo || String(order.orderId ?? "");
 
@@ -144,6 +162,15 @@ export function normalizeOrderSummary(order) {
   };
 }
 
+/**
+ * 목적: 주문 상세 API 응답을 모달/상세 화면 표시 모델로 확장한다.
+ * 입력: 백엔드 주문 상세 객체.
+ * 출력: 주문 요약 필드와 상세 필드가 합쳐진 화면 모델.
+ * 처리 흐름:
+ * 1. normalizeOrderSummary로 공통 목록 필드를 먼저 맞춘다.
+ * 2. 제품 분류, 담당자, 금액, 일정, 라인/작업자 정보를 추가한다.
+ * 3. 날짜 입력에 필요한 plannedStartAt은 yyyy-mm-dd 형태로 보정한다.
+ */
 export function normalizeOrderDetail(order) {
   const summary = normalizeOrderSummary(order);
 
@@ -189,6 +216,15 @@ export function validateOrderForm(form) {
   return "";
 }
 
+/**
+ * 목적: 주문 등록 폼을 백엔드 생성 API payload로 변환한다.
+ * 입력: 사용자가 입력한 주문 등록 폼 객체.
+ * 출력: createOrder API가 요구하는 payload 객체.
+ * 처리 흐름:
+ * 1. 문자열 필드는 trim하고 숫자 필드는 Number/parseNumber로 변환한다.
+ * 2. 필수 주문 정보와 담당자/일정 정보를 API 필드명으로 매핑한다.
+ * 3. 선택 금액 필드는 유효한 숫자일 때만 payload에 포함한다.
+ */
 export function buildOrderCreatePayload(form) {
   const payload = {
     customerName: form.customer.trim(),

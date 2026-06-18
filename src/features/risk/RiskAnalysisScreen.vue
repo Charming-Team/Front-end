@@ -459,6 +459,16 @@ onMounted(() => {
   loadRiskPage();
 });
 
+/**
+ * 목적: 리스크 요약 카드와 리스크 주문 목록을 초기 화면에 로드한다.
+ * 입력: 없음. 요약 API와 주문 목록 API를 고정 조건으로 호출한다.
+ * 출력: 반환값 없음. riskSummary, riskItems, isLoading/errorMessage를 갱신한다.
+ * 처리 흐름:
+ * 1. 요약과 주문 목록을 병렬 조회한다.
+ * 2. 요약은 기본값 위에 응답 값을 덮어써 누락 필드를 보완한다.
+ * 3. 주문 목록은 items 배열만 화면 상태로 저장한다.
+ * 4. 실패하면 기본 요약/빈 목록으로 되돌리고 오류 메시지를 표시한다.
+ */
 async function loadRiskPage() {
   isLoading.value = true;
   errorMessage.value = '';
@@ -488,6 +498,15 @@ async function loadRiskPage() {
   }
 }
 
+/**
+ * 목적: 선택한 리스크 주문의 상세 분석을 조회하고 상세 패널을 연다.
+ * 입력: 목록에서 선택한 리스크 주문 객체.
+ * 출력: 반환값 없음. selectedRiskItem, selectedRiskDetail, isDetailLoading을 갱신한다.
+ * 처리 흐름:
+ * 1. 선택 항목을 먼저 저장해 상세 패널 레이아웃을 연다.
+ * 2. orderId 또는 id로 fetchRiskOrderDetail을 호출한다.
+ * 3. 상세 조회 실패 시 목록 데이터로 buildFallbackDetail을 만들어 표시한다.
+ */
 async function handleClickDetail(item) {
   selectedRiskItem.value = item;
   selectedRiskDetail.value = null;
@@ -505,6 +524,15 @@ async function handleClickDetail(item) {
   }
 }
 
+/**
+ * 목적: 상세 분석 API가 없거나 실패했을 때 사용자에게 보여줄 최소 상세 모델을 만든다.
+ * 입력: 목록에 이미 있는 리스크 주문 객체.
+ * 출력: 상세 패널이 기대하는 필드를 가진 fallback 객체.
+ * 처리 흐름:
+ * 1. SAFE 상태면 안전 단계 안내 문구와 빈 원인/추천 값을 만든다.
+ * 2. 위험 상태면 상세 분석 미생성 안내 문구를 만든다.
+ * 3. 공통으로 위험 라벨, 진행률 메시지, 예측값 기본값을 채운다.
+ */
 function buildFallbackDetail(item) {
   const riskLevel = item?.riskLevel ?? 'SAFE';
 

@@ -201,6 +201,15 @@ function hydrateDeltaAliases(computedDeltas = {}, baselineMetrics = {}, alternat
   return computedDeltas
 }
 
+/**
+ * 목적: AI 계획/시뮬레이션 응답의 snake_case/camelCase 지표 별칭을 상호 보강한다.
+ * 입력: generatePlanAiRecommendation 또는 generateMonthlyPlanAiAnalysis의 원본 응답.
+ * 출력: 지연일/지연분/지연 주문 수와 개선량 별칭이 채워진 동일 응답 객체.
+ * 처리 흐름:
+ * 1. baseline의 current_state_summary와 simulation_metrics를 찾아 지표 별칭을 채운다.
+ * 2. baseline 두 지표 객체가 서로 빠진 값을 보완하도록 동기화한다.
+ * 3. 각 alternative의 simulation_metrics와 computed_deltas에도 동일한 보정을 적용한다.
+ */
 function hydrateAiPlanningResponse(response = {}) {
   const simulationResponse = pick(response, ['simulation_response', 'simulationResponse'], {})
   const baseline = pick(simulationResponse, ['baseline'], {})
@@ -273,6 +282,16 @@ function compareSelectedPlansForSequence(left, right) {
   )
 }
 
+/**
+ * 목적: AI가 선택한 계획들의 라인 내 순번이 기존 계획과 충돌하지 않도록 재배정한다.
+ * 입력: 선택 대안의 계획 배열과 비교 기준이 되는 전체 계획 배열.
+ * 출력: planSequence가 충돌 없이 보정된 선택 계획 배열.
+ * 처리 흐름:
+ * 1. 선택 대상 planId는 기존 순번 점유 목록에서 제외한다.
+ * 2. 라인별 사용 중인 순번과 최대 순번을 수집한다.
+ * 3. 선택 계획을 라인/시작시각 기준으로 정렬해 원하는 순번을 우선 배정한다.
+ * 4. 이미 사용 중이면 라인별 다음 순번을 찾아 planSequence를 채운다.
+ */
 function assignConflictFreePlanSequences(selectedPlans, allPlans = []) {
   const selectedPlanIds = new Set(
     selectedPlans
@@ -331,6 +350,16 @@ function formatPlanConflictLabel(plan = {}) {
   return `plan ${planId}, order ${orderId}`
 }
 
+/**
+ * 목적: 선택된 AI 대안 내부에 같은 라인 시간 겹침이 있는지 찾는다.
+ * 입력: 반영 예정 생산계획 배열.
+ * 출력: 겹침 정보 배열(lineId, left/right 계획, 원본 인덱스).
+ * 처리 흐름:
+ * 1. lineId별로 시작/종료 시각이 유효한 계획을 묶는다.
+ * 2. 각 라인 안에서 시작시각 기준으로 정렬한다.
+ * 3. 현재 계획 시작이 이전 계획 종료보다 빠르면 겹침으로 기록한다.
+ * 4. 더 늦게 끝나는 계획을 기준으로 갱신해 연속 겹침도 탐지한다.
+ */
 function findSelectedPlanScheduleOverlaps(plans = []) {
   const plansByLine = new Map()
 
@@ -467,6 +496,16 @@ function getOptionReviewState({ unscheduledPlanIds, calculatedReduction }) {
   }
 }
 
+/**
+ * 목적: AI 원본 응답을 추천 대안 카드/상세 화면에서 쓰는 옵션 모델로 변환한다.
+ * 입력: 보정된 AI 계획/시뮬레이션 응답.
+ * 출력: variantCode, plans, 지연 개선, 추천 등급, 검토 상태를 담은 옵션 배열.
+ * 처리 흐름:
+ * 1. planning_response의 후보와 simulation_response의 대안을 variantCode로 매칭한다.
+ * 2. baseline/alternative 지표에서 전후 지연 시간을 계산한다.
+ * 3. computed_deltas가 있으면 지연 개선량으로 쓰고, 없으면 전후 차이를 계산한다.
+ * 4. 미배정 계획, 요약/사유 문구, 추천 등급과 비용/가동률 변화를 화면 모델로 묶는다.
+ */
 function normalizeAiRecommendations(response) {
   const planningResponse = pick(response, ['planning_response', 'planningResponse'], {})
   const simulationResponse = pick(response, ['simulation_response', 'simulationResponse'], {})
@@ -574,6 +613,16 @@ function serializeScheduleConflict(conflict = {}) {
   }
 }
 
+/**
+ * 목적: 선택한 AI 대안을 백엔드 저장 API가 요구하는 시뮬레이션 payload로 변환한다.
+ * 입력: 선택 옵션, planId 매핑 Map, 전체 계획 배열.
+ * 출력: saveSelectedPlanSimulation에 전달할 payload 객체.
+ * 처리 흐름:
+ * 1. AI plan의 다양한 필드 별칭에서 plan/order/product/line/operator 정보를 해석한다.
+ * 2. 날짜는 OffsetDateTime 형식으로 보정하고, 기존 계획의 before 값을 함께 담는다.
+ * 3. 선택 계획들의 planSequence를 기존 계획과 충돌하지 않게 재배정한다.
+ * 4. 전후 지연 시간, 가동률, 생산량, 비용 변화와 추천 등급을 payload 최상위에 구성한다.
+ */
 function buildSelectedSimulationPayload(option, planIdToPlan = new Map(), allPlans = []) {
   const actionResult = option.summaryText
   const costChangeAmount = toNumber(option.costChangeAmount)
@@ -631,6 +680,15 @@ function mergePlansById(...planGroups) {
   return [...merged.values()]
 }
 
+/**
+ * 목적: AI 대안 저장 전 필수 매핑과 내부 일정 충돌을 클라이언트에서 먼저 검증한다.
+ * 입력: saveSelectedPlanSimulation에 보낼 payload.
+ * 출력: 반환값 없음. 검증 실패 시 Error를 throw.
+ * 처리 흐름:
+ * 1. planId/orderId가 매핑되지 않은 계획을 최대 5개까지 수집한다.
+ * 2. 누락 매핑이 있으면 사용자가 확인할 수 있는 오류 메시지를 만든다.
+ * 3. 같은 라인 내 시간 겹침을 탐지하고, 첫 겹침을 오류로 보고한다.
+ */
 function validateSelectedSimulationPayload(payload) {
   const missingMappedPlans = payload.plans
     .filter(plan => plan.planId == null || plan.orderId == null)
@@ -712,6 +770,15 @@ export function usePlanStore() {
   )
 
   // ── Calendar actions ────────────────────────────────────────────────────────
+  /**
+   * 목적: 캘린더에 표시할 생산계획 목록을 필터/기간 조건으로 조회한다.
+   * 입력: 선택적 기간 조건(startAt/endAt 등).
+   * 출력: 반환값 없음. calendarPlans, loading/error 상태를 갱신한다.
+   * 처리 흐름:
+   * 1. 로딩 상태를 켜고 기존 오류를 비운다.
+   * 2. 현재 필터와 전달받은 range를 합쳐 fetchAllPlans를 호출한다.
+   * 3. 성공 시 응답 data를 calendarPlans에 저장하고, 실패 시 목록을 비운다.
+   */
   async function loadCalendarPlans(range = {}) {
     calendarLoading.value = true
     calendarError.value   = null
@@ -743,6 +810,15 @@ export function usePlanStore() {
   }
 
   // ── Detail actions ──────────────────────────────────────────────────────────
+  /**
+   * 목적: 선택한 생산계획의 상세 정보를 조회해 상세 패널 상태를 채운다.
+   * 입력: 조회할 planId.
+   * 출력: 반환값 없음. selectedPlan, detailLoading/detailError를 갱신한다.
+   * 처리 흐름:
+   * 1. 상세 로딩을 시작하고 기존 오류를 초기화한다.
+   * 2. fetchPlanDetail로 상세 데이터를 조회한다.
+   * 3. 성공 시 selectedPlan에 저장하고, 실패 시 선택 상태를 해제한다.
+   */
   async function loadPlanDetail(planId) {
     detailLoading.value = true
     detailError.value   = null
@@ -808,6 +884,16 @@ export function usePlanStore() {
     updateError.value = null
   }
 
+  /**
+   * 목적: 상세 패널의 수정 폼 값을 백엔드에 저장하고 관련 화면 상태를 새로고침한다.
+   * 입력: editForm 상태와 현재 selectedPlan.
+   * 출력: 반환값 없음. 성공/실패 상태와 상세/캘린더/수정이력을 갱신한다.
+   * 처리 흐름:
+   * 1. 선택된 계획이 없으면 중단하고, 수정 로딩/오류 상태를 초기화한다.
+   * 2. editForm 값을 API payload로 변환해 updatePlan을 호출한다.
+   * 3. 성공하면 편집 모드를 종료하고 상세, 캘린더, 수정 이력을 병렬 재조회한다.
+   * 4. 실패하면 validationErrors와 사용자 메시지를 상태에 저장한다.
+   */
   async function submitUpdate() {
     if (!selectedPlan.value) return
     updateLoading.value  = true
@@ -840,6 +926,16 @@ export function usePlanStore() {
     }
   }
 
+  /**
+   * 목적: 캘린더 드래그로 이동한 생산계획을 서버에 저장하고 충돌 시 AI 분석 payload를 만든다.
+   * 입력: planId, 이동 일수(deltaDays), FullCalendar revert 콜백.
+   * 출력: 반환값 없음. 캘린더 초안, 저장 오류, 충돌 상태를 갱신한다.
+   * 처리 흐름:
+   * 1. 편집 모드가 아니거나 이동 불가 상태면 FullCalendar 변경을 되돌린다.
+   * 2. 초안 계획의 시작/종료 시각을 deltaDays만큼 이동해 optimistic 상태를 만든다.
+   * 3. movePlanSchedule API 저장 성공 시 최신 계획과 선택 상세를 다시 불러온다.
+   * 4. 409-601 충돌이면 AI 분석에 필요한 원본/이동 계획과 기간 payload를 보관한다.
+   */
   async function movePlan(planId, deltaDays, revert) {
     if (!calendarEditing.value) {
       revert()
@@ -988,6 +1084,16 @@ export function usePlanStore() {
     return planIdToPlan
   }
 
+  /**
+   * 목적: 일정 이동 충돌을 해결할 AI 생산계획 대안을 생성한다.
+   * 입력: scheduleConflict.payload에 저장된 충돌 계획/기간 정보.
+   * 출력: 성공 여부 boolean. 추천 옵션과 선택 variant, 세션 저장 상태를 갱신한다.
+   * 처리 흐름:
+   * 1. 충돌 payload가 없으면 중단하고, AI 로딩/오류/선택 상태를 초기화한다.
+   * 2. generatePlanAiRecommendation API를 호출한 뒤 응답 지표 별칭을 보정한다.
+   * 3. AI 응답을 화면 옵션으로 정규화하고 반영 가능한 옵션을 우선 선택한다.
+   * 4. 상세 화면 복원용으로 원본 응답, 옵션, 충돌 정보, 선택 variant를 세션에 저장한다.
+   */
   async function generateScheduleAiRecommendation() {
     const conflict = scheduleConflict.value
     if (!conflict?.payload) return
@@ -1026,6 +1132,16 @@ export function usePlanStore() {
     }
   }
 
+  /**
+   * 목적: 월간 조건 기반 AI 생산계획 분석을 실행하고 추천 옵션을 준비한다.
+   * 입력: 월간 분석 API payload.
+   * 출력: 성공 여부 boolean. 추천 옵션과 세션 저장 상태를 갱신한다.
+   * 처리 흐름:
+   * 1. 기존 충돌/추천 상태를 초기화하고 AI 로딩을 시작한다.
+   * 2. generateMonthlyPlanAiAnalysis API 응답을 받아 지표 별칭을 보정한다.
+   * 3. 응답을 추천 옵션으로 정규화하고 기본 선택 variant를 정한다.
+   * 4. AI 상세/결과 화면에서 이어볼 수 있도록 세션에 저장한다.
+   */
   async function generateMonthlyAiRecommendation(payload) {
     clearAiSimulationSession()
     aiRecommendationLoading.value = true
@@ -1064,6 +1180,15 @@ export function usePlanStore() {
     }
   }
 
+  /**
+   * 목적: AI 상세/결과 화면에서 돌아왔을 때 저장된 추천 옵션을 스토어 상태로 복원한다.
+   * 입력: 선택적으로 강제 선택할 variantCode.
+   * 출력: 복원 성공 여부 boolean.
+   * 처리 흐름:
+   * 1. 세션 저장소에서 AI 추천 세션을 읽고 옵션이 없으면 실패를 반환한다.
+   * 2. 추천 옵션, 선택 variant, 로딩/오류 상태를 화면 표시 상태로 되돌린다.
+   * 3. 세션에 충돌 payload가 있으면 scheduleConflict도 함께 복원한다.
+   */
   function restoreAiRecommendationFromSession(variantCode = '') {
     const session = loadAiSimulationSession()
     if (!session.options.length) return false
@@ -1085,6 +1210,17 @@ export function usePlanStore() {
     return true
   }
 
+  /**
+   * 목적: 사용자가 선택한 AI 대안을 서버에 저장해 실제 생산계획에 반영한다.
+   * 입력: selectedAiRecommendation과 현재 충돌/캘린더 상태.
+   * 출력: 반환값 없음. 성공 시 캘린더를 갱신하고 AI 충돌 상태를 닫는다.
+   * 처리 흐름:
+   * 1. 선택 옵션이 없거나 이미 반영 중이면 중단한다.
+   * 2. 미배정 또는 비추천 대안은 서버 호출 전에 사용자 오류로 막는다.
+   * 3. 최신 계획 목록을 조회해 AI 계획과 기존 계획의 planId/orderId를 매핑한다.
+   * 4. 저장 payload를 만들고 내부 검증을 통과하면 saveSelectedPlanSimulation을 호출한다.
+   * 5. 성공 시 캘린더를 재조회하고 초안/충돌/AI 상태를 정리한다.
+   */
   async function applySelectedAiRecommendation() {
     const option = selectedAiRecommendation.value
     const conflict = scheduleConflict.value

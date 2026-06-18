@@ -155,6 +155,16 @@ function normalizeMarkdownLines(markdown) {
     .filter(Boolean);
 }
 
+/**
+ * 목적: 구조화된 analysis가 없을 때 마크다운 본문을 화면 분석 모델로 변환한다.
+ * 입력: 보고서 마크다운 문자열.
+ * 출력: overview, sections, recommendation, markdown을 담은 분석 객체.
+ * 처리 흐름:
+ * 1. 빈 줄을 제거한 뒤 제목 행(#)을 섹션 경계로 인식한다.
+ * 2. 제목 이전 문장은 overview 후보로, 제목 이후 문장은 섹션 item으로 모은다.
+ * 3. 종합/제안/권고 성격의 섹션은 recommendation으로 분리한다.
+ * 4. overview가 비면 첫 섹션 내용 또는 기본 안내 문구를 사용한다.
+ */
 function parseMarkdownAnalysis(markdown) {
   const lines = normalizeMarkdownLines(markdown);
   const sections = [];
@@ -202,6 +212,15 @@ function parseMarkdownAnalysis(markdown) {
   };
 }
 
+/**
+ * 목적: 보고서 analysis 응답을 상세 화면이 기대하는 균일한 분석 모델로 정규화한다.
+ * 입력: 구조화 analysis 객체와 원본 markdown 문자열.
+ * 출력: overview, sections, recommendation, markdown을 포함한 객체.
+ * 처리 흐름:
+ * 1. analysis가 객체가 아니면 마크다운 파서로 대체한다.
+ * 2. sections 배열의 제목과 항목을 문자열로 보정하고 의미 없는 항목을 제거한다.
+ * 3. overview/recommendation 누락값은 빈 문자열 또는 기본 표시값으로 정리한다.
+ */
 function normalizeAnalysis(analysis, markdown) {
   if (!analysis || typeof analysis !== "object") {
     return parseMarkdownAnalysis(markdown);
@@ -226,6 +245,15 @@ function normalizeAnalysis(analysis, markdown) {
   };
 }
 
+/**
+ * 목적: 보고서 목록 API 응답을 리스트 카드/테이블 공통 표시 모델로 변환한다.
+ * 입력: 백엔드 보고서 요약 객체.
+ * 출력: id, title, author, createdAt, typeLabel/tone 등이 보강된 보고서 객체.
+ * 처리 흐름:
+ * 1. reportId/id, title/reportTitle처럼 가능한 필드 별칭을 흡수한다.
+ * 2. 생성일과 대상 기간을 화면 표기 형식으로 포맷한다.
+ * 3. 보고서 유형 코드에 맞는 라벨과 tone을 매핑한다.
+ */
 export function mapReportForView(report) {
   const type = report.reportType ?? report.type;
   const createdAt = formatDateTime(report.createdAt);
@@ -243,6 +271,16 @@ export function mapReportForView(report) {
   };
 }
 
+/**
+ * 목적: 보고서 상세 API 응답을 상세 화면 전체가 사용하는 뷰 모델로 변환한다.
+ * 입력: 백엔드 보고서 상세 객체.
+ * 출력: 기본 보고서 정보, 기간, 요약/라인/설비 행, 분석 모델을 담은 객체.
+ * 처리 흐름:
+ * 1. mapReportForView로 목록 공통 필드를 먼저 정규화한다.
+ * 2. summaryRows/lineRows/equipmentRows가 있으면 정규화하고, 없으면 sections에서 추출한다.
+ * 3. 근거 데이터 개수와 보고서 기간으로 fallback 요약 행을 구성한다.
+ * 4. analysis 객체와 markdown 본문을 normalizeAnalysis로 통합한다.
+ */
 export function mapReportDetailForView(report) {
   const baseReport = mapReportForView(report);
   const sections = report.sections && typeof report.sections === "object" ? report.sections : {};
