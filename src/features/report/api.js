@@ -68,7 +68,7 @@ export async function createBusinessReport(reportId) {
   return apiRequest("/api/reports/business", {
     method: "POST",
     body: JSON.stringify({
-      report_id: Number(reportId),
+      reportId: Number(reportId),
     }),
   });
 }

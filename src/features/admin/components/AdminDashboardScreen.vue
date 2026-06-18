@@ -79,11 +79,11 @@ onMounted(() => loadDashboard())
         <h2 class="panel-title mb-0">권한별 사용자 분포</h2>
       </div>
 
-      <p v-if="error" class="admin-message admin-message--error">{{ error }}</p>
+      <p v-if="error" class="admin-message admin-message-error">{{ error }}</p>
       <p v-else-if="loading" class="admin-message">사용자 현황을 불러오는 중입니다.</p>
       <div class="role-list">
         <div v-for="role in roleDistribution" :key="role.label" class="role-row">
-          <div class="role-row__meta">
+          <div class="role-row-meta">
             <span>{{ role.label }}</span>
             <strong>{{ role.count }}명</strong>
           </div>

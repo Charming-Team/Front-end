@@ -364,12 +364,12 @@ watch(
       <div
         class="report-detail-expand-layout p-6 max-xl:grid-cols-1"
         :class="{
-          'report-detail-expand-layout--summary': activeReportPane === 'summary',
-          'report-detail-expand-layout--analysis': activeReportPane === 'analysis',
+          'report-detail-expand-layout-summary': activeReportPane === 'summary',
+          'report-detail-expand-layout-analysis': activeReportPane === 'analysis',
         }"
       >
         <div
-          class="report-detail-expand-pane report-detail-expand-pane--summary min-w-0 overflow-hidden border-r border-slate-200 pr-6 max-xl:border-r-0 max-xl:border-b max-xl:pb-6 max-xl:pr-0"
+          class="report-detail-expand-pane report-detail-expand-pane-summary min-w-0 overflow-hidden border-r border-slate-200 pr-6 max-xl:border-r-0 max-xl:border-b max-xl:pb-6 max-xl:pr-0"
           role="button"
           tabindex="0"
           @click="setActiveReportPane('summary')"
@@ -383,7 +383,7 @@ watch(
         </div>
 
         <div
-          class="report-detail-expand-pane report-detail-expand-pane--analysis min-w-0 pl-7 max-xl:pl-0 max-xl:pt-6"
+          class="report-detail-expand-pane report-detail-expand-pane-analysis min-w-0 pl-7 max-xl:pl-0 max-xl:pt-6"
           role="button"
           tabindex="0"
           @click="setActiveReportPane('analysis')"
@@ -448,11 +448,11 @@ watch(
   transition: grid-template-columns 0.36s ease;
 }
 
-.report-detail-expand-layout--summary {
+.report-detail-expand-layout-summary {
   grid-template-columns: minmax(0, 1.35fr) minmax(260px, 0.65fr);
 }
 
-.report-detail-expand-layout--analysis {
+.report-detail-expand-layout-analysis {
   grid-template-columns: minmax(260px, 0.65fr) minmax(0, 1.35fr);
 }
 
@@ -464,14 +464,14 @@ watch(
     transform 0.28s ease;
 }
 
-.report-detail-expand-layout--summary .report-detail-expand-pane--analysis,
-.report-detail-expand-layout--analysis .report-detail-expand-pane--summary {
+.report-detail-expand-layout-summary .report-detail-expand-pane-analysis,
+.report-detail-expand-layout-analysis .report-detail-expand-pane-summary {
   opacity: 0.72;
   transform: scale(0.985);
 }
 
-.report-detail-expand-layout--summary .report-detail-expand-pane--summary,
-.report-detail-expand-layout--analysis .report-detail-expand-pane--analysis {
+.report-detail-expand-layout-summary .report-detail-expand-pane-summary,
+.report-detail-expand-layout-analysis .report-detail-expand-pane-analysis {
   opacity: 1;
   transform: scale(1);
 }
@@ -484,8 +484,8 @@ watch(
 
 @media (max-width: 1280px) {
   .report-detail-expand-layout,
-  .report-detail-expand-layout--summary,
-  .report-detail-expand-layout--analysis {
+  .report-detail-expand-layout-summary,
+  .report-detail-expand-layout-analysis {
     grid-template-columns: 1fr;
   }
 

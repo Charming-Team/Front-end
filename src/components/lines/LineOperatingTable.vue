@@ -89,7 +89,7 @@ function getLineDisplayName(name) {
             <td colspan="6" class="table-state">라인 가동 현황을 불러오는 중입니다.</td>
           </tr>
           <tr v-else-if="error">
-            <td colspan="6" class="table-state table-state--error">
+            <td colspan="6" class="table-state table-state-error">
               <span>{{ error }}</span>
               <button type="button" @click="emit('retry')">다시 시도</button>
             </td>
@@ -155,7 +155,7 @@ function getLineDisplayName(name) {
           v-for="page in visiblePages"
           :key="page"
           class="page-number"
-          :class="{ 'page-number--active': currentPage === page }"
+          :class="{ 'page-number-active': currentPage === page }"
           type="button"
           :disabled="loading"
           @click="emit('go-page', page)"
@@ -256,11 +256,11 @@ function getLineDisplayName(name) {
   text-align: center;
 }
 
-.table-state--error {
+.table-state-error {
   color: #d92d20 !important;
 }
 
-.table-state--error button {
+.table-state-error button {
   margin-left: 10px;
   border: 0;
   background: transparent;
@@ -361,7 +361,7 @@ function getLineDisplayName(name) {
   border-color: transparent;
 }
 
-.page-number--active {
+.page-number-active {
   background: #185ec9;
   color: #ffffff;
   box-shadow: 0 6px 14px rgba(24, 94, 201, 0.18);

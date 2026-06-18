@@ -26,87 +26,87 @@
   transform: scale(0.99);
 }
 
-.app-btn--sm {
+.app-btn-sm {
   min-height: 36px;
   padding: 0 14px;
   font-size: 13px;
 }
 
-.app-btn--md {
+.app-btn-md {
   min-height: 42px;
   padding: 0 18px;
   font-size: 14px;
 }
 
-.app-btn--lg {
+.app-btn-lg {
   min-height: 50px;
   padding: 0 24px;
   font-size: 15px;
 }
 
-.app-btn--icon {
+.app-btn-icon {
   width: 40px;
   min-width: 40px;
   min-height: 40px;
   padding: 0;
 }
 
-.app-btn--block {
+.app-btn-block {
   width: 100%;
 }
 
-.app-btn--icon-only {
+.app-btn-icon-only {
   gap: 0;
 }
 
-.app-btn--primary {
+.app-btn-primary {
   background: #3783da;
   color: #fff;
 }
 
-.app-btn--primary:hover:not(:disabled) {
+.app-btn-primary:hover:not(:disabled) {
   background: #0d47a1;
 }
 
-.app-btn--secondary {
+.app-btn-secondary {
   border: 1px solid #cbd5e0;
   background: #fff;
   color: #4a5568;
 }
 
-.app-btn--secondary:hover:not(:disabled) {
+.app-btn-secondary:hover:not(:disabled) {
   background: #f7fafc;
 }
 
-.app-btn--surface {
+.app-btn-surface {
   border: 1px solid #cbd5e0;
   background: #fff;
   color: #0d1f3c;
   box-shadow: 0 6px 18px rgba(18, 34, 64, 0.04);
 }
 
-.app-btn--surface:hover:not(:disabled) {
+.app-btn-surface:hover:not(:disabled) {
   background: #f8fbff;
   border-color: #b7c7db;
 }
 
-.app-btn--subtle {
+.app-btn-subtle {
   background: #f7fafc;
   color: #0d1f3c;
   border: 1px solid #cbd5e0;
 }
 
-.app-btn--subtle:hover:not(:disabled) {
+.app-btn-subtle:hover:not(:disabled) {
   background: #ebf4ff;
 }
 
-.app-btn--danger-outline {
+.app-btn-danger-outline {
   border: 1px solid #e53935;
   background: #fff;
   color: #c62828;
 }
 
-.app-btn--danger-outline:hover:not(:disabled) {
+.app-btn-danger-outline:hover:not(:disabled) {
   background: #fff5f5;
 }
 

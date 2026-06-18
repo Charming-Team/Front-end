@@ -1,15 +1,15 @@
 <template>
   <section class="risk-page">
     <div class="risk-actions">
-      <button type="button" class="risk-action-button risk-action-button--ghost" @click="goToPreviousSimulations">
+      <button type="button" class="risk-action-button risk-action-button-ghost" @click="goToPreviousSimulations">
         이전 대응안 목록 조회
       </button>
 
-      <button type="button" class="risk-action-button risk-action-button--primary" @click="goToPlanPage">생산 계획 수정하러 가기</button>
+      <button type="button" class="risk-action-button risk-action-button-primary" @click="goToPlanPage">생산 계획 수정하러 가기</button>
     </div>
 
     <div class="risk-summary-grid">
-      <article class="risk-summary-card risk-summary-card--danger">
+      <article class="risk-summary-card risk-summary-card-danger">
         <div class="risk-summary-header">
           <p class="risk-summary-title">납기 지연 예상</p>
           <span class="risk-summary-badge">{{ riskSummary.delayedOrderCount }}건</span>
@@ -18,7 +18,7 @@
         <span class="risk-summary-value">{{ riskSummary.expectedDelayDays }}일</span>
       </article>
 
-      <article class="risk-summary-card risk-summary-card--warning">
+      <article class="risk-summary-card risk-summary-card-warning">
         <div class="risk-summary-header">
           <p class="risk-summary-title">자재 부족 예상</p>
           <span class="risk-summary-badge">{{ formatNumber(riskSummary.materialShortageQuantity) }}개</span>
@@ -27,7 +27,7 @@
         <span class="risk-summary-value">{{ riskSummary.materialShortageCount }}건</span>
       </article>
 
-      <article class="risk-summary-card risk-summary-card--critical">
+      <article class="risk-summary-card risk-summary-card-critical">
         <div class="risk-summary-header">
           <p class="risk-summary-title">고위험 주문</p>
           <span class="risk-summary-badge">{{ riskSummary.criticalOrderCount }}건</span>
@@ -37,7 +37,7 @@
       </article>
     </div>
 
-    <section class="risk-workspace" :class="{ 'risk-workspace--detail-open': selectedRiskItem }">
+    <section class="risk-workspace" :class="{ 'risk-workspace-detail-open': selectedRiskItem }">
       <section class="risk-list-card">
         <template v-if="!selectedRiskItem">
           <div class="risk-list-header">
@@ -58,7 +58,7 @@
           <div class="risk-filter-chips">
             <button
               type="button"
-              class="risk-chip risk-chip--all"
+              class="risk-chip risk-chip-all"
               :class="{ active: selectedRiskLevel === '' }"
               @click="selectedRiskLevel = ''"
             >
@@ -67,7 +67,7 @@
 
             <button
               type="button"
-              class="risk-chip risk-chip--critical"
+              class="risk-chip risk-chip-critical"
               :class="{ active: selectedRiskLevel === 'CRITICAL' }"
               @click="selectedRiskLevel = 'CRITICAL'"
             >
@@ -76,7 +76,7 @@
 
             <button
               type="button"
-              class="risk-chip risk-chip--warning"
+              class="risk-chip risk-chip-warning"
               :class="{ active: selectedRiskLevel === 'WARNING' }"
               @click="selectedRiskLevel = 'WARNING'"
             >
@@ -85,7 +85,7 @@
 
             <button
               type="button"
-              class="risk-chip risk-chip--caution"
+              class="risk-chip risk-chip-caution"
               :class="{ active: selectedRiskLevel === 'CAUTION' }"
               @click="selectedRiskLevel = 'CAUTION'"
             >
@@ -94,7 +94,7 @@
 
             <button
               type="button"
-              class="risk-chip risk-chip--safe"
+              class="risk-chip risk-chip-safe"
               :class="{ active: selectedRiskLevel === 'SAFE' }"
               @click="selectedRiskLevel = 'SAFE'"
             >

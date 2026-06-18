@@ -2,7 +2,7 @@
   <div class="dashboard-page">
     <section v-if="loading" class="dashboard-state">대시보드 데이터를 불러오는 중입니다.</section>
 
-    <section v-else-if="error" class="dashboard-state dashboard-state--error">
+    <section v-else-if="error" class="dashboard-state dashboard-state-error">
       <span>{{ error }}</span>
       <button type="button" @click="loadDashboard">다시 시도</button>
     </section>
@@ -137,7 +137,7 @@ onMounted(loadDashboard);
   font-weight: 700;
 }
 
-.dashboard-state--error {
+.dashboard-state-error {
   gap: 10px;
   color: var(--color-danger-dark);
 }

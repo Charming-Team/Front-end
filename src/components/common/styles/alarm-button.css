@@ -16,7 +16,7 @@
   stroke-linejoin: round;
 }
 
-.app-alarm-button__badge {
+.app-alarm-button-badge {
   position: absolute;
   top: -8px;
   right: -7px;
@@ -46,7 +46,7 @@
   z-index: 300;
 }
 
-.app-alarm-panel__header {
+.app-alarm-panel-header {
   min-height: 76px;
   padding: 18px 18px 16px 22px;
   display: flex;
@@ -58,7 +58,7 @@
   color: #fff;
 }
 
-.app-alarm-panel__header h2 {
+.app-alarm-panel-header h2 {
   margin: 0;
   color: #fff;
   font-size: 22px;
@@ -67,7 +67,7 @@
   letter-spacing: 0;
 }
 
-.app-alarm-panel__header p {
+.app-alarm-panel-header p {
   margin: 4px 0 0;
   color: rgba(255, 255, 255, 0.78);
   font-size: 13px;
@@ -75,13 +75,13 @@
   line-height: 1.25;
 }
 
-.app-alarm-panel__actions {
+.app-alarm-panel-actions {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.app-alarm-panel__delete {
+.app-alarm-panel-delete {
   height: 28px;
   padding: 0 10px;
   display: inline-flex;
@@ -96,16 +96,16 @@
   cursor: pointer;
 }
 
-.app-alarm-panel__delete:hover:not(:disabled) {
+.app-alarm-panel-delete:hover:not(:disabled) {
   background: rgba(255, 255, 255, 0.22);
 }
 
-.app-alarm-panel__delete:disabled {
+.app-alarm-panel-delete:disabled {
   opacity: 0.45;
   cursor: default;
 }
 
-.app-alarm-panel__total {
+.app-alarm-panel-total {
   height: 28px;
   padding: 0 10px;
   display: inline-flex;
@@ -118,7 +118,7 @@
   white-space: nowrap;
 }
 
-.app-alarm-panel__close {
+.app-alarm-panel-close {
   width: 34px;
   height: 34px;
   display: grid;
@@ -130,11 +130,11 @@
   cursor: pointer;
 }
 
-.app-alarm-panel__close:hover {
+.app-alarm-panel-close:hover {
   background: rgba(255, 255, 255, 0.2);
 }
 
-.app-alarm-panel__close svg {
+.app-alarm-panel-close svg {
   width: 20px;
   height: 20px;
   fill: none;
@@ -143,7 +143,7 @@
   stroke-linecap: round;
 }
 
-.app-alarm-panel__list {
+.app-alarm-panel-list {
   padding: 8px 0;
   display: grid;
   background: #fff;
@@ -188,7 +188,7 @@
   content: '';
 }
 
-.app-alarm-item__dot {
+.app-alarm-item-dot {
   position: absolute;
   top: 18px;
   left: 12px;
@@ -198,7 +198,7 @@
   background: #3182f6;
 }
 
-.app-alarm-item__icon {
+.app-alarm-item-icon {
   width: 44px;
   height: 44px;
   display: grid;
@@ -206,7 +206,7 @@
   border-radius: 999px;
 }
 
-.app-alarm-item__icon svg {
+.app-alarm-item-icon svg {
   width: 22px;
   height: 22px;
   fill: none;
@@ -216,29 +216,29 @@
   stroke-linejoin: round;
 }
 
-.app-alarm-item__icon--critical,
-.app-alarm-item__icon--danger {
+.app-alarm-item-icon-critical,
+.app-alarm-item-icon-danger {
   background: #fff0f3;
   color: #f04452;
 }
 
-.app-alarm-item__icon--warning {
+.app-alarm-item-icon-warning {
   background: #fff4e5;
   color: #f67b00;
 }
 
-.app-alarm-item__icon--success {
+.app-alarm-item-icon-success {
   background: #e9f9f4;
   color: #00a878;
 }
 
-.app-alarm-item__content {
+.app-alarm-item-content {
   min-width: 0;
   display: grid;
   gap: 4px;
 }
 
-.app-alarm-item__content strong {
+.app-alarm-item-content strong {
   overflow: hidden;
   color: #191f28;
   font-size: 15px;
@@ -248,7 +248,7 @@
   white-space: nowrap;
 }
 
-.app-alarm-item__content small {
+.app-alarm-item-content small {
   overflow: hidden;
   color: #6b7684;
   font-size: 13px;
@@ -258,7 +258,7 @@
   white-space: nowrap;
 }
 
-.app-alarm-item__badge {
+.app-alarm-item-badge {
   min-width: 44px;
   height: 26px;
   padding: 0 9px;
@@ -271,24 +271,24 @@
   white-space: nowrap;
 }
 
-.app-alarm-item__status {
+.app-alarm-item-status {
   display: grid;
   justify-items: end;
   gap: 5px;
 }
 
-.app-alarm-item__badge--critical,
-.app-alarm-item__badge--danger {
+.app-alarm-item-badge-critical,
+.app-alarm-item-badge-danger {
   background: #fff0f3;
   color: #f04452;
 }
 
-.app-alarm-item__badge--warning {
+.app-alarm-item-badge-warning {
   background: #fff4e5;
   color: #f67b00;
 }
 
-.app-alarm-item__badge--success {
+.app-alarm-item-badge-success {
   background: #e9f9f4;
   color: #00a878;
 }
