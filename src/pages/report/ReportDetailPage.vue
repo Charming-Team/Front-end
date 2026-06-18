@@ -379,6 +379,8 @@ watch(
             :summary-rows="report.summaryRows"
             :line-rows="report.lineRows"
             :equipment-rows="report.equipmentRows"
+            :show-line-section="!isExecutiveReport"
+            :show-equipment-section="!isExecutiveReport"
           />
         </div>
 
@@ -389,7 +391,10 @@ watch(
           @click="setActiveReportPane('analysis')"
           @keydown.enter.prevent="setActiveReportPane('analysis')"
         >
-          <ReportAnalysisContent :analysis="report.analysis" />
+          <ReportAnalysisContent
+            :analysis="report.analysis"
+            :show-recommendation="!isExecutiveReport"
+          />
         </div>
       </div>
     </div>
