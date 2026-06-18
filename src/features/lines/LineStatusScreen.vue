@@ -80,6 +80,16 @@ const chartItems = computed(() => {
   return machineLines.value.filter((line) => visibleLineIds.has(String(line.lineId)));
 });
 
+/**
+ * 목적: 라인 선택 옵션과 설비 구성도 데이터를 함께 조회한다.
+ * 입력: 없음. 내부에서 전체 라인과 전체 설비 상태 API를 호출한다.
+ * 출력: 반환값 없음. allLines, machineLines, machineLoading/machineError를 갱신한다.
+ * 처리 흐름:
+ * 1. 라인 운영 현황과 라인별 설비 상태를 병렬 조회한다.
+ * 2. 라인 응답은 normalizeLineOperationStatus로 옵션/필터 기준 모델에 맞춘다.
+ * 3. 설비 응답은 normalizeLineMachineStatus로 차트 모델에 맞춘다.
+ * 4. 실패하면 관련 목록을 비우고 설비 영역 오류 메시지를 저장한다.
+ */
 async function loadLineOptionsAndMachines() {
   machineLoading.value = true;
   machineError.value = "";
@@ -104,6 +114,16 @@ async function loadLineOptionsAndMachines() {
   }
 }
 
+/**
+ * 목적: 현재 라인/상태/페이지 조건에 맞는 라인 가동 현황 목록을 조회한다.
+ * 입력: selectedLine, selectedStatus, currentPage, pageSize.
+ * 출력: 반환값 없음. lines, totalCount, pageCount, lineLoading/lineError를 갱신한다.
+ * 처리 흐름:
+ * 1. fetchLineOperationStatuses에 페이지와 필터 조건을 전달한다.
+ * 2. 응답 content를 normalizeLineOperationStatus로 화면 행 모델에 맞춘다.
+ * 3. totalElements/totalPages 기준으로 페이지 상태를 갱신한다.
+ * 4. 실패하면 목록과 페이지 상태를 초기화하고 오류 메시지를 표시한다.
+ */
 async function loadLines() {
   lineLoading.value = true;
   lineError.value = "";
@@ -133,6 +153,16 @@ async function loadLines() {
   }
 }
 
+/**
+ * 목적: 주문 검색어 기준으로 라인별 주문 배분/진척 현황을 조회한다.
+ * 입력: orderKeyword 상태.
+ * 출력: 반환값 없음. orderDistributions, orderLoading/orderError를 갱신한다.
+ * 처리 흐름:
+ * 1. searchLineOrders로 주문 후보를 조회한다.
+ * 2. 각 주문별 상세 배분은 fetchOrderDistribution으로 추가 조회한다.
+ * 3. 상세 조회가 실패한 주문은 검색 결과만으로 normalizeOrderSearchResult를 만든다.
+ * 4. 전체 검색 실패 시 배분 목록을 비우고 오류 메시지를 저장한다.
+ */
 async function loadOrderDistributions() {
   orderLoading.value = true;
   orderError.value = "";
@@ -162,6 +192,15 @@ async function loadOrderDistributions() {
   }
 }
 
+/**
+ * 목적: 라인 운영 테이블의 draft 필터를 실제 조회 조건으로 적용한다.
+ * 입력: draftLine, draftStatus.
+ * 출력: 반환값 없음. selectedLine/selectedStatus/currentPage를 갱신하고 loadLines를 호출한다.
+ * 처리 흐름:
+ * 1. draft 값을 selected 값으로 복사한다.
+ * 2. 첫 페이지로 이동한다.
+ * 3. 변경된 조건으로 라인 목록을 다시 조회한다.
+ */
 function applyLineFilters() {
   selectedLine.value = draftLine.value;
   selectedStatus.value = draftStatus.value;
