@@ -16,6 +16,8 @@ const props = defineProps({
 
 const emit = defineEmits(["close", "save"]);
 
+const isExecutiveReport = computed(() => props.report?.reportMode === "EXECUTIVE");
+
 const form = reactive({
   title: "",
   overview: "",
@@ -54,7 +56,7 @@ function buildAnalysis() {
   return {
     overview: form.overview.trim(),
     sections,
-    recommendation: form.recommendation.trim(),
+    recommendation: isExecutiveReport.value ? "" : form.recommendation.trim(),
   };
 }
 
@@ -77,7 +79,7 @@ function buildMarkdown(analysis) {
     lines.push("");
   });
 
-  if (analysis.recommendation) {
+  if (!isExecutiveReport.value && analysis.recommendation) {
     lines.push("## 종합 의견 및 제안", "", analysis.recommendation, "");
   }
 
@@ -214,7 +216,10 @@ watch(
         </p>
       </section>
 
-      <label class="grid gap-2">
+      <label
+        v-if="!isExecutiveReport"
+        class="grid gap-2"
+      >
         <span class="text-[16px] font-extrabold text-[#16345f]">
           종합 의견 및 제안
         </span>

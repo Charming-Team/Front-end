@@ -4,6 +4,10 @@ defineProps({
     type: Object,
     required: true,
   },
+  showRecommendation: {
+    type: Boolean,
+    default: true,
+  },
 });
 </script>
 
@@ -36,7 +40,7 @@ defineProps({
         </ul>
       </div>
 
-      <div v-if="analysis.recommendation">
+      <div v-if="showRecommendation && analysis.recommendation">
         <span class="block mb-2 text-[20px] font-bold text-[#0f3a70]">
           종합 의견 및 제안
         </span>
