@@ -67,8 +67,9 @@ export async function sendReportPdfMail(reportId, payload) {
 export async function createBusinessReport(reportId) {
   return apiRequest("/api/reports/business", {
     method: "POST",
+    skipRequestValidation: true,
     body: JSON.stringify({
-      reportId: Number(reportId),
+      report_id: Number(reportId),
     }),
   });
 }
