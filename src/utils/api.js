@@ -153,7 +153,8 @@ function collectJsonConventionViolations(value, path = '') {
  * 2. JSON 파싱에 성공하면 필드명/코드값 규약을 검사한다.
  * 3. 위반 항목이 있으면 400 상태의 ApiError로 호출 흐름을 중단한다.
  */
-function validateRequestBody(fetchOptions) {
+function validateRequestBody(fetchOptions, skipRequestValidation = false) {
+  if (skipRequestValidation) return
   if (!isJsonRequest(fetchOptions)) return
 
   let payload = null
@@ -172,8 +173,8 @@ function validateRequestBody(fetchOptions) {
   })
 }
 
-function buildRequestInit(fetchOptions, token, skipAuth) {
-  validateRequestBody(fetchOptions)
+function buildRequestInit(fetchOptions, token, skipAuth, skipRequestValidation = false) {
+  validateRequestBody(fetchOptions, skipRequestValidation)
 
   return {
     ...fetchOptions,
@@ -261,15 +262,26 @@ async function refreshAccessToken() {
  * 4. 성공 시 백엔드 공통 응답의 data를 우선 반환한다.
  */
 export async function apiRequest(path, options = {}) {
-  const { skipAuth = false, skipRefresh = false, ...fetchOptions } = options
+  const {
+    skipAuth = false,
+    skipRefresh = false,
+    skipRequestValidation = false,
+    ...fetchOptions
+  } = options
   const token = getToken()
-  let response = await fetch(`${API_BASE_URL}${path}`, buildRequestInit(fetchOptions, token, skipAuth))
+  let response = await fetch(
+    `${API_BASE_URL}${path}`,
+    buildRequestInit(fetchOptions, token, skipAuth, skipRequestValidation)
+  )
   let payload = await parseResponse(response)
 
   if (response.status === 401 && !skipAuth && !skipRefresh) {
     try {
       const refreshedToken = await refreshAccessToken()
-      response = await fetch(`${API_BASE_URL}${path}`, buildRequestInit(fetchOptions, refreshedToken, false))
+      response = await fetch(
+        `${API_BASE_URL}${path}`,
+        buildRequestInit(fetchOptions, refreshedToken, false, skipRequestValidation)
+      )
       payload = await parseResponse(response)
     } catch (err) {
       clearToken()
