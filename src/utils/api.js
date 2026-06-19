@@ -94,7 +94,7 @@ function buildHeaders(fetchOptions, token, skipAuth) {
 }
 
 function getErrorMessage(status, payload, fallbackMessage) {
-  return ERROR_MESSAGES_BY_STATUS[status] || payload?.message || fallbackMessage
+  return payload?.message || ERROR_MESSAGES_BY_STATUS[status] || fallbackMessage
 }
 
 function isJsonRequest(fetchOptions = {}) {
