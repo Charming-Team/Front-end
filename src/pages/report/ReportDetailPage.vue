@@ -17,7 +17,6 @@ import {
   fetchReportDetail,
   sendReportPdfMail,
   updateReport,
-  waitForReportJobSuccess,
 } from "../../features/report/api.js";
 import { mapReportDetailForView } from "../../features/report/mapper.js";
 
@@ -32,6 +31,7 @@ const isExportModalOpen = ref(false);
 const isEditModalOpen = ref(false);
 const isMailModalOpen = ref(false);
 const isProcessing = ref(false);
+const isBusinessReportSubmitting = ref(false);
 
 const activeReportPane = ref("balanced");
 
@@ -98,31 +98,34 @@ function goBack() {
 }
 
 async function handleCreateExecutiveReport() {
-  if (!report.value?.id) return;
+  if (!report.value?.id || isBusinessReportSubmitting.value) return;
 
-  isProcessing.value = true;
-  loadingTitle.value = "비즈니스 보고서를 생성하고 있습니다";
-  loadingDescription.value =
-    "현재 보고서를 기준으로 새 경영진용 보고서 생성 Job을 실행하고 있습니다.";
+  isBusinessReportSubmitting.value = true;
 
   try {
-    const jobStart = await createBusinessReport(report.value.id);
-    const completedJob = await waitForReportJobSuccess(jobStart.reportJobId);
+    await createBusinessReport(report.value.id);
 
     showToast(
-      "비즈니스 보고서가 생성되었습니다",
-      "생성된 경영진용 보고서로 이동합니다."
+      "비즈니스 보고서 생성 요청이 접수되었습니다",
+      "완료되면 알림으로 알려드립니다."
     );
-
-    router.push(`/reports/${completedJob.resultReportId}`);
   } catch (error) {
+    if (error.status === 409) {
+      showToast(
+        "비즈니스 보고서 생성이 진행 중입니다",
+        "완료되면 알림으로 알려드립니다.",
+        "warning"
+      );
+      return;
+    }
+
     showToast(
-      "비즈니스 보고서 생성에 실패했습니다",
+      "비즈니스 보고서 생성 요청에 실패했습니다",
       error.message || "잠시 후 다시 시도해 주세요.",
       "error"
     );
   } finally {
-    isProcessing.value = false;
+    isBusinessReportSubmitting.value = false;
   }
 }
 
@@ -353,8 +356,8 @@ watch(
       <ReportDetailHeader
         :report="report"
         :show-executive-button="!isExecutiveReport"
-        :actions-disabled="isProcessing"
-        :executive-button-label="isProcessing ? '생성 중...' : '비즈니스 보고서 생성'"
+        :actions-disabled="isProcessing || isBusinessReportSubmitting"
+        :executive-button-label="isBusinessReportSubmitting ? '요청 중...' : '비즈니스 보고서 생성'"
         @back="goBack"
         @create-executive="handleCreateExecutiveReport"
         @export="openExportModal"
